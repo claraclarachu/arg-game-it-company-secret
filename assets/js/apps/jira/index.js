@@ -3,6 +3,60 @@ import { trackOnboarding } from '../../main.js';
 
 const tickets = [
   {
+    key: 'INV-2024-0017',
+    title: '官網首頁文案顯示錯誤 — Hero 標語與成立年份顯示錯誤',
+    status: 'Done',
+    assignee: 'Parker',
+    priority: 'Medium',
+    points: 2,
+    epic: 'Frontend',
+    desc: `【問題描述】
+官網首頁 Hero 區塊與頁尾「關於 Nori」區塊文案顯示錯誤：
+1. Hero 主標語顯示為「用一杯冰釀茶酒，連結人與希望」應為「用一杯冰釀茶酒，連結人與風味」
+2. 公司成立年份顯示為「2018 創立」應為「2019 創立」
+導致品牌調性不一致，客戶對公司歷史產生誤解，且與公司登記資料（2019-05 創立）不符。
+
+【復現步驟】
+1. 以訪客身份開啟官網首頁 https://nori.example/
+2. 檢視首頁 Hero 區塊主標語（位於 /customer-portal/src/frontend/src/pages/Home.jsx）
+3. 實際顯示：「Nori 飲品供應 — 用一杯冰釀茶酒，連結人與希望」
+4. 捲動至頁尾「關於 Nori」區塊，查看成立年份文字
+5. 實際顯示：「創辦人 蔡梓掦 · 2018 創立 · 招牌冰釀茶酒最暢銷」
+6. 對比 /intranet/company_public/公司簡介.md 記載：2019 年 5 月創立
+
+【預期結果 vs 實際結果】
+預期：Hero 應顯示「連結人與風味」、年份應為 2019
+實際：顯示「連結人與希望」、年份為 2018
+檔案：/customer-portal/src/frontend/src/pages/Home.jsx 第 3-4 行
+
+【影響範圍】
+- 影響所有訪客首頁體驗（100% 流量），品牌文案錯誤
+- SEO 與對外文宣不一致，可能被客戶截圖質疑專業度
+- 無金流或資安影響，但影響品牌信任與對外一致性
+- 嚴重度：中（Medium）／優先度：中
+
+【根本原因】
+Home.jsx 寫死文案時誤植，2018 為草稿年份未更新至 2019；slogan 複製貼上時將「風味」錯植為「希望」。
+
+【修復方案】
+由 Parker 將 Home.jsx 文案修正為「2019 創立」與「連結人與風味」，並提交 commit，經 Maggie 驗收後關閉。`,
+    comments: [
+      'Maggie: @Parker 這個首頁文案客戶有反應，Hero 那句「連結人與希望」應該是「連結人與風味」，還有年份 2018 應為 2019，麻煩幫忙修一下。檔案在 /customer-portal/src/frontend/src/pages/Home.jsx，改完記得 commit。',
+      'Parker: 收到，已定位到 Home.jsx 第 3-4 行，slogan 與年份寫死錯誤，已修正並 commit。',
+      'Maggie: 確認修好，本地驗證 Hero 顯示「風味」、年份 2019 正確，已關單。感謝！',
+    ],
+    attachments: [
+      { name: 'Home.jsx', type: 'jsx', snippet: 'export default function Home(){ <h1>...連結人與希望</h1> <p>2018 創立</p> } // 應為 風味 / 2019' },
+      { name: '公司簡介.md', type: 'md', snippet: '成立時間：2019 年 5 月 — 與首頁 2018 不一致' },
+      { name: 'Home.jsx (fixed)', type: 'jsx', snippet: '+ <h1>...連結人與風味</h1>\n+ <p>2019 創立</p> // Parker fix 2024-02-14' },
+    ],
+    history: [
+      { from: '—', to: 'To Do', by: 'Maggie', at: '2024-02-14' },
+      { from: 'To Do', to: 'In Progress', by: 'Maggie', at: '2024-02-14' },
+      { from: 'In Progress', to: 'Done', by: 'Parker', at: '2024-02-15' },
+    ],
+  },
+  {
     key: 'INV-2024-0042',
     title: '修正 VIP 折扣計算錯誤 — VIP1 應為 90% 非 95%',
     status: 'To Do',

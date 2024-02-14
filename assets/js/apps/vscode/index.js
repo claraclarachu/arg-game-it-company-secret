@@ -14,6 +14,7 @@ let termDraft = '';
 // Editable tracking
 const editedFiles = new Map(); // path -> edited content string
 let originalSearchBarSnapshot = null; // captured at mount to allow revert via git graph
+let originalHomeSnapshot = null; // 2024-02-14 Parker fix: Home.jsx bug snapshot
 function getOriginalContent(path) {
   const e = vfs.getFile(path);
   return e ? e.content : null;
@@ -39,6 +40,14 @@ function captureOriginalSearchBar() {
     if (e) originalSearchBarSnapshot = e.content;
   }
 }
+function captureOriginalHome() {
+  if (!originalHomeSnapshot) {
+    const e = vfs.getFile('/customer-portal/src/frontend/src/pages/Home.jsx');
+    if (e) originalHomeSnapshot = e.content;
+  }
+}
+const HOME_BUG_CONTENT = `export default function Home(){\n  return (\n    <div>\n      <h1>Nori 飲品供應 — 用一杯冰釀茶酒，連結人與希望</h1>\n      <p>創辦人 蔡梓掦 · 2018 創立 · 招牌冰釀茶酒最暢銷</p>\n      <nav><a href="/drinks">飲品一覽</a> | <a href="/about">關於我們</a></nav>\n    </div>\n  );\n}\n`;
+const HOME_FIXED_CONTENT = `export default function Home(){\n  return (\n    <div>\n      <h1>Nori 飲品供應 — 用一杯冰釀茶酒，連結人與風味</h1>\n      <p>創辦人 蔡梓掦 · 2019 創立 · 招牌冰釀茶酒最暢銷</p>\n      <nav><a href="/drinks">飲品一覽</a> | <a href="/about">關於我們</a></nav>\n    </div>\n  );\n}\n`;
 function isPortalEntryClosed() {
   return state.hasFlag('ch1_0043_committed') && !state.hasFlag('ch1_revert_done');
 }
@@ -74,11 +83,33 @@ function triggerSystemHealthy(source = 'revert') {
   }, 500);
 }
 function handleGitGraphRevert(hash) {
+  const target = gitGraphCommits.find(c=>c.hash===hash) || gitCommits.find(c=>c.hash===hash);
+  if (!target) return;
+  // --- INV-2024-0017 Parker fix: toggle Home.jsx bug <-> fixed ---
+  const isParker0017 = target.msg.includes('INV-2024-0017') || target.hash === '3f2a9c1';
+  if (isParker0017) {
+    const current = vfs.getFile('/customer-portal/src/frontend/src/pages/Home.jsx')?.content || '';
+    const isBug = current.includes('連結人與希望') || current.includes('2018 創立');
+    const nextContent = isBug ? HOME_FIXED_CONTENT : HOME_BUG_CONTENT;
+    vfs.registerFile('/customer-portal/src/frontend/src/pages/Home.jsx', { content: nextContent, meta: { lang: 'javascript' } });
+    const e = vfs.getFile('/customer-portal/src/frontend/src/pages/Home.jsx');
+    if (e) e.content = nextContent;
+    editedFiles.delete('/customer-portal/src/frontend/src/pages/Home.jsx');
+    const hash2 = Math.random().toString(36).slice(2,8);
+    const msg = isBug ? `revert: restore Home.jsx fix (revert ${hash} — apply Parker fix)` : `revert: revert Home.jsx fix (revert ${hash} — back to bug)`;
+    const diff = isBug ? `M /customer-portal/src/frontend/src/pages/Home.jsx\n- 連結人與希望 / 2018\n+ 連結人與風味 / 2019 (revert apply)` : `M /customer-portal/src/frontend/src/pages/Home.jsx\n- 連結人與風味 / 2019\n+ 連結人與希望 / 2018 (revert)`;
+    gitCommits.unshift({ hash: hash2, author: 'Parker', date: new Date().toISOString().slice(0,10), msg, diff });
+    gitGraphCommits.unshift({ hash: hash2, branch: 'main', author: 'Parker', date: new Date().toISOString().slice(0,10), msg, diff });
+    const statusEl = document.getElementById('scmCommitStatus');
+    if (statusEl) statusEl.innerHTML = `<span style="color:var(--success)">✓ Revert 成功: ${hash2} (from ${hash}) — ${isBug ? '已套用 Parker 修復' : '已回退至 bug 版'}</span>`;
+    appendTerminal(`✓ revert ${hash2} — ${msg}`);
+    renderTabs(); renderTree(); renderScmChanges();
+    if (gitGraphOpen) renderGitGraphEditor();
+    return;
+  }
   // Revert button on commit row: restore SearchBar.jsx to original and create revert commit
   if (!isPortalEntryClosed()) return;
   // Only allow revert if that hash is the 0043 removal commit (or any Casey commit while down)
-  const target = gitGraphCommits.find(c=>c.hash===hash) || gitCommits.find(c=>c.hash===hash);
-  if (!target) return;
   // Restore file content
   captureOriginalSearchBar();
   if (originalSearchBarSnapshot) {
@@ -106,6 +137,7 @@ function handleGitGraphRevert(hash) {
 const gitCommits = [
   { hash: 'a1b2c3d', author: 'finance@internal', date: '2024-08-12', msg: 'feat: integrate crypto-mixer (legacy)', diff: `+ import { cryptoMixer } from '@shady/crypto-mixer'\n  feeRate table added: drink-001 0.05, drink-002 0.08` },
   { hash: '9f8e7d6', author: 'parker', date: '2024-08-10', msg: 'fix: rounding edge case', diff: `- if (total > 1000) {\n+ if (total >= 1000) {` },
+  { hash: '3f2a9c1', author: 'Parker', date: '2024-02-14', msg: '(INV-2024-0017) fix: correct homepage hero slogan and founded year (2018→2019)', diff: `M /customer-portal/src/frontend/src/pages/Home.jsx\n- <h1>Nori 飲品供應 — 用一杯冰釀茶酒，連結人與希望</h1>\n+ <h1>Nori 飲品供應 — 用一杯冰釀茶酒，連結人與風味</h1>\n- <p>創辦人 蔡梓掦 · 2018 創立</p>\n+ <p>創辦人 蔡梓掦 · 2019 創立</p>` },
   { hash: '4c2a1e0', author: 'dev', date: '2024-08-01', msg: 'chore: init billing service', diff: `+ export function calculateAmount(items, opts) {}\n+ export function computeFee(amount, opts) {}` },
 ];
 const fakeBlame = {
@@ -132,6 +164,7 @@ const branchColors = {
   'feature/vip-discount': '#4da3ff',
   'feature/crypto-mixer': '#dcdcaa',
   'feature/billing-fix': '#ce9178',
+  'feature/home-copyfix': '#4ec9b0',
   'develop': '#c586c0',
 };
 let gitGraphCommits = [
@@ -141,6 +174,7 @@ let gitGraphCommits = [
   { hash: 'b5c8e11', branch: 'develop', author: 'ops-li', date: '2024-08-05', msg: '(INV-2024-0028) chore: update CI pipeline for billing tests', diff: `M .github/workflows/ci.yml\n+ - run: npm test -- billing\n+ - run: sonar-scan` },
   { hash: '4c2a1e0', branch: 'main', author: 'dev', date: '2024-08-01', msg: '(INV-2024-0020) chore: init billing service', diff: `+ export function calculateAmount(items, opts) {}\n+ export function computeFee(amount, opts) {}` },
   { hash: 'c8d3e9f', branch: 'develop', author: 'ops-li', date: '2024-07-28', msg: '(INV-2023-0040) chore: scaffold workspace & payment stubs', diff: `+ workspace/src/payment/gateway.js\n+ workspace/src/payment/mixer.js` },
+  { hash: '3f2a9c1', branch: 'feature/home-copyfix', author: 'Parker', date: '2024-02-14', msg: '(INV-2024-0017) fix: correct homepage hero slogan and founded year (2018→2019)', diff: `M /customer-portal/src/frontend/src/pages/Home.jsx\n- <h1>Nori 飲品供應 — 用一杯冰釀茶酒，連結人與希望</h1>\n+ <h1>Nori 飲品供應 — 用一杯冰釀茶酒，連結人與風味</h1>\n- <p>創辦人 蔡梓掦 · 2018 創立</p>\n+ <p>創辦人 蔡梓掦 · 2019 創立</p>` },
   { hash: 'd4e5f6a', branch: 'main', author: 'dev-chen', date: '2023-11-20', msg: '(INV-2023-0039) refactor: simplify portal auth (remove dynamic generator)', diff: `- function generateInternalPortalPath(internalPortalDomain){ \n-     const cid = redis.get('companyId'); \n-     const y = redis.get('year'); \n-     const k = import.meta.env.MD5_KEY; \n-     return internalPortalDomain + 'hash=' + md5(\`companyId=\${cid}&year=\${y}&key=\${k}\`); \n-     }` },
 ];
 
@@ -314,6 +348,7 @@ export function mountVSCode() {
     </div>
   `;
   captureOriginalSearchBar();
+  captureOriginalHome();
   renderTree();
   renderTabs();
   openFile(currentFile);
@@ -529,7 +564,8 @@ function renderGitGraphEditor() {
       return `<div>${esc}</div>`;
     }).join('');
     const isUserRemovalCommit = c.author === 'Casey' && (c.diff.includes('SearchBar') || c.diff.includes('legacyRoutes') || c.msg.includes('0043'));
-    const showRevert = entryClosed && isUserRemovalCommit && !state.hasFlag('ch1_revert_done') && state.hasFlag('sawyer_seq_started');
+    const isParker0017 = (c.hash === '3f2a9c1' || c.msg.includes('INV-2024-0017')) && c.author === 'Parker';
+    const showRevert = (entryClosed && isUserRemovalCommit && !state.hasFlag('ch1_revert_done') && state.hasFlag('sawyer_seq_started')) || isParker0017;
     return `
       <div class="gitgraph-row ${isExpanded ? 'expanded' : ''}" data-hash="${c.hash}">
         <div class="gitgraph-row__main">
