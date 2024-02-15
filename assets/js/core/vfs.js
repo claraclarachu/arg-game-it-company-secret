@@ -381,7 +381,7 @@ function seedFiles() {
     meta: { lang: 'javascript' }
   });
   registerFile('/customer-portal/src/frontend/src/pages/Home.jsx', {
-    content: `export default function Home(){\n  return (\n    <div>\n      <h1>Nori 飲品供應 — 用一杯冰釀茶酒，連結人與風味</h1>\n      <p>創辦人 蔡梓掦 · 2019 創立 · 招牌冰釀茶酒最暢銷</p>\n      <nav><a href="/drinks">飲品一覽</a> | <a href="/about">關於我們</a></nav>\n    </div>\n  );\n}\n`,
+    content: `export default function Home(){\n  return (\n    <div>\n      <h1>Nori 飲品供應 — 用一杯冰釀茶酒，連結人與希望</h1>\n      <p>創辦人 蔡梓掦 · 2018 創立 · 招牌冰釀茶酒最暢銷</p>\n      <nav><a href="/drinks">飲品一覽</a> | <a href="/about">關於我們</a></nav>\n    </div>\n  );\n}\n`,
     meta: { lang: 'javascript' }
   });
   registerFile('/customer-portal/src/frontend/src/pages/PriceCalculator.jsx', {
