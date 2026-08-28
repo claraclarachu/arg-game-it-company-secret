@@ -1,0 +1,13 @@
+@media (max-width: 768px){
+  :root{--sidebar-w: 100%}
+  .vscode{flex-direction:column}
+  .vscode__side{width:100%;max-height:42%}
+  .wa{flex-direction:column}
+  .wa__list{width:100%;max-width:100%;max-height:38%}
+  .jira__board{grid-template-columns:1fr}
+  .dock{justify-content:space-around}
+  .dock__btn{min-width:56px}
+}
+@media (min-width: 769px) and (max-width: 1024px){
+  .jira__board{grid-template-columns:repeat(2,1fr)}
+}

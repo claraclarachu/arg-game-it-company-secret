@@ -1,0 +1,12 @@
+.wa{display:flex;flex:1;min-height:0}
+.wa__list{width:320px;max-width:40%;border-right:1px solid var(--border);background:var(--bg-secondary);overflow:auto}
+.wa__chat{flex:1;display:flex;flex-direction:column;background:var(--bg-primary)}
+.wa__item{padding:10px 12px;border-bottom:1px solid var(--border);cursor:pointer}
+.wa__item:hover{background:var(--bg-tertiary)}
+.wa__item.active{background:var(--bg-tertiary)}
+.wa__name{font-size:13px;font-weight:600}
+.wa__preview{font-size:12px;color:var(--fg-secondary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wa__messages{flex:1;overflow:auto;padding:12px;display:flex;flex-direction:column;gap:8px}
+.bubble{max-width:78%;padding:8px 10px;border-radius:10px;font-size:13px;line-height:1.4}
+.bubble.me{align-self:flex-end;background:var(--accent);color:#fff;border-bottom-right-radius:2px}
+.bubble.other{align-self:flex-start;background:var(--bg-secondary);border:1px solid var(--border);border-bottom-left-radius:2px}

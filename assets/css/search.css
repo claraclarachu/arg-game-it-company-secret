@@ -1,0 +1,9 @@
+.search{padding:16px;max-width:900px;margin:0 auto;width:100%}
+.search__bar{display:flex;gap:8px}
+.search__bar input{flex:1}
+.search__suggest{margin-top:8px;display:flex;gap:6px;flex-wrap:wrap}
+.chip{font-size:12px;padding:4px 8px;border-radius:999px;background:var(--bg-secondary);border:1px solid var(--border);cursor:pointer}
+.result{padding:12px;border:1px solid var(--border);border-radius:8px;background:var(--bg-secondary);margin-top:10px}
+.result__title{font-size:14px;color:var(--accent);margin:0}
+.result__url{font-size:11px;color:var(--fg-muted)}
+.result__snippet{font-size:13px;color:var(--fg-secondary);margin-top:6px}

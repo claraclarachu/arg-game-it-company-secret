@@ -1,0 +1,9 @@
+.jira{padding:12px;display:flex;flex-direction:column;gap:12px}
+.jira__board{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.jira__col{background:var(--bg-secondary);border:1px solid var(--border);border-radius:8px;padding:8px;min-height:220px}
+.jira__col h3{margin:0 0 8px;font-size:13px;color:var(--fg-secondary)}
+.ticket{padding:8px;border:1px solid var(--border);border-radius:6px;background:var(--bg-primary);margin-bottom:8px;cursor:pointer}
+.ticket:hover{border-color:var(--accent)}
+.ticket__key{font-size:11px;color:var(--fg-muted)}
+.ticket__title{font-size:13px;margin:4px 0}
+.ticket__meta{font-size:11px;color:var(--fg-secondary)}

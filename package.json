@@ -1,0 +1,17 @@
+{
+  "name": "code-conspiracy",
+  "version": "1.0.0",
+  "description": "ARG Game: Code & Conspiracy - A programmer's life simulation uncovering corporate secrets",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "lint": "eslint assets/js --ext .js"
+  },
+  "devDependencies": {
+    "vite": "^5.0.0"
+  },
+  "keywords": ["arg", "game", "simulation", "offline", "pwa"],
+  "license": "MIT"
+}
