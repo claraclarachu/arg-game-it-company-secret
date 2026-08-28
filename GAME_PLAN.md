@@ -217,7 +217,7 @@ const puzzles = {
 ## 7. File Structure
 
 ```
-/argGameProj/
+/arg-game-it-company-secret/
 ├── index.html              # 入口點
 ├── manifest.json           # PWA 設定 (離線支援)
 ├── sw.js                   # Service Worker
