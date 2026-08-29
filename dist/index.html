@@ -6,8 +6,8 @@
   <meta name="theme-color" content="#0078d4" />
   <title>Code & Conspiracy — ARG</title>
   <link rel="manifest" href="/manifest.json" />
-  <script type="module" crossorigin src="/assets/main-D1-IYB0f.js"></script>
-  <link rel="stylesheet" crossorigin href="/assets/main-DBn3zFNV.css">
+  <script type="module" crossorigin src="/assets/main-QTMY6bDD.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/main-Bdcf8dx_.css">
 </head>
 <body>
   <div class="app">
@@ -25,15 +25,12 @@
 
   <div id="toasts" class="toasts" aria-live="polite"></div>
 
-  <dialog id="settingsDialog" style="border:1px solid var(--border);border-radius:12px;padding:0;max-width:520px;width:90%">
+  <dialog id="settingsDialog" style="background:var(--bg-secondary);color:var(--fg-primary);border:1px solid var(--border);border-radius:12px;padding:0;max-width:520px;width:90%">
     <div style="padding:16px">
       <h3 style="margin:0 0 12px">設定</h3>
       <div style="display:grid;gap:10px">
         <label>主題
           <select id="settingTheme" class="select"><option value="dark">Dark</option><option value="light">Light</option></select>
-        </label>
-        <label>語言
-          <select id="settingLang" class="select"><option value="zh-TW">繁中</option><option value="en">English</option></select>
         </label>
         <div class="small muted">遊玩時長: <span id="settingPlaytime">0s</span></div>
         <div style="display:flex;gap:8px;flex-wrap:wrap">
@@ -46,7 +43,7 @@
     </div>
   </dialog>
 
-  <dialog id="notebookDialog" style="border:1px solid var(--border);border-radius:12px;padding:0;max-width:640px;width:90%;max-height:80vh;overflow:auto">
+  <dialog id="notebookDialog" style="background:var(--bg-secondary);color:var(--fg-primary);border:1px solid var(--border);border-radius:12px;padding:0;max-width:640px;width:90%;max-height:80vh;overflow:auto">
     <div style="padding:16px">
       <h3 style="margin:0 0 12px">筆記本 · 證據板</h3>
       <div id="notebookContent"></div>

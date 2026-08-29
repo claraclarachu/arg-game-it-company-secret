@@ -268,6 +268,13 @@
   font-size:12px;
   flex-shrink:0;
 }
+:root[data-theme="light"] .vscode__statusbar{
+  background:#6aabf0;
+  color:#0f2436;
+}
+:root[data-theme="light"] .vscode__statusbar .vscode__statusbar-item:hover{
+  background:rgba(0,0,0,.08);
+}
 .vscode__statusbar-left,
 .vscode__statusbar-right{
   display:flex;align-items:center;gap:12px;

@@ -1,5 +1,5 @@
 import { state } from '../core/state.js';
-import { t, setLanguage } from '../core/i18n.js';
+import { t } from '../core/i18n.js';
 import { downloadText, readFileAsText } from '../utils/storage.js';
 import { toast } from './notifications.js';
 
@@ -12,9 +12,7 @@ export function openSettings() {
 
 function renderSettingsPanel() {
   const themeSel = document.getElementById('settingTheme');
-  const langSel = document.getElementById('settingLang');
   if (themeSel) themeSel.value = state.get('settings.theme');
-  if (langSel) langSel.value = state.get('settings.language');
   const playtimeEl = document.getElementById('settingPlaytime');
   if (playtimeEl) playtimeEl.textContent = String(state.get('playtime')) + 's';
 }
@@ -25,10 +23,6 @@ export function bindSettings() {
     state.set('settings.theme', v);
     document.documentElement.setAttribute('data-theme', v);
     toast(t('toast.saved'));
-  });
-  document.getElementById('settingLang')?.addEventListener('change', e => {
-    setLanguage(e.target.value);
-    location.reload();
   });
   document.getElementById('btnExport')?.addEventListener('click', () => {
     downloadText('code-conspiracy-save.json', state.exportSave());

@@ -13,9 +13,23 @@
 :root[data-theme="light"]{
   --bg-primary:#ffffff; --bg-secondary:#f3f3f3; --bg-tertiary:#ececec;
   --fg-primary:#1f2428; --fg-secondary:#586069; --fg-muted:#6a737d;
-  --border:#e1e4e8; --accent:#0366d6;
+  --border:#e1e4e8; --accent:#4da3ff;
   --win-wallpaper:#a8d8f0;
   --taskbar-bg:#f3f3f3;
+}
+/* Dialogs - fix dark mode showing light background */
+dialog{
+  background:var(--bg-secondary);
+  color:var(--fg-primary);
+  border:1px solid var(--border);
+}
+dialog::backdrop{
+  background:rgba(0,0,0,.45);
+  backdrop-filter:blur(2px);
+}
+#settingsDialog, #notebookDialog{
+  background:var(--bg-secondary);
+  color:var(--fg-primary);
 }
 *{box-sizing:border-box}
 html,body{height:100%;margin:0;background:var(--bg-primary);color:var(--fg-primary);font-family:var(--font-ui);-webkit-font-smoothing:antialiased}
