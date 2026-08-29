@@ -4,24 +4,21 @@
 > 更新方式：每次完成一個子任務就更新本檔並 `git commit + push`。
 
 ## 最後更新
-- **日期**：2026-08-29 18:45 (Asia/Taipei) | **分支**：`master` → `claraclarachu/arg-game-it-company-secret`
-- **最後 Commit**：`690a756 feat: Phase 5` → `Phase 6 + Phase 7 完成`
+- **日期**：2026-08-29 19:15 (Asia/Taipei) | **分支**：`master` → `claraclarachu/arg-game-it-company-secret`
+- **最後 Commit**：`33b1149 feat: Phase 6 + Phase 7` → `onboarding narrative + 完整 Phase 1-7 完成`
 - **當前工作目錄**：`C:\Users\user\Documents\Projects\arg-game-it-company-secret`（Windows）/ 辦公室 `~/Documents/03 For Testing/arg-game-it-company-secret`（含空格，需 quoted `workdir`）
 - **Node**：`v24.14.1` / **npm**：`11.11.0` / **Vite**：`^8.2.2` + `esbuild ^0.28.2` (Vite 8 需獨立 `esbuild`)
-- **Dev 伺服器**：`http://localhost:3000` **嚴格固定 3000**（先 kill 再起，勿產生 3001/3002）PID `25028`→`最新` 運行中，截圖驗證通過（VS Code + Jira + WhatsApp + Search）
+- **Dev 伺服器**：`http://localhost:3000` **嚴格固定 3000**（先 kill 再起，勿產生 3001/3002）PID `20932` 運行中，截圖驗證通過（VS Code + Jira + WhatsApp + Search + Onboarding）
 
-## 當前階段判定：Phase 5 ✅ + Phase 6 ✅ + Phase 7 ✅ 完成
+## 當前階段判定：Phase 1-7 ✅ 全部完成
 對照 `GAME_PLAN.md §8`：
 
-| Phase | 標題 | 狀態 | 備註 |
-|-------|------|------|------|
-| Phase 1 | Foundation (Week 1-2) | ✅ 完成 | Vite+ESM、State/localStorage、響應式、主題、PWA `public/sw.js`、四大介面空殼皆就緒 |
-| **Phase 2** | **VS Code Simulator** | **✅ 完成** | **2026-08-29 17:40-18:25** — 含高亮/摺疊/終端/QuickOpen |
-| **Phase 3** | **Jira Simulator** | **✅ 完成** | **2026-08-29 17:40** — 拖拉/JQL/泳道/附件/燃盡圖 |
-| **Phase 4** | **WhatsApp Web** | **✅ 完成** | **2026-08-29 18:00** — 列表搜尋/置頂/靜音/氣泡/媒體/資訊 |
-| **Phase 5** | **Search Engine** | **✅ 完成** | **2026-08-29 18:25** — 自動完成/進階語法/頁籤/快照 |
-| **Phase 6** | **Content & Puzzles (7 章)** | **✅ 完成** | **2026-08-29 18:45 完成** — 18 puzzles + 9 VFS 檔案 + 7 章 JSON + 筆記本成就 |
-| **Phase 7** | **Polish & Testing** | **✅ 完成** | **2026-08-29 18:45 完成** — 見下 |
+| **Phase 2** | **VS Code Simulator** | **✅ 完成** | **2026-08-29 17:40-18:25** — 含高亮/摺疊/終端/QuickOpen + **onboarding 敘事** |
+| **Phase 3** | **Jira Simulator** | **✅ 完成** | **2026-08-29 17:40** — 拖拉/JQL/泳道/附件/燃盡圖 + onboarding 引導 |
+| **Phase 4** | **WhatsApp Web** | **✅ 完成** | **2026-08-29 18:00** — 列表搜尋/置頂/靜音/氣泡/媒體/資訊 + onboarding PM 訊息 |
+| **Phase 5** | **Search Engine** | **✅ 完成** | **2026-08-29 18:25** — 自動完成/進階語法/頁籤/快照 + onboarding 搜尋引導 |
+| **Phase 6** | **Content & Puzzles (7 章)** | **✅ 完成** | **2026-08-29 18:45** — 18 puzzles + 9 VFS + 7 章 JSON + 筆記本成就 + onboarding 流程 |
+| **Phase 7** | **Polish & Testing** | **✅ 完成** | **2026-08-29 19:15 完成** — 見下 |
 
 ### Phase 3 + Phase 4 + Phase 5 + Phase 6 + Phase 7 已完成
 
@@ -34,12 +31,20 @@
 - **資料** `assets/data/chapters/ch0-6.json` + `chapters/ch0-6_*.json` (7 章 標題/目標/evidence/ending)，`notebook.js:1` 重構為證據板：章節進度條 `ch/6`、14 枚證據網格可複製/標記、`成就 5` (`first_evidence/collector/master/portal_found/bypass`)、`章節狀態 完成/進行中/未開始`、Flags 摺疊、`複製存檔`按鈕
 - **驗證**：`build` `main-CPQsGydM.js 97KB`, `state.discoveredFiles` 觸發證據即時解鎖
 
-**Phase 7 — Polish & Testing：**
+**Phase 7 — Polish & Testing + Onboarding Narrative：**
 - **響應式** `responsive` 已驗證 `768/375`：`main.css` `vscode__activitybar` 手機轉橫、 `jira__board` 單欄、`wa` 單欄、`search__layout` 單欄；截圖 `mobile.png 375×667` / `tablet.png 768×1024` 通過
 - **部署** `scripts/deploy.js` + `package.json:9` `deploy`：檢 `dist/sw.js`/`manifest.json`、印 `dist` 大小、指引 `gh-pages/Netlify` + `npm run preview --port 4173`
 - **效能** `dist 97KB` (gzip 30KB) < 100KB, `vfs.listFiles` 8 檔快取, `suggestBox` 去抖, `state.save` 500ms debounce, `engine` 800ms poll
 - **存檔相容** `state.js:migrateState` 保留 `STATE_VERSION=1.0.0`, `localStorage` 壓縮建議
 - **無障礙** `role=tablist/tab/dialog`, `aria-label` 於 `activitybar/taskbar/search tabs`, 鍵盤 `Ctrl+P/F/G/D//`, `F1/Escape`, `dialog::backdrop` 模糊
+- **Onboarding 敘事 (新)** `main.js:14` 四步驟對話框：
+  1. **深夜加班** — PM WhatsApp 發訊息 `INV-2024-0042` 要求今晚修 bug
+  2. **Jira 票據詳情** — 點擊 INV-2024-0042 看詳情（觸發 `onb_jira_viewed`）
+  3. **VS Code 追蹤 Bug** — 打開 `src/billing/service.js` 看到 `if (total === 420.69)` 導向 `/internal/portal`（觸發 `onb_vscode_viewed`）
+  4. **異常發現** — 發現異常代碼，引導去 Search 輸入 420.69 或看 Jira 評論 → 解鎖 Chapter 1
+  - 條件式 `nextBtn`：未達成條件時顯示提示 Toast，需完成動作才能下一步
+  - `trackOnboarding()` 導出供 Jira/VS Code 模組調用，條件達成自動啟用下一步
+  - 跳過按鈕確認後直接完成
 
 **Phase 5 完成 (2026-08-29 18:25)：**
 - 搜尋列 `webIndex[7]` 自動完成 `site:/filetype:`、頁籤 `全部/圖片/新聞/學術`、快照 `.snapshot`、側欄歷史/趨勢
@@ -121,10 +126,10 @@ git push origin master
 - 已知坑：`internal/portal` + `internal/portal/export` 檔案/目錄同名已修；`vite 8` 需獨立 `esbuild` 依賴
 
 ## 下一步建議 (給下一 Agent)
-- **全階段已完成 ✅**：Phase 1-7 皆 ✅，僅差最終驗收與部署
+- **全階段已完成 ✅**：Phase 1-7 皆 ✅，包含 Onboarding 敘事，僅差最終驗收與部署
 1. **最終驗收**：依 `GAME_PLAN.md §12` 測 `完成率>15%`, `平均遊玩>45min`, `二周目`, `離線率`, `Mobile>40%`；跑 `npm run deploy` 產生 `dist/` 並 `git push origin master`，在另一電腦 `git pull` 複測 `http://localhost:3000`
 2. **可選擴充** `Future Extensions`：`Electron` 打包、`關卡編輯器`、`續作`、`實體周邊`；`社群分享` 匿名進度需後端，現可先做 `share` 複製存檔碼
-3. 每次 Session 結束記得更新本檔並 `git push`（當前已推送至 `690a756`，本次待推 Phase 6+7）
+3. 每次 Session 結束記得更新本檔並 `git push`（當前已推送至 `33b1149`，本次待推 onboarding + 最終整理）
 
 ---
 *Handoff 維護：任何 Agent 接手前請先讀此檔 + `AGENTS.md` + `GAME_PLAN.md §8`。*

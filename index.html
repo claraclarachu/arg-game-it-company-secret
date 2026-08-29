@@ -68,6 +68,17 @@
     </div>
   </dialog>
 
+  <!-- Onboarding Narrative Dialog -->
+  <dialog id="onboardingDialog" style="background:var(--bg-secondary);color:var(--fg-primary);border:1px solid var(--border);border-radius:12px;padding:0;max-width:580px;width:90%;max-height:85vh;overflow:auto">
+    <div style="padding:20px">
+      <div id="onboardingContent"></div>
+      <div style="text-align:right;margin-top:16px;padding-top:12px;border-top:1px solid var(--border)">
+        <button id="onboardingNext" class="btn primary">下一步</button>
+        <button id="onboardingSkip" class="btn" style="margin-left:8px">跳過</button>
+      </div>
+    </div>
+  </dialog>
+
   <script type="module" src="/assets/js/main.js"></script>
   <script>
     if ('serviceWorker' in navigator) {

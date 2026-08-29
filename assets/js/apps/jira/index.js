@@ -1,4 +1,5 @@
 import { state } from '../../core/state.js';
+import { trackOnboarding } from '../../main.js';
 
 const tickets = [
   {
@@ -265,6 +266,12 @@ function openTicket(key) {
   const d = document.getElementById('jiraDetail');
   if (!t || !d) return;
   state.set('jiraTickets.' + key, true);
+
+  // Track onboarding: viewing INV-2024-0042
+  if (key === 'INV-2024-0042') {
+    trackOnboarding('jira_viewed');
+  }
+
   d.style.display = 'block';
   d.innerHTML = `
     <div style="display:flex;justify-content:space-between;align-items:start;gap:12px">

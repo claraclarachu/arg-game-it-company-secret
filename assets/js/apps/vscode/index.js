@@ -2,6 +2,7 @@ import { vfs } from '../../core/vfs.js';
 import { state } from '../../core/state.js';
 import { events } from '../../core/events.js';
 import { escapeHtml } from '../../utils/helpers.js';
+import { trackOnboarding } from '../../main.js';
 
 let currentFile = '/workspace/src/billing/service.js';
 let activeActivity = 'explorer'; // explorer | search | scm | debug | extensions
@@ -331,6 +332,11 @@ function openFile(path) {
   const content = vfs.readFile(path);
   const editor = document.getElementById('vsEditor');
   if (!editor) return;
+
+  // Track onboarding: viewing billing/service.js
+  if (path === '/workspace/src/billing/service.js') {
+    trackOnboarding('vscode_viewed');
+  }
   if (content == null) {
     editor.innerHTML = '<div class="editor__lines" style="padding:16px;color:var(--fg-muted)">檔案不存在或尚未解鎖 — 嘗試 Search 搜尋 "cocoa" 或觸發隱藏邏輯</div>';
   } else {
