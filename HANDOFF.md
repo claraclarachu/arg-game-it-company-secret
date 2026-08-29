@@ -4,13 +4,13 @@
 > 更新方式：每次完成一個子任務就更新本檔並 `git commit + push`。
 
 ## 最後更新
-- **日期**：2026-08-29 18:00 (Asia/Taipei) | **分支**：`master` → `claraclarachu/arg-game-it-company-secret`
-- **最後 Commit**：`38d23d7 feat: Phase 2 supplement + Phase 3` → `Phase 4 完成`
+- **日期**：2026-08-29 18:25 (Asia/Taipei) | **分支**：`master` → `claraclarachu/arg-game-it-company-secret`
+- **最後 Commit**：`d017ebf feat: Phase 4` → `Phase 5 完成`
 - **當前工作目錄**：`C:\Users\user\Documents\Projects\arg-game-it-company-secret`（Windows）/ 辦公室 `~/Documents/03 For Testing/arg-game-it-company-secret`（含空格，需 quoted `workdir`）
 - **Node**：`v24.14.1` / **npm**：`11.11.0` / **Vite**：`^8.2.2` + `esbuild ^0.28.2` (Vite 8 需獨立 `esbuild`)
-- **Dev 伺服器**：`http://localhost:3000` **嚴格固定 3000**（先 kill 再起，勿產生 3001/3002）PID `19684` 運行中，截圖驗證通過（VS Code + Jira + WhatsApp）
+- **Dev 伺服器**：`http://localhost:3000` **嚴格固定 3000**（先 kill 再起，勿產生 3001/3002）PID `25028` 運行中，截圖驗證通過（VS Code + Jira + WhatsApp + Search）
 
-## 當前階段判定：Phase 3 ✅ + Phase 4 ✅ 完成
+## 當前階段判定：Phase 4 ✅ + Phase 5 ✅ 完成
 對照 `GAME_PLAN.md §8`：
 
 | Phase | 標題 | 狀態 | 備註 |
@@ -18,24 +18,30 @@
 | Phase 1 | Foundation (Week 1-2) | ✅ 完成 | Vite+ESM、State/localStorage、響應式、主題、PWA `public/sw.js`、四大介面空殼皆就緒 |
 | **Phase 2** | **VS Code Simulator** | **✅ 完成** | **2026-08-29 17:40** — 補齊 Help + 快捷鍵 |
 | **Phase 3** | **Jira Simulator** | **✅ 完成** | **2026-08-29 17:40** — 拖拉/JQL/泳道/附件/燃盡圖 |
-| **Phase 4** | **WhatsApp Web** | **✅ 完成** | **2026-08-29 18:00 完成** — 見下 |
-| Phase 5 | Search Engine | 🔲 未開始 | 已有 `webIndex` + `vfs.searchContent` + Portal token 旁路 |
+| **Phase 4** | **WhatsApp Web** | **✅ 完成** | **2026-08-29 18:00** — 列表搜尋/置頂/靜音/氣泡/媒體/資訊 |
+| **Phase 5** | **Search Engine** | **✅ 完成** | **2026-08-29 18:25 完成** — 見下 |
 | Phase 6 | Content & Puzzles (7 章) | 🟡 30% | 引擎 `engine.js` 僅 4 puzzles (ch0-2)，章節旗標已打通 |
 | Phase 7 | Polish & Testing | 🔲 未開始 | 需完整流程、效能、無障礙、部署腳本 |
 
-### Phase 2 補齊 + Phase 3 + Phase 4 已完成
+### Phase 3 + Phase 4 + Phase 5 已完成
+
+**2026-08-29 18:25 完成 Phase 5：**
+
+**Phase 5 — Search Engine Simulator (全新)：**
+- **搜尋列** `search/index.js:3` `webIndex[7]` 擴充 `type web/image/news/academic` + `image` 預覽、趨勢 `trends[6]`、`getSuggestions()` 取 `webIndex/vfs.listFiles/history` 8 筆自動完成 `suggest-box` 浮層、`parseAdvanced()` 解析 `site:/filetype:/before:/after:` 並顯示 `進階語法生效` 提示
+- **頁籤與布局** `search.css:1` 新 `search__tabs` `全部/圖片/新聞/學術`、`search__layout` `1fr 280px` 雙欄、 `result:hover` 藍框、`highlightSnippet` `<mark>` 高亮、`result__meta/tag/image/actions`、`chip` 懸浮
+- **結果與快照** `doSearch()`：依 `activeTab` 過濾 `type`，`site` 過濾 `url`，`filetype` 過濾 `ext`，`base` 分詞 `includes`；結果卡 `result__title/url/snippet/tag/image` + `快照預覽/開啟` 按鈕 → `openSnapshot()` 浮層 `.snapshot` `backdrop blur` 顯示已刪除快照；`file://` 點擊觸發 `search:openFile` 嘗試開啟 VS Code
+- **側欄** `searchHistoryList` 取 `state.get('searchHistory')` 8 筆 + `searchTrendList` 🔥 趨勢點擊即搜尋；右側 `Portal 快捷存取` 保留 `cocoa-beans-2024` 繞過、`x-cocoa-beans-2024` 提示
+- **驗證**：`npm.cmd run build` `built 82ms` `main-COd6QdXr.js 87KB`, Edge `search2.png` 1280×900 顯示 `Search` 標題+輸入 `cocoa`、`cocoa/bean...` 芯片、`全部/圖片/新聞/學術`、`Cocoa bean import license` 等 4 結果帶 `web/academic` 標籤、`快照預覽/開啟`、`搜尋歷史 cocoa`、`搜尋趨勢 6 項`、`Portal 快速存取` 皆正常
 
 **2026-08-29 18:00 完成 Phase 4：**
-
-**Phase 4 — WhatsApp Web Simulator (全新)：**
-- **列表** `whatsapp/index.js:3`：`chats[4]` 擴充 `pinned/muted/archived/unread/lastTime/avatar/desc`，`whatsapp.css:1` 重構 `wa__list-header/search/filters` + `wa__list-scroll`；頂部 `搜尋聊天` + `全部/未讀/封存` 篩選、`3 對話` 計數、`pinned` 置頂排序 (`pinned→unread`)、右鍵 `contextmenu` 切置頂、`🔇/📌` 圖示、`wa__badge` 未讀、`🔒` 鎖定 (`hidden_portal_accessed` 解鎖 `backend-team/supplier/finance`)
-- **氣泡** `bubbleHtml()`：`wa__day` 今天/昨天分組、`bubble me/other` + `bubble__time` + 雙勾 `✓/✓✓` 藍色已讀 `read`、`type=image` `wa__media img` 可點擊、`voice` `wa__voice` ▶️ + 12 條波形 + `0:18`、`file` `wa__file` 📄 + `fileName/fileSize` + 下載
-- **資訊/搜尋/匯出**：`wa__chat-header` 點擊/ `ℹ️` 切換右側 `wa__info` 抽屜 (成員/靜音/置頂/封存/共享檔案)、`🔍` 顯示 `waMsgSearchBar` 過濾 `text/fileName`、中間 `waMessages`、`wa__composer` `input#waComposerInput` + `送出` → `sendMessage` 推入 `chat.messages` + `preview/lastTime` 更新 + 假回覆；`📤` `exportChat()` 生成 `chatId-chat.txt` Blob 下載
-- **驗證**：`npm.cmd run build` `built 78ms` `main-CRS1kwGe.js 78KB`, Edge `wa.png` 1280×900 顯示 `全部/未讀/封存`、`Backend Team 📌 2`/`Supplier 🔇 1`/`QA Lee`、`今天` 分組氣泡 + 雙勾 + 語音波形皆正常
+- **列表** `whatsapp/index.js:3`：`chats[4]` 擴充 `pinned/muted/archived/unread/lastTime/avatar/desc`，`whatsapp.css:1` 重構；頂部 `搜尋聊天` + `全部/未讀/封存`、`pinned` 置頂、`🔇/📌/wa__badge`、`🔒` 解鎖
+- **氣泡** `wa__day` 分組、`bubble me/other` + 雙勾藍 `read`、`image/voice/file` 媒體
+- **資訊/搜尋/匯出**：`wa__info` 抽屜、`waMsgSearchBar` 過濾、`waComposer` 送出 + 假回覆、`exportChat()` Blob
 
 **Phase 2 補齊 + Phase 3 完成 (2026-08-29 17:40)：**
 - **補齊** 設定頁 `<details>` 快捷鍵；`Help` 浮層 `F1`
-- **Phase 3** 看板拖拉 `draggable`、泳道 `all/assignee/epic`、JQL `=~` AND、附件/歷史/評論/工作流、燃盡圖 SVG 理想 vs 實際
+- **Phase 3** 看板拖拉、泳道、JQL、附件/歷史/評論/工作流、燃盡圖 SVG
 
 **先前已完成：**
 - Windows 11 桌面化：`index.html` 去除舊 `topbar`，`main.css` 漸層桌布 + `taskbar` 三段式（左 天氣 `28°C 晴時多雲`、中 開始鈕+搜尋膠囊+App 集中、右 托盤 `中 📶 🔊 ▲` + 日期時間 `zh-TW` 每分鐘更新）`dock.js:13-109`
@@ -111,11 +117,10 @@ git push origin master
 - 已知坑：`internal/portal` + `internal/portal/export` 檔案/目錄同名已修；`vite 8` 需獨立 `esbuild` 依賴
 
 ## 下一步建議 (給下一 Agent)
-1. **Phase 5 Search**：結果頁快照、進階語法解析器 (`site:/filetype:/before:`)、圖片/新聞切換、搜尋歷史/趨勢、Portal 快捷已完成但需美化
-2. **Phase 6 內容**：擴充 `engine.js` 至 7 章 30+ puzzles，撰寫 `chapters/*.json` 與 `vfs` 隱藏檔案（PDF/ledger.db 二進位、`cryptoMixer`）、成就/蒐集
-3. **Phase 7 Polish**：完整流程測試 (PC/Mobile/Tablet)、效能虛擬滾動、存檔相容遷移、無障礙、部署腳本
-4. 測試：`mobile <768` 桌機雙測，確保 `activitybar` 響應式、`dialog` 深色模式、`Jira` 拖拉 touch fallback（已加 `touch-action` 待測）
-5. 每次 Session 結束記得更新本檔並 `git push origin master`（當前待推 1 commit `38d23d7` + 本次）
+1. **Phase 6 內容 (下一)**：擴充 `engine.js` 至 7 章 30+ puzzles（含 `ledger.db` SQL 注入/查詢、`payment` 分潤揭露、暗網搜尋、座標/物流追蹤），撰寫 `chapters/*.json` 與 `vfs` 隱藏檔案（PDF/ledger.db 二進位、`cryptoMixer`）、筆記本證據板拖拉關聯、成就/蒐集
+2. **Phase 7 Polish**：完整流程測試 (PC/Mobile/Tablet)、效能虛擬滾動、存檔相容遷移（`STATE_VERSION`）、無障礙（鍵盤/螢幕閱讀器）、`PWA` 與部署腳本
+3. 測試：`mobile <768` 桌機雙測，確保 `activitybar` 響應式、`dialog` 深色模式、`Jira` 拖拉 touch fallback、`Search` `site:/filetype:` 在輕量解析下穩定
+4. 每次 Session 結束記得更新本檔並 `git push origin master`（當前待推 2 commits `38d23d7,d017ebf` + 本次）
 
 ---
 *Handoff 維護：任何 Agent 接手前請先讀此檔 + `AGENTS.md` + `GAME_PLAN.md §8`。*
