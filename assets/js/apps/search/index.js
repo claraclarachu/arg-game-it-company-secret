@@ -204,6 +204,10 @@ function doSearch(q) {
   if (!raw) return;
   lastQuery = raw;
   state.push('searchHistory', { q: raw, at: new Date().toISOString() });
+  // Phase 6 flags via search behavior
+  if (raw.toLowerCase().includes('package') || raw.toLowerCase().includes('image')) state.setFlag('reverse_image_done', true);
+  if (raw.toLowerCase().includes('shell') || raw.toLowerCase().includes('site:acme')) state.setFlag('found_shell_company', true);
+  if (raw.toLowerCase().includes('cocoa') || raw.toLowerCase().includes('crystal')) state.setFlag('found_supplier', true);
   renderHistory();
   const { base, filters } = parseAdvanced(raw);
   const hint = document.getElementById('searchAdvancedHint');

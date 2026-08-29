@@ -1,0 +1,9 @@
+﻿{
+  "id": 3,
+  "title": "Following the Money",
+  "title_zh": "追蹤資金流",
+  "desc": "Payment Gateway v3 為洗錢管道，手續費即分潤，解析 cryptoConfig 與 mixer 錢包",
+  "objectives": ["發現混淆器", "揭露 feeRate 映射", "追蹤錢包"],
+  "unlock": [],
+  "evidence": ["e004","e005","e006"]
+}

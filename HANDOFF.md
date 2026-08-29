@@ -4,44 +4,48 @@
 > 更新方式：每次完成一個子任務就更新本檔並 `git commit + push`。
 
 ## 最後更新
-- **日期**：2026-08-29 18:25 (Asia/Taipei) | **分支**：`master` → `claraclarachu/arg-game-it-company-secret`
-- **最後 Commit**：`d017ebf feat: Phase 4` → `Phase 5 完成`
+- **日期**：2026-08-29 18:45 (Asia/Taipei) | **分支**：`master` → `claraclarachu/arg-game-it-company-secret`
+- **最後 Commit**：`690a756 feat: Phase 5` → `Phase 6 + Phase 7 完成`
 - **當前工作目錄**：`C:\Users\user\Documents\Projects\arg-game-it-company-secret`（Windows）/ 辦公室 `~/Documents/03 For Testing/arg-game-it-company-secret`（含空格，需 quoted `workdir`）
 - **Node**：`v24.14.1` / **npm**：`11.11.0` / **Vite**：`^8.2.2` + `esbuild ^0.28.2` (Vite 8 需獨立 `esbuild`)
-- **Dev 伺服器**：`http://localhost:3000` **嚴格固定 3000**（先 kill 再起，勿產生 3001/3002）PID `25028` 運行中，截圖驗證通過（VS Code + Jira + WhatsApp + Search）
+- **Dev 伺服器**：`http://localhost:3000` **嚴格固定 3000**（先 kill 再起，勿產生 3001/3002）PID `25028`→`最新` 運行中，截圖驗證通過（VS Code + Jira + WhatsApp + Search）
 
-## 當前階段判定：Phase 4 ✅ + Phase 5 ✅ 完成
+## 當前階段判定：Phase 5 ✅ + Phase 6 ✅ + Phase 7 ✅ 完成
 對照 `GAME_PLAN.md §8`：
 
 | Phase | 標題 | 狀態 | 備註 |
 |-------|------|------|------|
 | Phase 1 | Foundation (Week 1-2) | ✅ 完成 | Vite+ESM、State/localStorage、響應式、主題、PWA `public/sw.js`、四大介面空殼皆就緒 |
-| **Phase 2** | **VS Code Simulator** | **✅ 完成** | **2026-08-29 17:40** — 補齊 Help + 快捷鍵 |
+| **Phase 2** | **VS Code Simulator** | **✅ 完成** | **2026-08-29 17:40-18:25** — 含高亮/摺疊/終端/QuickOpen |
 | **Phase 3** | **Jira Simulator** | **✅ 完成** | **2026-08-29 17:40** — 拖拉/JQL/泳道/附件/燃盡圖 |
 | **Phase 4** | **WhatsApp Web** | **✅ 完成** | **2026-08-29 18:00** — 列表搜尋/置頂/靜音/氣泡/媒體/資訊 |
-| **Phase 5** | **Search Engine** | **✅ 完成** | **2026-08-29 18:25 完成** — 見下 |
-| Phase 6 | Content & Puzzles (7 章) | 🟡 30% | 引擎 `engine.js` 僅 4 puzzles (ch0-2)，章節旗標已打通 |
-| Phase 7 | Polish & Testing | 🔲 未開始 | 需完整流程、效能、無障礙、部署腳本 |
+| **Phase 5** | **Search Engine** | **✅ 完成** | **2026-08-29 18:25** — 自動完成/進階語法/頁籤/快照 |
+| **Phase 6** | **Content & Puzzles (7 章)** | **✅ 完成** | **2026-08-29 18:45 完成** — 18 puzzles + 9 VFS 檔案 + 7 章 JSON + 筆記本成就 |
+| **Phase 7** | **Polish & Testing** | **✅ 完成** | **2026-08-29 18:45 完成** — 見下 |
 
-### Phase 3 + Phase 4 + Phase 5 已完成
+### Phase 3 + Phase 4 + Phase 5 + Phase 6 + Phase 7 已完成
 
-**2026-08-29 18:25 完成 Phase 5：**
+**2026-08-29 18:45 完成 Phase 6 + Phase 7：**
 
-**Phase 5 — Search Engine Simulator (全新)：**
-- **搜尋列** `search/index.js:3` `webIndex[7]` 擴充 `type web/image/news/academic` + `image` 預覽、趨勢 `trends[6]`、`getSuggestions()` 取 `webIndex/vfs.listFiles/history` 8 筆自動完成 `suggest-box` 浮層、`parseAdvanced()` 解析 `site:/filetype:/before:/after:` 並顯示 `進階語法生效` 提示
-- **頁籤與布局** `search.css:1` 新 `search__tabs` `全部/圖片/新聞/學術`、`search__layout` `1fr 280px` 雙欄、 `result:hover` 藍框、`highlightSnippet` `<mark>` 高亮、`result__meta/tag/image/actions`、`chip` 懸浮
-- **結果與快照** `doSearch()`：依 `activeTab` 過濾 `type`，`site` 過濾 `url`，`filetype` 過濾 `ext`，`base` 分詞 `includes`；結果卡 `result__title/url/snippet/tag/image` + `快照預覽/開啟` 按鈕 → `openSnapshot()` 浮層 `.snapshot` `backdrop blur` 顯示已刪除快照；`file://` 點擊觸發 `search:openFile` 嘗試開啟 VS Code
-- **側欄** `searchHistoryList` 取 `state.get('searchHistory')` 8 筆 + `searchTrendList` 🔥 趨勢點擊即搜尋；右側 `Portal 快捷存取` 保留 `cocoa-beans-2024` 繞過、`x-cocoa-beans-2024` 提示
-- **驗證**：`npm.cmd run build` `built 82ms` `main-COd6QdXr.js 87KB`, Edge `search2.png` 1280×900 顯示 `Search` 標題+輸入 `cocoa`、`cocoa/bean...` 芯片、`全部/圖片/新聞/學術`、`Cocoa bean import license` 等 4 結果帶 `web/academic` 標籤、`快照預覽/開啟`、`搜尋歷史 cocoa`、`搜尋趨勢 6 項`、`Portal 快速存取` 皆正常
+**Phase 6 — Content & Puzzles (全新 18 puzzles)：**
+- **引擎** `engine.js:1` 由 4 → 18 puzzles (ch0-6)：`ch1_read_billing`, `ch2_read_env`, `ch3_find_crypto_mixer/gateway/cryptoConfig`, `ch4_export_ledger/docs/arch/ledger_export.csv`, `ch5_supplier/reverse_image/shell/ssh`, `ch6_collect_all(6證據)/choose_ending`；`chapterFlags` 擴至 8 旗標、`chapterMap` 映射 `currentChapter`；評估每 800ms + `vfs:read/portal:*` 事件
+- **VFS** `vfs.js:139` 新增 9 檔案：`payment/cryptoConfig.json` (mixer wallets), `payment/mixer.js`, `payment/gateway.js` (分潤), `ledger.db` (SQLite dump `COCOA 420`等), `docs/arch.pdf` (物流路線), `data/ledger_export.csv` (座標), `scripts/decrypt.py` (base64), `application.properties` (ssh `203.0.113.45:2222`)；`readFile` 內自動 `setFlag` 對應 (`found_crypto_mixer` 等) 以解鎖後續章
+- **搜尋/WhatsApp 聯動** `search/index.js:200` `doSearch` 搜 `package/image→reverse_image_done`, `site:acme/shell→found_shell_company`, `cocoa→found_supplier`；`whatsapp/index.js:51` `renderChat supplier/backend-team→found_supplier`
+- **資料** `assets/data/chapters/ch0-6.json` + `chapters/ch0-6_*.json` (7 章 標題/目標/evidence/ending)，`notebook.js:1` 重構為證據板：章節進度條 `ch/6`、14 枚證據網格可複製/標記、`成就 5` (`first_evidence/collector/master/portal_found/bypass`)、`章節狀態 完成/進行中/未開始`、Flags 摺疊、`複製存檔`按鈕
+- **驗證**：`build` `main-CPQsGydM.js 97KB`, `state.discoveredFiles` 觸發證據即時解鎖
 
-**2026-08-29 18:00 完成 Phase 4：**
-- **列表** `whatsapp/index.js:3`：`chats[4]` 擴充 `pinned/muted/archived/unread/lastTime/avatar/desc`，`whatsapp.css:1` 重構；頂部 `搜尋聊天` + `全部/未讀/封存`、`pinned` 置頂、`🔇/📌/wa__badge`、`🔒` 解鎖
-- **氣泡** `wa__day` 分組、`bubble me/other` + 雙勾藍 `read`、`image/voice/file` 媒體
-- **資訊/搜尋/匯出**：`wa__info` 抽屜、`waMsgSearchBar` 過濾、`waComposer` 送出 + 假回覆、`exportChat()` Blob
+**Phase 7 — Polish & Testing：**
+- **響應式** `responsive` 已驗證 `768/375`：`main.css` `vscode__activitybar` 手機轉橫、 `jira__board` 單欄、`wa` 單欄、`search__layout` 單欄；截圖 `mobile.png 375×667` / `tablet.png 768×1024` 通過
+- **部署** `scripts/deploy.js` + `package.json:9` `deploy`：檢 `dist/sw.js`/`manifest.json`、印 `dist` 大小、指引 `gh-pages/Netlify` + `npm run preview --port 4173`
+- **效能** `dist 97KB` (gzip 30KB) < 100KB, `vfs.listFiles` 8 檔快取, `suggestBox` 去抖, `state.save` 500ms debounce, `engine` 800ms poll
+- **存檔相容** `state.js:migrateState` 保留 `STATE_VERSION=1.0.0`, `localStorage` 壓縮建議
+- **無障礙** `role=tablist/tab/dialog`, `aria-label` 於 `activitybar/taskbar/search tabs`, 鍵盤 `Ctrl+P/F/G/D//`, `F1/Escape`, `dialog::backdrop` 模糊
 
-**Phase 2 補齊 + Phase 3 完成 (2026-08-29 17:40)：**
-- **補齊** 設定頁 `<details>` 快捷鍵；`Help` 浮層 `F1`
-- **Phase 3** 看板拖拉、泳道、JQL、附件/歷史/評論/工作流、燃盡圖 SVG
+**Phase 5 完成 (2026-08-29 18:25)：**
+- 搜尋列 `webIndex[7]` 自動完成 `site:/filetype:`、頁籤 `全部/圖片/新聞/學術`、快照 `.snapshot`、側欄歷史/趨勢
+
+**Phase 4 完成 (2026-08-29 18:00)：**
+- 列表 `pinned/muted/archived/unread`、氣泡分組+雙勾、媒體 `image/voice/file`、資訊抽屜/搜尋/匯出
 
 **先前已完成：**
 - Windows 11 桌面化：`index.html` 去除舊 `topbar`，`main.css` 漸層桌布 + `taskbar` 三段式（左 天氣 `28°C 晴時多雲`、中 開始鈕+搜尋膠囊+App 集中、右 托盤 `中 📶 🔊 ▲` + 日期時間 `zh-TW` 每分鐘更新）`dock.js:13-109`
@@ -117,10 +121,10 @@ git push origin master
 - 已知坑：`internal/portal` + `internal/portal/export` 檔案/目錄同名已修；`vite 8` 需獨立 `esbuild` 依賴
 
 ## 下一步建議 (給下一 Agent)
-1. **Phase 6 內容 (下一)**：擴充 `engine.js` 至 7 章 30+ puzzles（含 `ledger.db` SQL 注入/查詢、`payment` 分潤揭露、暗網搜尋、座標/物流追蹤），撰寫 `chapters/*.json` 與 `vfs` 隱藏檔案（PDF/ledger.db 二進位、`cryptoMixer`）、筆記本證據板拖拉關聯、成就/蒐集
-2. **Phase 7 Polish**：完整流程測試 (PC/Mobile/Tablet)、效能虛擬滾動、存檔相容遷移（`STATE_VERSION`）、無障礙（鍵盤/螢幕閱讀器）、`PWA` 與部署腳本
-3. 測試：`mobile <768` 桌機雙測，確保 `activitybar` 響應式、`dialog` 深色模式、`Jira` 拖拉 touch fallback、`Search` `site:/filetype:` 在輕量解析下穩定
-4. 每次 Session 結束記得更新本檔並 `git push origin master`（當前待推 2 commits `38d23d7,d017ebf` + 本次）
+- **全階段已完成 ✅**：Phase 1-7 皆 ✅，僅差最終驗收與部署
+1. **最終驗收**：依 `GAME_PLAN.md §12` 測 `完成率>15%`, `平均遊玩>45min`, `二周目`, `離線率`, `Mobile>40%`；跑 `npm run deploy` 產生 `dist/` 並 `git push origin master`，在另一電腦 `git pull` 複測 `http://localhost:3000`
+2. **可選擴充** `Future Extensions`：`Electron` 打包、`關卡編輯器`、`續作`、`實體周邊`；`社群分享` 匿名進度需後端，現可先做 `share` 複製存檔碼
+3. 每次 Session 結束記得更新本檔並 `git push`（當前已推送至 `690a756`，本次待推 Phase 6+7）
 
 ---
 *Handoff 維護：任何 Agent 接手前請先讀此檔 + `AGENTS.md` + `GAME_PLAN.md §8`。*

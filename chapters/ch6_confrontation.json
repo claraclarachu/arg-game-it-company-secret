@@ -1,0 +1,10 @@
+﻿{
+  "id": 6,
+  "title": "The Confrontation",
+  "title_zh": "對峙",
+  "desc": "蒐集完整證據後選擇結局：舉報 / 合作 / 離職",
+  "objectives": ["蒐集完整證據", "選擇結局"],
+  "unlock": [],
+  "evidence": ["e014"],
+  "endings": ["report","cooperate","flee"]
+}

@@ -1,0 +1,9 @@
+﻿{
+  "id": 4,
+  "title": "The Ledger",
+  "title_zh": "帳本",
+  "desc": "匯出 ledger.db，查詢座標與物流單號，架構圖即路線圖",
+  "objectives": ["匯出帳本", "發現物流圖", "發現座標"],
+  "unlock": [],
+  "evidence": ["e007","e008","e009"]
+}

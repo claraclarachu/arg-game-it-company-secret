@@ -180,6 +180,8 @@ function renderChat(id) {
     el.innerHTML = `<div class="view__placeholder"><h2>🔒 未解鎖</h2><div class="muted">先去 VS Code 觸發 420.69 隱藏路由</div></div>`;
     return;
   }
+  if (id === 'supplier') state.setFlag('found_supplier', true);
+  if (id === 'backend-team') state.setFlag('found_supplier', true);
   // msg search filter
   let msgs = c.messages;
   if (msgSearch) {

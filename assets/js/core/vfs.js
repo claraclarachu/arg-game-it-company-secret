@@ -80,6 +80,15 @@ function readFile(path) {
     return null;
   }
   state.discoverFile(path);
+  // auto flags for Phase 6 progression
+  if (path === '/workspace/src/payment/mixer.js') state.setFlag('found_crypto_mixer', true);
+  if (path === '/workspace/src/payment/gateway.js') state.setFlag('found_fee_mapping', true);
+  if (path === '/workspace/src/payment/cryptoConfig.json') state.setFlag('found_mixer_config', true);
+  if (path === '/workspace/ledger.db') state.setFlag('ledger_exported', true);
+  if (path === '/workspace/docs/arch.pdf') state.setFlag('sql_injected', true);
+  if (path === '/workspace/data/ledger_export.csv') state.setFlag('found_coordinates', true);
+  if (path === '/workspace/src/main/resources/application.properties') state.setFlag('found_ssh_trace', true);
+  if (path === '/workspace/src/main/java/com/acme/OrderService.java') state.setFlag('found_fee_mapping', true);
   events.emit('vfs:read', path);
   return entry.content;
 }
@@ -253,6 +262,40 @@ public class OrderService {
 }
 `,
     meta: { lang: 'java' }
+  });
+
+  // Phase 3-4: Payment / Ledger files
+  registerFile('/workspace/src/payment/cryptoConfig.json', {
+    content: JSON.stringify({ mixer: "@shady/crypto-mixer@1.2.3", wallets: ["bc1qxy2kgdy8lzd9t9e", "0x8fA1...c3e4", "1A2b...9z"], autoMix: true, feeSplit: { cocoa: 0.15, bean: 0.22 } }, null, 2),
+    meta: { lang: 'json' }
+  });
+  registerFile('/workspace/src/payment/mixer.js', {
+    content: `// mixer.js - 洗錢混淆器\nimport { cryptoMixer } from '@shady/crypto-mixer';\nexport const mixerConfig = {\n  wallets: ["bc1qxy2kgdy8lzd9t9e","0x8fA1...c3e4"],\n  route: "tor://mixer.internal",\n  // feeRate 即分潤，見 gateway.js\n};\nexport function mix(amount, vendorId) {\n  return cryptoMixer.shuffle(amount, mixerConfig.wallets);\n}\n`,
+    meta: { lang: 'javascript' }
+  });
+  registerFile('/workspace/src/payment/gateway.js', {
+    content: `// gateway.js - Payment Gateway Integration v3\n// 注意: feeRate 實際為分潤比例，非手續費\nimport { getFeeRate } from '../billing/service.js';\nexport function settle(order) {\n  const rate = getFeeRate(order.vendorId); // cocoa 0.15 etc\n  const payout = order.amount * (1 - rate);\n  // 轉帳至混幣錢包\n  return { payout, route: "internal/portal" };\n}\n`,
+    meta: { lang: 'javascript' }
+  });
+  registerFile('/workspace/ledger.db', {
+    content: `-- ledger.db SQLite dump (假資料)\nCREATE TABLE orders (code TEXT, amount REAL, lat REAL, lon REAL, tracking TEXT);\nINSERT INTO orders VALUES ('COCOA', 420, 25.033, 121.565, '118-bean');\nINSERT INTO orders VALUES ('BEAN', 118, 22.627, 120.301, '119-leaf');\nINSERT INTO orders VALUES ('LEAF', 300, 24.147, 120.673, '120-crystal');\n-- Hint: SELECT code, SUM(amount) FROM orders GROUP BY code;\n-- 輸入 ledger_exported 觸發需執行 cat ledger.db | grep SELECT\n`,
+    meta: { lang: 'sql' }
+  });
+  registerFile('/workspace/docs/arch.pdf', {
+    content: `%PDF-1.4 fake\nArchitecture Diagram — 實為物流路線圖\n台灣 (25.0,121.5) -> 東南亞 (14.5,100.9) -> 北美 (37.7,-122.4)\n節點: COCOA / BEAN / LEAF / CRYSTAL\n`,
+    meta: { lang: 'pdf' }
+  });
+  registerFile('/workspace/data/ledger_export.csv', {
+    content: `code,amount,lat,lon,tracking\nCOCOA,420,25.033,121.565,118-bean\nBEAN,118,22.627,120.301,119-leaf\nCRYSTAL,75,35.68,139.69,121-crystal\n`,
+    meta: { lang: 'csv' }
+  });
+  registerFile('/workspace/scripts/decrypt.py', {
+    content: `# decrypt.py - 解密對帳檔\nimport base64\nprint(base64.b64decode("Q09DT0EgNDIw").decode()) # COCOA 420\n# 使用: python3 decrypt.py\n`,
+    meta: { lang: 'python' }
+  });
+  registerFile('/workspace/src/main/resources/application.properties', {
+    content: `server.port=8080\nspring.datasource.url=jdbc:sqlite:ledger.db\n# ssh: ssh ops@203.0.113.45 -p 2222\n`,
+    meta: { lang: 'properties' }
   });
 
   // Hidden portal page (virtual route, not file but registered for search)

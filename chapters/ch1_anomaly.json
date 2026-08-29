@@ -1,0 +1,10 @@
+﻿{
+  "id": 1,
+  "title": "The Anomaly",
+  "title_zh": "異常發現",
+  "desc": "Jira INV-2024-0042，於 billing/service.js 發現 420.69 重定向至 /internal/portal",
+  "objectives": ["觸發隱藏路由 420.69", "閱讀 billing/service.js"],
+  "unlock": ["whatsapp"],
+  "evidence": ["e001","e001b"],
+  "clue": "if (total === 420.69) return redirectTo('/internal/portal')"
+}
