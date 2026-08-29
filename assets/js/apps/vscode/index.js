@@ -37,7 +37,7 @@ export function mountVSCode() {
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M14.5 2.5L3.2 8L8.2 9.6L9.8 14.6L14.5 2.5Z" fill="#007ACC"/><path d="M3.2 8L1 6.5L14.5 2.5L3.2 8Z" fill="#1681CF"/><path d="M9.8 14.6L8.2 9.6H3.2L9.8 14.6Z" fill="#1681CF"/></svg>
           </span>
           <nav class="titlebar__menu" aria-label="Menu">
-            <span>File</span><span>Edit</span><span>Selection</span><span>View</span><span>Go</span><span>Run</span><span>Terminal</span><span>Help</span>
+            <span>File</span><span>Edit</span><span>Selection</span><span>View</span><span>Go</span><span>Run</span><span>Terminal</span><span data-help="1" style="cursor:pointer">Help</span>
           </nav>
         </div>
         <div class="titlebar__center" id="vsTitle" title="billing/service.js — Code & Conspiracy — Visual Studio Code">billing/service.js — Code &amp; Conspiracy — Visual Studio Code</div>
@@ -158,6 +158,24 @@ export function mountVSCode() {
       <input id="quickOpenInput" class="quickopen__input" placeholder="輸入檔案名稱或路徑 (Ctrl+P) — 輸入 : 可跳至行號" autocomplete="off" />
       <div id="quickOpenList" class="quickopen__list"></div>
     </div>
+    <!-- Help overlay -->
+    <div id="vsHelpOverlay" class="vshelp" style="display:none" role="dialog" aria-label="Shortcuts">
+      <div class="vshelp__card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <b>鍵盤快捷鍵</b><button class="btn" style="padding:4px 8px" onclick="document.getElementById('vsHelpOverlay').style.display='none'">關閉</button>
+        </div>
+        <div style="display:grid;gap:6px;font-size:13px;color:var(--fg-secondary)">
+          <div><span class="badge">Ctrl+P</span> 快速開啟檔案</div>
+          <div><span class="badge">Ctrl+Shift+F</span> 全域搜尋</div>
+          <div><span class="badge">Ctrl+Shift+G</span> 原始碼控管</div>
+          <div><span class="badge">Ctrl+Shift+D</span> 執行與偵錯</div>
+          <div><span class="badge">Ctrl+/</span> 聚焦終端機</div>
+          <div><span class="badge">Tab</span> 補全 · <span class="badge">↑↓</span> 歷史</div>
+          <div><span class="badge">F1</span> 或 <span class="badge">Help</span> 開此視窗</div>
+        </div>
+        <div class="small muted" style="margin-top:8px">多游標：按住 Alt 點擊編輯器多點編輯（模擬）</div>
+      </div>
+    </div>
   `;
   renderTree();
   renderTabs();
@@ -198,6 +216,12 @@ function bindVSCode() {
   document.querySelectorAll('.activitybar__btn[data-activity]').forEach(btn => {
     btn.addEventListener('click', () => { activeActivity = btn.dataset.activity; updateActivityBar(); });
   });
+  // Help overlay
+  document.querySelector('[data-help="1"]')?.addEventListener('click', () => {
+    const o = document.getElementById('vsHelpOverlay');
+    if (o) o.style.display = o.style.display === 'none' || !o.style.display ? 'flex' : 'none';
+  });
+  document.getElementById('vsHelpOverlay')?.addEventListener('click', e => { if (e.target.id === 'vsHelpOverlay') e.target.style.display = 'none'; });
 
   // Terminal binding
   const tInput = document.getElementById('vsTerminalInput');
@@ -560,14 +584,18 @@ function switchGitTab(which) {
 function bindShortcuts() {
   document.addEventListener('keydown', e => {
     const mod = e.ctrlKey || e.metaKey;
+    if (e.key === 'F1') { e.preventDefault(); const o=document.getElementById('vsHelpOverlay'); if(o) o.style.display = o.style.display==='flex'?'none':'flex'; return; }
     if (mod && e.key.toLowerCase() === 'p' && !e.shiftKey) {
       e.preventDefault(); openQuickOpen();
     } else if (mod && e.shiftKey && e.key.toLowerCase() === 'f') {
       e.preventDefault(); activeActivity='search'; updateActivityBar(); document.getElementById('vsSearchInput')?.focus();
     } else if (mod && e.shiftKey && e.key.toLowerCase() === 'g') {
       e.preventDefault(); activeActivity='scm'; updateActivityBar();
+    } else if (mod && e.shiftKey && e.key.toLowerCase() === 'd') {
+      e.preventDefault(); activeActivity='debug'; updateActivityBar();
     } else if (e.key === 'Escape') {
       closeQuickOpen();
+      const ho=document.getElementById('vsHelpOverlay'); if(ho) ho.style.display='none';
     } else if (mod && e.key === '/') {
       e.preventDefault(); document.getElementById('vsTerminalInput')?.focus();
     }

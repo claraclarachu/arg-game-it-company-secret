@@ -4,34 +4,40 @@
 > 更新方式：每次完成一個子任務就更新本檔並 `git commit + push`。
 
 ## 最後更新
-- **日期**：2026-08-29 17:10 (Asia/Taipei) | **分支**：`master` → `claraclarachu/arg-game-it-company-secret`
-- **最後 Commit**：`d9a75da docs: add HANDOFF.md` 後續 Session 至 `Phase 2 完成`
-- **當前工作目錄**：`C:\Users\user\Documents\Projects\arg-game-it-company-secret`（Windows, `C:\Users\user\...`）/ 辦公室路徑 `~/Documents/03 For Testing/arg-game-it-company-secret`（含空格，需 quoted `workdir`）
+- **日期**：2026-08-29 17:40 (Asia/Taipei) | **分支**：`master` → `claraclarachu/arg-game-it-company-secret`
+- **最後 Commit**：`5eb6584 feat: finish Phase 2` → `Phase 2 補齊 + Phase 3 完成`
+- **當前工作目錄**：`C:\Users\user\Documents\Projects\arg-game-it-company-secret`（Windows）/ 辦公室 `~/Documents/03 For Testing/arg-game-it-company-secret`（含空格，需 quoted `workdir`）
 - **Node**：`v24.14.1` / **npm**：`11.11.0` / **Vite**：`^8.2.2` + `esbuild ^0.28.2` (Vite 8 需獨立 `esbuild`)
-- **Dev 伺服器**：`http://localhost:3000` **嚴格固定 3000**（先 kill 再起，勿產生 3001/3002）PID `35884` 運行中，截圖驗證通過
+- **Dev 伺服器**：`http://localhost:3000` **嚴格固定 3000**（先 kill 再起，勿產生 3001/3002）PID `30152` 運行中，截圖驗證通過（VS Code + Jira）
 
-## 當前階段判定：Phase 2 — VS Code Simulator ✅ 完成
+## 當前階段判定：Phase 2 補齊 ✅ + Phase 3 ✅ 完成
 對照 `GAME_PLAN.md §8`：
 
 | Phase | 標題 | 狀態 | 備註 |
 |-------|------|------|------|
 | Phase 1 | Foundation (Week 1-2) | ✅ 完成 | Vite+ESM、State/localStorage、響應式、主題、PWA `public/sw.js`、四大介面空殼皆就緒 |
-| **Phase 2** | **VS Code Simulator** | **✅ 完成** | **2026-08-29 17:10 完成** — 見下 |
-| Phase 3 | Jira Simulator | 🔲 未開始 | 已有看板/票據假資料，需拖拉、JQL、Sprint 報表 |
+| **Phase 2** | **VS Code Simulator** | **✅ 完成** | **2026-08-29 17:40 補齊** — 鍵盤映射 Help 完成 |
+| **Phase 3** | **Jira Simulator** | **✅ 完成** | **2026-08-29 17:40 完成** — 見下 |
 | Phase 4 | WhatsApp Web | 🔲 未開始 | 已有鎖定邏輯 `hidden_portal_accessed`，需多媒體/搜尋訊息 |
 | Phase 5 | Search Engine | 🔲 未開始 | 已有 `webIndex` + `vfs.searchContent` + Portal token 旁路 |
 | Phase 6 | Content & Puzzles (7 章) | 🟡 30% | 引擎 `engine.js` 僅 4 puzzles (ch0-2)，章節旗標已打通 |
 | Phase 7 | Polish & Testing | 🔲 未開始 | 需完整流程、效能、無障礙、部署腳本 |
 
-### Phase 2 已完成清單 (本次 Session 收尾)
+### Phase 2 已完成 + Phase 2 補齊 + Phase 3 已完成
 
-**本次收尾新增 (2026-08-29 17:10)：**
-- **編輯器** `vscode/index.js:271`：語法高亮（`hl-keyword #569cd6/#0000ff, hl-string #ce9178/#a31515, hl-comment #6a9955, hl-number #b5cea8/#098658, hl-func #dcdcaa`）+ 行號 `1..N` 灰色 + 摺疊 `▾/▸` 可點擊收合後續 40 行、`Ln 1, Col 1` 狀態同步、支援 `javascript/python/java` 依 `meta.lang`
-- **終端機** `vscode/index.js:366`：互動式 `input#vsTerminalInput` `➜ ~/workspace $`、歷史 `↑↓`、Tab 補全（`help/ls/cat/grep/git log/diff/blame` + `vfs.listFiles` 路徑）、假指令 `help/ls/cat/grep/git log/diff/blame/clear/echo`、提示 `Tab 補全 · ↑↓ 歷史`
-- **Git 面板** `vscode/index.js:492`：`SCM` 內 `Log/Diff/Blame` 三頁籤、`gitCommits[3]` (`a1b2c3d finance, 9f8e7d6 qa-lee 420.69, 4c2a1e0 dev`)、`diff-add/diff-del` 配色、`blame` 按 `currentFile` 行號映射 `fakeBlame`、點擊 `Log` 切 `Diff`
-- **QuickOpen + 快捷鍵** `vscode/index.js:547`：`QuickOpen` 浮層 `.quickopen` (640px, `Cmd+P/Ctrl+P`), 支援 `:line` 跳轉、`ArrowUp/Down+Enter`、`Escape` 關閉；全域 `Ctrl+P` QuickOpen, `Ctrl+Shift+F` → Search `vsSearchInput`, `Ctrl+Shift+G` → SCM, `Ctrl+/` → Terminal
-- **CSS** `vscode.css:1-320` 新增 `.editor/.editor__line/.editor__fold/.hl-*`, `.terminal__prompt/.terminal__input`, `.quickopen/.quickopen__item`, `.git__tabs/.git__commit/.git__diff/.blame__line`
-- **驗證**：`npm.cmd run build` `built 73ms` `main-DcBXgLFi.js 54KB`, Edge 1280×800 截圖顯示行號+高亮+摺疊+終端輸入框+提示皆正常
+**2026-08-29 17:40 補齊 Phase 2 + 完成 Phase 3：**
+
+**Phase 2 補齊：**
+- **設定頁** `index.html:33` 新增 `<details>` 鍵盤快捷鍵映射（`Ctrl+P`, `Ctrl+Shift+F/G/D`, `Ctrl+/`, `Tab/↑↓`），與 `vscode.css` 同步
+- **VS Code Help** `vscode/index.js:55`：`titlebar Help` 可點擊 → 浮層 `#vsHelpOverlay .vshelp__card` 顯示快捷鍵；`F1` 同功能，`Escape` 關閉；`vscode.css:374` 新增 `.vshelp` 半透明遮罩
+
+**Phase 3 — Jira Simulator (全新)：**
+- **看板** `jira/index.js:3`：`tickets[4]` 擴充欄位 `priority/points/epic/attachments/history`，`jira.css:1` 新 `topbar/filters/meta/swimlane/burndown/ticket` 動畫；`renderBoard()` 支援 `draggable="true"`、 `dragover/drop` 在 `To Do/In Progress/Done` 間拖拉、`t.status` 變更 + `history` 推入 `state.set` 並 `openTicket`
+- **篩選/泳道** `jira/index.js:178`：`input#jiraSearch` + `select#jiraAssignee` + `select#jiraSwimlane` (`all/assignee/epic`)；泳道分組 `groups[g]` 渲染 `jira__swimlane`；`meta` 提示拖拉與 `JQL 範例`
+- **JQL 解析器** `parseJQL()`：支援 `field (=|~) "value"` (`status/assignee/key/epic/text/priority`) 以 `AND` 組合，失敗回退全文 `includes`；範例 `status = "To Do" AND text ~ "420"` 實測通過
+- **Ticket 詳情** `openTicket()`：Header `key/priority/badge status`、描述、附件卡 `📎 name/type/snippet` + `檢視` alert、歷史 `→` 時間線、 workflow `移至 X` 按鈕、評論列表 + `input#jiraCommentInput` 追加 `你: ...` 並重渲染
+- **Sprint 報表** `renderBurndown()`：SVG `400×140` `viewBox` 理想灰虛線 `19→0` vs 實際藍線 `Day1→D4→D10` 持平、 `Sprint 統計 19 點 16%` 進度條
+- **驗證**：`npm.cmd run build` `built 78ms` `main-B-N-KNoI.js 67KB`, Edge 截圖 `jira2.png` 1280×900 顯示 `To Do 2 / In Progress 1 / Done 1`、拖曳提示、JQL 範例、燃盡圖 (藍 vs 灰虛線) 與統計皆正常；VS Code 截圖 `vs3.png` 仍高亮正確
 
 **先前已完成：**
 - Windows 11 桌面化：`index.html` 去除舊 `topbar`，`main.css` 漸層桌布 + `taskbar` 三段式（左 天氣 `28°C 晴時多雲`、中 開始鈕+搜尋膠囊+App 集中、右 托盤 `中 📶 🔊 ▲` + 日期時間 `zh-TW` 每分鐘更新）`dock.js:13-109`
@@ -107,11 +113,11 @@ git push origin master
 - 已知坑：`internal/portal` + `internal/portal/export` 檔案/目錄同名已修；`vite 8` 需獨立 `esbuild` 依賴
 
 ## 下一步建議 (給下一 Agent)
-1. **Phase 2 補齊**：為 `vscode` 加入語法高亮（Prism/highlight.js 輕量）與 `Ctrl+P` 全域 QuickOpen
-2. **Phase 3 Jira**：實作拖拉看板 + `INV-2024-0042` 評論互動 + JQL 搜尋聯動 `vfs.searchContent`
-3. **Phase 6 內容**：擴充 `engine.js` 至 7 章 30+ puzzles，撰寫 `chapters/*.json` 與 `vfs` 隱藏檔案（PDF/DB）
-4. **測試**：`mobile <768` 桌機雙測，確保 `activitybar` 響應式與 `dialog` 深色模式
-5. 每次 Session 結束記得更新本檔並 `git push`
+1. **Phase 4 WhatsApp**：聊天列表搜尋/置頂/歸檔、氣泡已讀、圖片/語音/檔案預覽、搜尋訊息、匯出聊天記錄
+2. **Phase 5 Search**：結果頁快照、進階語法解析器、圖片/新聞切換、搜尋歷史/趨勢
+3. **Phase 6 內容**：擴充 `engine.js` 至 7 章 30+ puzzles，撰寫 `chapters/*.json` 與 `vfs` 隱藏檔案（PDF/ledger.db 二進位、`cryptoMixer`）
+4. **測試**：`mobile <768` 桌機雙測，確保 `activitybar` 響應式、`dialog` 深色模式、`Jira` 拖拉在 touch 上可 fallback
+5. 每次 Session 結束記得更新本檔並 `git push origin master`（當前 `HEAD 5eb6584` 已在 `origin/master` 前 1 commit 待推）
 
 ---
 *Handoff 維護：任何 Agent 接手前請先讀此檔 + `AGENTS.md` + `GAME_PLAN.md §8`。*
