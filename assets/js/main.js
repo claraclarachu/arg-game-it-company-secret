@@ -26,10 +26,7 @@ function switchView(id) {
 }
 
 function bindTopbar() {
-  document.getElementById('clock') && setInterval(() => {
-    const el = document.getElementById('clock');
-    if (el) el.textContent = new Date().toLocaleTimeString();
-  }, 1000);
+  // Clock is now handled by taskbar (dock.js#startClock). Keep compat no-op.
 }
 
 function mountAll() {
@@ -43,7 +40,6 @@ function init() {
   applyTheme();
   renderDock({ onSwitch: switchView, onOpenSettings: openSettings, onOpenNotebook: openNotebook, t });
   bindSettings();
-  bindTopbar();
   mountAll();
   const last = localStorage.getItem('cc_active_view') || 'vscode';
   switchView(state.get('unlockedInterfaces').includes(last) ? last : 'vscode');

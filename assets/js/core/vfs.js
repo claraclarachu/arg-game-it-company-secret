@@ -29,8 +29,8 @@ function buildTree() {
     let parent = root;
     for (let i = 0; i < parts.length; i++) {
       curPath += '/' + parts[i];
+      const isFile = i === parts.length - 1;
       if (!nodes.has(curPath)) {
-        const isFile = i === parts.length - 1;
         const node = {
           name: parts[i],
           path: curPath,
@@ -43,7 +43,17 @@ function buildTree() {
           node.meta = entry.meta || {};
         }
         nodes.set(curPath, node);
+        // guard: parent may be a file that was previously created (e.g. /internal/portal + /internal/portal/export)
+        if (!parent.children) parent.children = [];
         parent.children.push(node);
+      } else {
+        // existing node is a file but we need to traverse deeper (file + child conflict)
+        const existing = nodes.get(curPath);
+        if (!isFile && existing.type === 'file') {
+          existing.type = 'dir';
+          existing.children = existing.children || [];
+        }
+        // if existing is file and this is also file (duplicate) skip
       }
       parent = nodes.get(curPath);
     }

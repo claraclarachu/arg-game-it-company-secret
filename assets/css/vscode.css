@@ -1,15 +1,294 @@
-.vscode{display:flex;flex:1;min-height:0}
-.vscode__side{width:var(--sidebar-w);border-right:1px solid var(--border);background:var(--bg-secondary);display:flex;flex-direction:column;min-width:0}
-.vscode__main{flex:1;display:flex;flex-direction:column;min-width:0;background:var(--bg-primary)}
-.vscode__tabs{display:flex;gap:0;border-bottom:1px solid var(--border);overflow:auto}
-.vscode__tab{padding:8px 12px;border-right:1px solid var(--border);cursor:pointer;white-space:nowrap;color:var(--fg-secondary)}
-.vscode__tab.active{background:var(--bg-primary);color:var(--fg-primary)}
-.tree{padding:8px;overflow:auto}
-.tree__node{padding:4px 6px;border-radius:6px;cursor:pointer;display:flex;align-items:center;gap:6px;font-size:13px;color:var(--fg-secondary)}
-.tree__node:hover{background:var(--bg-tertiary)}
-.tree__node.active{background:var(--bg-tertiary);color:var(--fg-primary)}
-.tree__children{margin-left:14px;border-left:1px dashed var(--border);padding-left:6px}
-.editor{flex:1;overflow:auto;padding:12px;background:var(--bg-primary)}
-.editor pre{margin:0;white-space:pre-wrap;word-break:break-word;font-family:var(--font-mono);font-size:13px;line-height:1.5}
-.terminal{border-top:1px solid var(--border);background:#0b0b0b;color:#d4d4d4;padding:8px;font-family:var(--font-mono);font-size:12px;max-height:38%;overflow:auto}
+/* VS Code window - faithful recreation */
+.vscode{
+  display:flex;
+  flex-direction:column;
+  flex:1;
+  min-height:0;
+  overflow:hidden;
+  background: var(--bg-primary);
+}
+
+/* Title bar - Windows VS Code titlebar */
+.vscode__titlebar{
+  height:var(--titlebar-h);
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  background:#181818;
+  border-bottom:1px solid #2d2d2d;
+  color:#cccccc;
+  font-size:12px;
+  flex-shrink:0;
+  user-select:none;
+}
+:root[data-theme="light"] .vscode__titlebar{
+  background:#f3f3f3;
+  border-bottom:1px solid #e5e5e5;
+  color:#616161;
+}
+.titlebar__left{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding-left:8px;
+  flex:0 0 auto;
+}
+.vscode__logo{
+  width:16px;height:16px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:10px;font-weight:800;
+  color:#007acc;
+}
+.titlebar__menu{
+  display:flex;
+  gap:8px;
+  font-size:12px;
+  color:#cccccc;
+}
+:root[data-theme="light"] .titlebar__menu{color:#616161}
+.titlebar__menu span{
+  padding:2px 6px;
+  border-radius:4px;
+  cursor:default;
+}
+.titlebar__menu span:hover{background:rgba(255,255,255,.08)}
+:root[data-theme="light"] .titlebar__menu span:hover{background:rgba(0,0,0,.08)}
+.titlebar__center{
+  flex:1;
+  text-align:center;
+  font-size:12px;
+  color:#cccccc;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  padding:0 12px;
+}
+:root[data-theme="light"] .titlebar__center{color:#616161}
+.titlebar__controls{
+  display:flex;
+  flex:0 0 auto;
+}
+.titlebar__btn{
+  width:46px;height:30px;
+  display:flex;align-items:center;justify-content:center;
+  border:none;
+  background:transparent;
+  color:#cccccc;
+  cursor:default;
+  font-size:14px;
+}
+.titlebar__btn:hover{background:rgba(255,255,255,.08)}
+.titlebar__btn--close:hover{background:#e81123;color:#fff}
+:root[data-theme="light"] .titlebar__btn{color:#616161}
+:root[data-theme="light"] .titlebar__btn:hover{background:rgba(0,0,0,.08)}
+:root[data-theme="light"] .titlebar__btn--close:hover{background:#e81123;color:#fff}
+
+/* Body: activitybar + sidebar + main */
+.vscode__body{
+  display:flex;
+  flex:1;
+  min-height:0;
+  overflow:hidden;
+}
+
+/* Activity Bar - far left vertical */
+.vscode__activitybar{
+  width:var(--activitybar-w);
+  background:#333333;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:space-between;
+  padding:8px 0;
+  flex-shrink:0;
+  border-right:1px solid #2d2d2d;
+}
+:root[data-theme="light"] .vscode__activitybar{
+  background:#2c2c2c;
+  border-right:1px solid #e5e5e5;
+}
+.activitybar__top,
+.activitybar__bottom{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:4px;
+  width:100%;
+}
+.activitybar__btn{
+  width:48px;height:48px;
+  display:flex;align-items:center;justify-content:center;
+  border:none;
+  border-left:2px solid transparent;
+  background:transparent;
+  color:#858585;
+  cursor:pointer;
+  font-size:22px;
+  position:relative;
+}
+.activitybar__btn:hover{color:#c5c5c5}
+.activitybar__btn.active{
+  color:#ffffff;
+  border-left-color: var(--accent);
+}
+.activitybar__btn.active::before{
+  content:"";
+  position:absolute;
+  left:0;top:0;bottom:0;
+  width:2px;
+  background:var(--accent);
+}
+.activitybar__btn:disabled{opacity:.35}
+.activitybar__sep{width:32px;height:1px;background:#3c3c3c;margin:4px 0}
+
+/* Sidebar */
+.vscode__side{
+  width:var(--sidebar-w);
+  border-right:1px solid var(--border);
+  background:var(--bg-secondary);
+  display:flex;
+  flex-direction:column;
+  min-width:0;
+  flex-shrink:0;
+}
+.vscode__side-header{
+  height:35px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:0 12px 0 20px;
+  font-size:11px;
+  font-weight:600;
+  letter-spacing:.5px;
+  text-transform:uppercase;
+  color:var(--fg-secondary);
+}
+.vscode__side-actions{
+  display:flex;
+  gap:4px;
+}
+.vscode__side-actions button{
+  width:20px;height:20px;
+  display:flex;align-items:center;justify-content:center;
+  border:none;background:transparent;color:var(--fg-secondary);
+  cursor:pointer;border-radius:4px;font-size:12px;
+}
+.vscode__side-actions button:hover{background:var(--bg-tertiary);color:var(--fg-primary)}
+.vscode__searchbox{
+  padding:8px 12px;
+  border-bottom:1px solid var(--border);
+  display:flex;gap:6px;align-items:center;
+}
+.tree{
+  flex:1;
+  padding:8px 4px;
+  overflow:auto;
+}
+.tree__node{
+  padding:3px 6px 3px 8px;
+  border-radius:0;
+  cursor:pointer;
+  display:flex;align-items:center;gap:6px;
+  font-size:13px;
+  color:var(--fg-secondary);
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.tree__node:hover{background:var(--bg-tertiary);color:var(--fg-primary)}
+.tree__node.active{background:#37373d;color:var(--fg-primary)}
+:root[data-theme="light"] .tree__node.active{background:#e4e6f1}
+.tree__children{margin-left:12px;border-left:1px solid transparent;padding-left:4px}
+.tree__node--dir{font-weight:500}
+
+/* Main editor area */
+.vscode__main{
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  min-width:0;
+  background:var(--bg-primary);
+}
+.vscode__tabs{
+  display:flex;
+  gap:0;
+  border-bottom:1px solid var(--border);
+  overflow:auto;
+  background:var(--bg-secondary);
+  flex-shrink:0;
+  scrollbar-width:thin;
+}
+.vscode__tabs::-webkit-scrollbar{height:4px}
+.vscode__tab{
+  padding:8px 12px;
+  border-right:1px solid var(--border);
+  cursor:pointer;
+  white-space:nowrap;
+  color:var(--fg-secondary);
+  font-size:13px;
+  display:flex;align-items:center;gap:6px;
+  background:var(--bg-secondary);
+  border-top:2px solid transparent;
+}
+.vscode__tab:hover{color:var(--fg-primary)}
+.vscode__tab.active{
+  background:var(--bg-primary);
+  color:var(--fg-primary);
+  border-top-color: var(--accent);
+}
+.vscode__tab-dot{
+  width:8px;height:8px;border-radius:50%;background:var(--fg-muted);display:none;
+}
+.vscode__tab.active .vscode__tab-dot{display:block}
+
+.editor{
+  flex:1;
+  overflow:auto;
+  padding:12px;
+  background:var(--bg-primary);
+}
+.editor pre{
+  margin:0;
+  white-space:pre-wrap;
+  word-break:break-word;
+  font-family:var(--font-mono);
+  font-size:13px;
+  line-height:1.6;
+}
+
+/* Status bar bottom of VS Code */
+.vscode__statusbar{
+  height:22px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:0 8px;
+  background:var(--accent);
+  color:#fff;
+  font-size:12px;
+  flex-shrink:0;
+}
+.vscode__statusbar-left,
+.vscode__statusbar-right{
+  display:flex;align-items:center;gap:12px;
+}
+.vscode__statusbar-item{
+  display:flex;align-items:center;gap:4px;
+  padding:0 4px;
+  height:22px;
+  cursor:default;
+}
+.vscode__statusbar-item:hover{background:rgba(255,255,255,.15)}
+
+.terminal{
+  border-top:1px solid var(--border);
+  background:#0b0b0b;
+  color:#d4d4d4;
+  padding:8px;
+  font-family:var(--font-mono);
+  font-size:12px;
+  max-height:38%;
+  overflow:auto;
+}
+:root[data-theme="light"] .terminal{background:#f3f3f3;color:#333;border-top-color:#e5e5e5}
 .terminal__line{white-space:pre-wrap}
