@@ -6,8 +6,8 @@
   <meta name="theme-color" content="#0078d4" />
   <title>Code & Conspiracy — ARG</title>
   <link rel="manifest" href="/manifest.json" />
-  <script type="module" crossorigin src="/assets/main-QTMY6bDD.js"></script>
-  <link rel="stylesheet" crossorigin href="/assets/main-Bdcf8dx_.css">
+  <script type="module" crossorigin src="/assets/main-CCdCeiZm.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/main-m6c5RwZJ.css">
 </head>
 <body>
   <div class="app">
@@ -38,6 +38,18 @@
           <label class="btn" style="cursor:pointer">匯入存檔 <input id="btnImport" type="file" accept=".json" hidden /></label>
           <button id="btnReset" class="btn" style="color:var(--error)">重置進度</button>
         </div>
+        <details style="margin-top:8px;border:1px solid var(--border);border-radius:8px;padding:8px;background:var(--bg-primary)">
+          <summary style="cursor:pointer;font-weight:600;font-size:13px">鍵盤快捷鍵映射</summary>
+          <div style="margin-top:8px;display:grid;gap:4px;font-size:12px;color:var(--fg-secondary)">
+            <div><span class="badge">Ctrl+P</span> 快速開啟檔案（Quick Open）</div>
+            <div><span class="badge">Ctrl+Shift+F</span> 全域搜尋（Search）</div>
+            <div><span class="badge">Ctrl+Shift+G</span> 原始碼控管（Source Control）</div>
+            <div><span class="badge">Ctrl+Shift+D</span> 執行與偵錯</div>
+            <div><span class="badge">Ctrl+/</span> 聚焦終端機</div>
+            <div><span class="badge">Tab</span> 終端機補全 · <span class="badge">↑↓</span> 歷史</div>
+            <div class="small muted">提示：於編輯器按 <span class="badge">Help</span> 亦可查看</div>
+          </div>
+        </details>
       </div>
       <div style="text-align:right;margin-top:12px"><button class="btn primary" onclick="this.closest('dialog').close()">關閉</button></div>
     </div>
@@ -48,6 +60,17 @@
       <h3 style="margin:0 0 12px">筆記本 · 證據板</h3>
       <div id="notebookContent"></div>
       <div style="text-align:right;margin-top:12px"><button class="btn primary" onclick="this.closest('dialog').close()">關閉</button></div>
+    </div>
+  </dialog>
+
+  <!-- Onboarding Narrative Dialog -->
+  <dialog id="onboardingDialog" style="background:var(--bg-secondary);color:var(--fg-primary);border:1px solid var(--border);border-radius:12px;padding:0;max-width:580px;width:90%;max-height:85vh;overflow:auto">
+    <div style="padding:20px">
+      <div id="onboardingContent"></div>
+      <div style="text-align:right;margin-top:16px;padding-top:12px;border-top:1px solid var(--border)">
+        <button id="onboardingNext" class="btn primary">下一步</button>
+        <button id="onboardingSkip" class="btn" style="margin-left:8px">跳過</button>
+      </div>
     </div>
   </dialog>
 

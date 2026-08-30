@@ -138,6 +138,11 @@ function bypassPortalAuth(headers) {
   // headers must contain X-Internal-Token: cocoa-beans-2024
   const token = headers?.['X-Internal-Token'] || headers?.['x-internal-token'];
   if (token === 'cocoa-beans-2024') {
+    // Require hidden portal to be accessed first (Chapter 1 progression)
+    if (!state.hasFlag('hidden_portal_accessed')) {
+      state.setFlag('hidden_portal_accessed', true);
+      events.emit('portal:discovered');
+    }
     state.setFlag('portal_auth_bypassed', true);
     events.emit('portal:bypassed');
     return true;
