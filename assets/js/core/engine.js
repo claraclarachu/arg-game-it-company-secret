@@ -3,12 +3,12 @@ import { events } from './events.js';
 import { vfs } from './vfs.js';
 
 const puzzles = [
-  // Chapter 0 — Onboarding
+  // Chapter 0 — Onboarding (interfaces already unlocked; keep puzzle for evidence/progression only)
   {
     id: 'ch0_complete_onboarding',
     chapter: 0,
     check: () => state.hasFlag('onboarding_done'),
-    reward: { unlock: ['search'] },
+    reward: {},
     title: '完成新手引導'
   },
   // Chapter 1 — The Anomaly
@@ -16,7 +16,7 @@ const puzzles = [
     id: 'ch1_trigger_hidden_route',
     chapter: 1,
     check: () => state.hasFlag('hidden_portal_accessed'),
-    reward: { evidence: { id: 'e001', title: '隱藏入口 /internal/portal', chapter: 1, type: 'portal' }, unlock: ['whatsapp'] },
+    reward: { evidence: { id: 'e001', title: '隱藏入口 /internal/portal', chapter: 1, type: 'portal' } },
     title: '觸發隱藏路由 420.69'
   },
   {

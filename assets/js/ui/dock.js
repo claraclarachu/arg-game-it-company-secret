@@ -5,7 +5,8 @@ export function renderDock({ onSwitch, onOpenSettings, onOpenNotebook, t }) {
   if (!dock) return;
 
   function isUnlocked(id) {
-    return state.get('unlockedInterfaces').includes(id);
+    // No locking — all pages free to visit
+    return true;
   }
 
   const activeView = localStorage.getItem('cc_active_view') || 'vscode';

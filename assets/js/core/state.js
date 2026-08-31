@@ -4,7 +4,7 @@ const STATE_VERSION = '1.0.0';
 const defaultState = {
   version: STATE_VERSION,
   currentChapter: 0,
-  unlockedInterfaces: ['vscode', 'jira'],
+  unlockedInterfaces: ['vscode', 'jira', 'whatsapp', 'search'],
   discoveredFiles: [],
   collectedEvidence: [],
   whatsappChats: {},
@@ -52,9 +52,14 @@ class StateManager {
       state.settings = defaultState.settings;
     }
     if (!state.unlockedInterfaces) {
-      state.unlockedInterfaces = ['vscode', 'jira'];
+      state.unlockedInterfaces = [...defaultState.unlockedInterfaces];
+    } else {
+      // Ensure all interfaces are unlocked from the start — no gating
+      for (const iface of defaultState.unlockedInterfaces) {
+        if (!state.unlockedInterfaces.includes(iface)) state.unlockedInterfaces.push(iface);
+      }
     }
-    return { ...defaultState, ...state };
+    return { ...defaultState, ...state, unlockedInterfaces: state.unlockedInterfaces };
   }
 
   save(immediate = false) {

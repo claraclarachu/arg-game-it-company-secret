@@ -2,13 +2,30 @@ import { state } from '../../core/state.js';
 
 const chats = [
   {
+    id: 'dev-team',
+    name: 'Dev Team',
+    avatar: '👩‍💻',
+    desc: 'Acme 開發團隊群組',
+    members: ['Maggie', 'Casey', 'pm', 'qa-lee', 'ops'],
+    preview: 'Hi @Casey, 有新的工單INV-2024-0042, 請協助處理一下',
+    locked: false,
+    pinned: true,
+    muted: false,
+    archived: false,
+    unread: 1,
+    lastTime: '剛剛',
+    messages: [
+      { id: 'm1', from: 'Maggie', text: 'Hi @Casey, 有新的工單INV-2024-0042, 請協助處理一下', time: '剛剛', read: 'delivered', type: 'text' },
+    ]
+  },
+  {
     id: 'backend-team',
     name: 'Backend Team (群組)',
     avatar: '👥',
     desc: 'Acme 後端團隊群組',
     members: ['pm', 'ops', '你', 'finance@internal', 'qa-lee'],
     preview: 'cocoa bean shipment delay - 供應商延遲',
-    locked: true,
+    locked: false,
     pinned: true,
     muted: false,
     archived: false,
@@ -48,7 +65,7 @@ const chats = [
     desc: '未知供應商',
     phone: '+66 81 234 5678',
     preview: '新批次 crystal 已發出',
-    locked: true,
+    locked: false,
     pinned: false,
     muted: true,
     archived: false,
@@ -65,7 +82,7 @@ const chats = [
     avatar: '💰',
     desc: '自動化財務通知',
     preview: 'feeRate 更新: cocoa 0.15 已生效',
-    locked: true,
+    locked: false,
     pinned: false,
     muted: false,
     archived: true,
@@ -78,26 +95,98 @@ const chats = [
   },
 ];
 
-let activeId = 'qa-lee';
+let activeId = 'dev-team';
 let listFilter = '';
 let listTab = 'all'; // all | unread | archived
 let infoOpen = false;
 let msgSearch = '';
+let sidebarTab = 'chat'; // chat | account
+
+export function openChat(id) {
+  const exists = chats.some(c => c.id === id);
+  if (!exists) return;
+  activeId = id;
+  const c = chats.find(x => x.id === id);
+  if (c) c.unread = 0;
+  // re-render if mounted
+  const root = document.getElementById('view-whatsapp');
+  if (root && root.innerHTML) {
+    // ensure left pane shows chat list when opening a chat via notification
+    sidebarTab = 'chat';
+    syncSidebarActive();
+    renderLeftPane();
+    renderChat(activeId);
+  }
+}
 
 export function mountWhatsApp() {
   const root = document.getElementById('view-whatsapp');
   if (!root) return;
   root.innerHTML = `<div class="wa">
+    <nav class="wa__sidebar" aria-label="WhatsApp 側邊欄">
+      <div class="wa__sidebar-top">
+        <div class="wa__sidebar-tabs" role="tablist" aria-label="WhatsApp 功能">
+          <button class="wa__sidebar-tab active" data-wa-tab="chat" role="tab" aria-selected="true" title="聊天" aria-label="聊天">💬</button>
+        </div>
+      </div>
+      <div class="wa__sidebar-bottom">
+        <button class="wa__sidebar-tab" data-wa-tab="account" role="tab" aria-selected="false" title="帳號" aria-label="帳號">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 20a8 8 0 0 1 16 0"/></svg>
+        </button>
+      </div>
+    </nav>
     <div class="wa__list" id="waList"></div>
     <div class="wa__chat" id="waChat"></div>
   </div>`;
-  renderList();
+  bindSidebar();
+  renderLeftPane();
   renderChat(activeId);
 }
 
+function bindSidebar() {
+  const root = document.getElementById('view-whatsapp');
+  if (!root) return;
+  root.querySelectorAll('.wa__sidebar-tab[data-wa-tab]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const tab = btn.dataset.waTab;
+      if (tab === sidebarTab) return;
+      sidebarTab = tab;
+      syncSidebarActive();
+      renderLeftPane();
+    });
+  });
+}
+
+function syncSidebarActive() {
+  document.querySelectorAll('.wa__sidebar-tab[data-wa-tab]').forEach(btn => {
+    const isActive = btn.dataset.waTab === sidebarTab;
+    btn.classList.toggle('active', isActive);
+    btn.setAttribute('aria-selected', isActive ? 'true' : 'false');
+  });
+}
+
+function renderLeftPane() {
+  if (sidebarTab === 'account') renderAccountPane();
+  else renderList();
+}
+
+function renderAccountPane() {
+  const el = document.getElementById('waList');
+  if (!el) return;
+  el.innerHTML = `
+    <div class="wa__account-pane">
+      <div class="wa__account-circle" aria-hidden="true">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 20a8 8 0 0 1 16 0"/></svg>
+      </div>
+      <div class="wa__account-name-large">Casey</div>
+      <div class="wa__account-phone-large">+852 32443333</div>
+    </div>
+  `;
+}
+
 function isUnlocked(id) {
-  if (id === 'qa-lee') return true;
-  return state.hasFlag('hidden_portal_accessed');
+  // All chats unlocked from the start — no gating
+  return true;
 }
 
 function getFilteredChats() {
@@ -117,6 +206,7 @@ function getFilteredChats() {
 }
 
 function renderList() {
+  if (sidebarTab !== 'chat') return;
   const el = document.getElementById('waList');
   if (!el) return;
   const filtered = getFilteredChats();
