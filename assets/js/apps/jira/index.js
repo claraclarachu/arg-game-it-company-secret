@@ -90,9 +90,9 @@ export function mountJira() {
             <option value="ops">ops</option>
           </select>
           <select id="jiraSwimlane" class="select" style="width:140px">
-            <option value="all">泳道：無</option>
-            <option value="assignee">泳道：經辦人</option>
-            <option value="epic">泳道：Epic</option>
+            <option value="all">Group：無</option>
+            <option value="assignee">Group：經辦人</option>
+            <option value="epic">Group：Epic</option>
           </select>
         </div>
       </div>
@@ -192,7 +192,7 @@ function renderBoard() {
       list.forEach(t => cols[t.status]?.push(t));
       return `
         <div class="jira__swimlane">
-          <div class="jira__swimlane-header">泳道：${gname} (${list.length})</div>
+          <div class="jira__swimlane-header">Group：${gname} (${list.length})</div>
           <div class="jira__board">
             ${Object.entries(cols).map(([col, arr]) => colHtml(col, arr)).join('')}
           </div>
