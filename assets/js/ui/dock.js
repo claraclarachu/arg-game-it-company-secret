@@ -102,7 +102,7 @@ export function renderDock({ onSwitch, onOpenSettings, onOpenNotebook, t }) {
         <span class="taskbar__tray-icon" title="顯示隱藏的圖示">▲</span>
         <span class="taskbar__tray-icon" title="網路">📶</span>
         <span class="taskbar__tray-icon" title="音效">🔊</span>
-        <span class="taskbar__ime" title="輸入法">中</span>
+        <span class="taskbar__ime" title="輸入法">Eng</span>
       </div>
       <div class="taskbar__datetime" id="taskbarDatetime" title="日期與時間">
         <span class="taskbar__time" id="taskbarTime">--:-- --</span>
