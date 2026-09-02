@@ -720,7 +720,7 @@ function handleCommit() {
   renderTree();
   renderScmChanges();
   if (gitGraphOpen && currentFile === GIT_GRAPH_PATH) renderGitGraphEditor();
-  // Mark Jira ticket as Done and redirect
+  // Mark Jiua ticket as Done and redirect
   try {
     // dynamic import to avoid circular
     import('../jira/index.js').then(mod => {

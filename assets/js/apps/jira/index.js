@@ -10,7 +10,7 @@ const tickets = [
     priority: 'High',
     points: 3,
     epic: 'Billing',
-    desc: `【問題描述】\nVIP 用戶訂單金額計算錯誤：目前 VIP 等級折扣比預期少 5%，導致 VIP 用戶實際支付過高。\n\n【復現步驟】\n1. 以 VIP1 身份建立訂單 (金額 1000)\n2. 實際扣款為 950 (95%)，預期應為 900 (90%)\n3. VIP2~VIP5 同樣偏移 5%\n\n【錯誤代碼】 src/main/java/com/acme/OrderService.java#calculateVipPrice\nswitch(vipLv){\n  case 1: price*=0.95; break; // 應為 0.90\n  case 2: price*=0.90; break; // 應為 0.85\n  case 3: price*=0.85; break; // 應為 0.80\n  case 4: price*=0.80; break; // 應為 0.75\n  case 5: price*=0.75; break; // 應為 0.70\n  default: break;\n}\n\n【正確對照】\nVIP1 → 90% (0.90)\nVIP2 → 85% (0.85)\nVIP3 → 80% (0.80)\nVIP4 → 75% (0.75)\nVIP5 → 70% (0.70)\n\n【操作指引】\n請在 Vizual Studio Code 編輯 OrderService.java 修正上述 switch，並透過左側 Source Control 提交 (Commit)。\n• 若提交內容仍有錯誤，畫面中央會彈出 SonarQube 掃描錯誤並標示行號\n• 若正確，票據將自動標記為 Done 並跳轉回 Jira\n\n關聯檔案: src/main/java/com/acme/OrderService.java`,
+    desc: `【問題描述】\nVIP 用戶訂單金額計算錯誤：目前 VIP 等級折扣比預期少 5%，導致 VIP 用戶實際支付過高。\n\n【復現步驟】\n1. 以 VIP1 身份建立訂單 (金額 1000)\n2. 實際扣款為 950 (95%)，預期應為 900 (90%)\n3. VIP2~VIP5 同樣偏移 5%\n\n【錯誤代碼】 src/main/java/com/acme/OrderService.java#calculateVipPrice\nswitch(vipLv){\n  case 1: price*=0.95; break; // 應為 0.90\n  case 2: price*=0.90; break; // 應為 0.85\n  case 3: price*=0.85; break; // 應為 0.80\n  case 4: price*=0.80; break; // 應為 0.75\n  case 5: price*=0.75; break; // 應為 0.70\n  default: break;\n}\n\n【正確對照】\nVIP1 → 90% (0.90)\nVIP2 → 85% (0.85)\nVIP3 → 80% (0.80)\nVIP4 → 75% (0.75)\nVIP5 → 70% (0.70)\n\n【操作指引】\n請在 Vizual Studio Code 編輯 OrderService.java 修正上述 switch，並透過左側 Source Control 提交 (Commit)。\n• 若提交內容仍有錯誤，畫面中央會彈出 SonarQube 掃描錯誤並標示行號\n• 若正確，票據將自動標記為 Done 並跳轉回 Jiua\n\n關聯檔案: src/main/java/com/acme/OrderService.java`,
     comments: ['qa-lee: 是 switch 寫錯，VIP1 少打 5% 折扣', 'Maggie: @Casey 麻煩幫忙修一下，記得 commit 後看 SonarQube 結果', 'pm: 修完請直接 commit，不用另開分支'],
     attachments: [
       { name: 'OrderService.java', type: 'java', snippet: 'switch(vipLv){case 1: price*=0.95; break;... // VIP1 應為 0.90' },
@@ -77,7 +77,7 @@ export function mountJira() {
     <div class="jira">
       <div class="jira__topbar">
         <div class="jira__title">
-          <h2 style="margin:0">Jira · Acme Board</h2>
+          <h2 style="margin:0">Jiua · Acme Board</h2>
           <span class="badge">Sprint 24</span>
           <span class="badge" style="background:var(--accent);color:#fff;border-color:var(--accent)">4 tickets</span>
         </div>
@@ -267,7 +267,7 @@ function openTicket(key) {
 
   // Track onboarding: viewing INV-2024-0042
   if (key === 'INV-2024-0042') {
-    trackOnboarding('jira_viewed');
+    trackOnboarding('jiua_viewed');
   }
 
   d.style.display = 'block';

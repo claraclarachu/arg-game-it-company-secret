@@ -92,9 +92,9 @@ function dismissNotification() {
   setTimeout(() => el.remove(), 280);
 }
 
-// Keep for backwards compat — Jira still calls trackOnboarding
+// Keep for backwards compat — Jiua still calls trackOnboarding
 export function trackOnboarding(action) {
-  if (action === 'jira_viewed') state.setFlag('onb_jira_viewed', true);
+  if (action === 'jiua_viewed') state.setFlag('onb_jiua_viewed', true);
   if (action === 'vscode_viewed') state.setFlag('onb_vscode_viewed', true);
   // Auto-complete onboarding flag since dialog is removed; no gating
   if (!state.hasFlag('onboarding_done')) state.setFlag('onboarding_done', true);

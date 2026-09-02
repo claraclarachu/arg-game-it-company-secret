@@ -33,7 +33,7 @@ const chats = [
     unread: 2,
     lastTime: '10:32',
     messages: [
-      { id: 'm1', from: 'pm', text: 'cocoa bean shipment delay，這批貨下週到，別在 Jira 提了', time: '10:28', read: 'read', type: 'text' },
+      { id: 'm1', from: 'pm', text: 'cocoa bean shipment delay，這批貨下週到，別在 Jiua 提了', time: '10:28', read: 'read', type: 'text' },
       { id: 'm2', from: 'ops', text: '上次 bean 的 118 單位還在倉庫，leaf 新貨到了', time: '10:30', read: 'read', type: 'text' },
       { id: 'm3', from: 'you', text: '收到', time: '10:31', read: 'read', type: 'text' },
       { id: 'm4', from: 'pm', text: '架構圖更新了，記得看附件', time: '10:32', read: 'delivered', type: 'file', fileName: 'arch-routes.pdf', fileSize: '1.2MB' },

@@ -12,10 +12,11 @@ export function renderDock({ onSwitch, onOpenSettings, onOpenNotebook, t }) {
   const activeView = localStorage.getItem('cc_active_view') || 'vscode';
 
   const ICONS = {
-    vscode: 'fa-duotone fa-solid fa-cube',
-    jira: 'fa-brands fa-jira',
-    whatsapp: 'fa-duotone fa-solid fa-comment-sms',
-    // intranet + search use emoji fallback
+    vscode: '/icon/vizual-studio-code.svg',
+    intranet: '/icon/file-system.svg',
+    jira: '/icon/jiua.svg',
+    whatsapp: '/icon/whatsup.svg',
+    search: '/icon/browser.svg',
   };
   const ACTION_ICONS = {
     notebook: '/icon/notepad.png',
@@ -26,7 +27,9 @@ export function renderDock({ onSwitch, onOpenSettings, onOpenNotebook, t }) {
     const active = activeView === id ? 'active' : '';
     const src = ICONS[id];
     let iconHtml;
-    if (src && src.startsWith('fa-')) {
+    if (src && src.startsWith('/icon/')) {
+      iconHtml = `<img class="taskbar__app-icon-img" src="${src}" alt="${label}" width="22" height="22" loading="eager" />`;
+    } else if (src && src.startsWith('fa-')) {
       if (id === 'jira') {
         iconHtml = `<i class="${src}" aria-hidden="true" style="font-size:22px;line-height:1;--fa-primary-color:rgba(19,91,205,1);--fa-secondary-color:rgba(19,91,205,0.4);color:rgba(19,91,205,1)"></i>`;
       } else if (id === 'vscode') {

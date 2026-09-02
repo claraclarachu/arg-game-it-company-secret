@@ -2,7 +2,7 @@
   "id": 0,
   "title": "Onboarding",
   "title_zh": "教學關",
-  "desc": "熟悉四大介面操作，完成第一個 Jira ticket，學會 Vizual Studio Code 找檔案。",
+  "desc": "熟悉四大介面操作，完成第一個 Jiua ticket，學會 Vizual Studio Code 找檔案。",
   "objectives": ["完成新手引導", "閱讀 README.md"],
   "unlock": ["search"],
   "evidence": []
