@@ -3,7 +3,7 @@
   --fg-primary:#d4d4d4; --fg-secondary:#9aa0a6; --fg-muted:#6a737d;
   --accent:#007acc; --accent-hover:#0e8ad8; --border:#3c3c3c;
   --success:#89d185; --warning:#dcdcaa; --error:#f44747;
-  --sidebar-w:260px; --activitybar-w:48px; --titlebar-h:30px; --footer-h:48px;
+  --sidebar-w:416px; --activitybar-w:48px; --titlebar-h:30px; --footer-h:48px;
   --radius:8px; --shadow:0 4px 16px rgba(0,0,0,.35);
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   --font-ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans TC", "Microsoft JhengHei", sans-serif;
@@ -162,14 +162,15 @@ button{font:inherit}
   border:1px solid rgba(255,255,255,.08);
   color: rgba(255,255,255,.75);
   font-size:13px;
-  cursor:text;
+  cursor:default;
+  pointer-events:none;
+  user-select:none;
 }
 :root[data-theme="light"] .taskbar__search{
   background:#ffffff;
   border:1px solid #e5e5e5;
   color:#666;
 }
-.taskbar__search:hover{background: rgba(255,255,255,.12)}
 .taskbar__apps{
   display:flex;
   align-items:center;
@@ -289,7 +290,7 @@ button{font:inherit}
 .toast{padding:10px 12px;border-radius:8px;background:#323232;color:#fff;box-shadow:var(--shadow);font-size:13px;opacity:0;transform:translateY(6px);animation:toastIn .25s forwards}
 @keyframes toastIn{to{opacity:1;transform:none}}
 
-/* Windows-style WhatsApp notification (bottom-right, above taskbar) */
+/* Windows-style WhatUp notification (bottom-right, above taskbar) */
 #wa-win-notification{
   position:fixed;
   right:16px;

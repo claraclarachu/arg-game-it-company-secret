@@ -4,12 +4,34 @@ import { events } from '../../core/events.js';
 import { escapeHtml } from '../../utils/helpers.js';
 import { trackOnboarding } from '../../main.js';
 
-let currentFile = '/workspace/src/billing/service.js';
+let currentFile = '/workspace/src/main/java/com/acme/OrderService.java';
 let activeActivity = 'explorer'; // explorer | search | scm | debug | extensions
 let folded = new Set(); // Set of line numbers that are collapsed
 let termHistory = [];
 let termHistIdx = -1;
 let termDraft = '';
+
+// Editable tracking
+const editedFiles = new Map(); // path -> edited content string
+function getOriginalContent(path) {
+  const e = vfs.getFile(path);
+  return e ? e.content : null;
+}
+function getCurrentContent(path) {
+  if (editedFiles.has(path)) return editedFiles.get(path);
+  return getOriginalContent(path);
+}
+function isDirty(path) {
+  if (!editedFiles.has(path)) return false;
+  return editedFiles.get(path) !== getOriginalContent(path);
+}
+function markDirty(path, content) {
+  const orig = getOriginalContent(path);
+  if (content === orig) editedFiles.delete(path);
+  else editedFiles.set(path, content);
+  renderTabs();
+  renderScmChanges();
+}
 
 const gitCommits = [
   { hash: 'a1b2c3d', author: 'finance@internal', date: '2024-08-12', msg: 'feat: integrate crypto-mixer (legacy)', diff: `+ import { cryptoMixer } from '@shady/crypto-mixer'\n  feeRate table added: cocoa 0.15, bean 0.22` },
@@ -23,25 +45,51 @@ const fakeBlame = {
     { line: 9, commit: '9f8e7d6', author: 'qa-lee' },
     { line: 12, commit: '9f8e7d6', author: 'qa-lee' },
     { line: 14, commit: 'a1b2c3d', author: 'finance@internal' },
+  ],
+  '/workspace/src/main/java/com/acme/OrderService.java': [
+    { line: 1, commit: '4c2a1e0', author: 'dev' },
+    { line: 12, commit: '9f8e7d6', author: 'qa-lee' },
+    { line: 15, commit: 'a1b2c3d', author: 'finance@internal' },
   ]
 };
+
+// Git Graph — richer branch data for editor tab
+const GIT_GRAPH_PATH = '__GIT_GRAPH__';
+let gitGraphOpen = false;
+let expandedGraphHash = null;
+const branchColors = {
+  'main': '#89d185',
+  'feature/vip-discount': '#4da3ff',
+  'feature/crypto-mixer': '#dcdcaa',
+  'feature/billing-fix': '#ce9178',
+  'develop': '#c586c0',
+};
+let gitGraphCommits = [
+  { hash: 'f3a9c12', branch: 'main', author: 'Casey', date: '2024-08-15', msg: 'fix: correct VIP discount levels (VIP1-5)', diff: `M src/main/java/com/acme/OrderService.java\n- case 1: price*=0.95;break;\n+ case 1: price*=0.90;break;\n- case 5: price*=0.75;break;\n+ case 5: price*=0.70;break;` },
+  { hash: 'a1b2c3d', branch: 'feature/crypto-mixer', author: 'finance@internal', date: '2024-08-12', msg: 'feat: integrate crypto-mixer (legacy)', diff: `+ import { cryptoMixer } from '@shady/crypto-mixer'\n+ const table = { cocoa: 0.15, bean: 0.22, leaf: 0.12, crystal: 0.30 }` },
+  { hash: '9f8e7d6', branch: 'feature/billing-fix', author: 'qa-lee', date: '2024-08-10', msg: 'fix: rounding edge case INV-2024-0042 (see 420.69)', diff: `- if (total > 1000) ...\n+ if (total === 420.69) return redirectTo('/internal/portal') // hidden audit` },
+  { hash: '7e2b4a1', branch: 'feature/vip-discount', author: 'dev-zhang', date: '2024-08-08', msg: 'feat: add VIP discount tier (initial)', diff: `+ public double calculateVipPrice(double price, int vipLv) {\n+   switch(vipLv){ case 1: price*=0.95; ... }\n+ }` },
+  { hash: 'b5c8e11', branch: 'develop', author: 'ops-li', date: '2024-08-05', msg: 'chore: update CI pipeline for billing tests', diff: `M .github/workflows/ci.yml\n+ - run: npm test -- billing\n+ - run: sonar-scan` },
+  { hash: '4c2a1e0', branch: 'main', author: 'dev', date: '2024-08-01', msg: 'chore: init billing service', diff: `+ export function calculateAmount(items, opts) {}\n+ export function computeFee(amount, opts) {}` },
+  { hash: 'c8d3e9f', branch: 'develop', author: 'ops-li', date: '2024-07-28', msg: 'chore: scaffold workspace & payment stubs', diff: `+ workspace/src/payment/gateway.js\n+ workspace/src/payment/mixer.js` },
+];
 
 export function mountVSCode() {
   const root = document.getElementById('view-vscode');
   if (!root) return;
   root.innerHTML = `
     <div class="vscode">
-      <!-- VS Code Title Bar -->
+      <!-- Vizual Studio Code Title Bar -->
       <div class="vscode__titlebar" role="banner">
         <div class="titlebar__left">
           <span class="vscode__logo" aria-hidden="true">
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M14.5 2.5L3.2 8L8.2 9.6L9.8 14.6L14.5 2.5Z" fill="#007ACC"/><path d="M3.2 8L1 6.5L14.5 2.5L3.2 8Z" fill="#1681CF"/><path d="M9.8 14.6L8.2 9.6H3.2L9.8 14.6Z" fill="#1681CF"/></svg>
+            <i class="fa-duotone fa-solid fa-cube" style="font-size:14px;--fa-primary-color:rgba(87,165,229,1);--fa-secondary-color:rgba(87,165,229,0.4);color:rgba(87,165,229,1)"></i>
           </span>
           <nav class="titlebar__menu" aria-label="Menu">
             <span>File</span><span>Edit</span><span>Selection</span><span>View</span><span>Go</span><span>Run</span><span>Terminal</span><span data-help="1" style="cursor:pointer">Help</span>
           </nav>
         </div>
-        <div class="titlebar__center" id="vsTitle" title="billing/service.js — Code & Conspiracy — Visual Studio Code">billing/service.js — Code &amp; Conspiracy — Visual Studio Code</div>
+        <div class="titlebar__center" id="vsTitle" title="OrderService.java — Code & Conspiracy — Vizual Studio Code">OrderService.java — Code &amp; Conspiracy — Vizual Studio Code</div>
         <div class="titlebar__controls" aria-label="Window controls">
           <button class="titlebar__btn" title="Minimize" aria-label="Minimize">—</button>
           <button class="titlebar__btn" title="Maximize" aria-label="Maximize">□</button>
@@ -101,16 +149,22 @@ export function mountVSCode() {
             <div class="small muted" style="margin-top:12px">結果會顯示於此。</div>
           </div>
           <!-- SCM -->
-          <div id="vsPanelScm" style="display:none;flex:1;flex-direction:column;min-height:0;padding:12px;overflow:auto">
-            <div style="font-size:11px;font-weight:600;letter-spacing:.5px;color:var(--fg-secondary);margin-bottom:8px">SOURCE CONTROL</div>
-            <div class="git__tabs" role="tablist">
-              <button class="git__tab active" data-git="log" role="tab">Log</button>
-              <button class="git__tab" data-git="diff" role="tab">Diff</button>
-              <button class="git__tab" data-git="blame" role="tab">Blame</button>
+          <div id="vsPanelScm" style="display:none;flex:1;flex-direction:column;min-height:0;padding:0;overflow:hidden">
+            <div style="padding:12px 12px 8px;border-bottom:1px solid var(--border)">
+              <div style="font-size:11px;font-weight:600;letter-spacing:.5px;color:var(--fg-secondary);margin-bottom:8px">SOURCE CONTROL</div>
+              <div class="scm__changes-header">
+                <span class="scm__changes-title">CHANGES</span>
+                <button id="scmGraphBtn" class="scm__graph-btn" title="View Git Graph" aria-label="View Git Graph">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="12" r="3"/><path d="M8.3 7.3L15.7 10.7"/><path d="M8.3 16.7L15.7 13.3"/></svg>
+                </button>
+              </div>
+              <div class="scm__commit-box">
+                <textarea id="scmCommitMsg" class="input" placeholder="訊息 (例如: fix: correct VIP discount)" style="min-height:56px;resize:vertical"></textarea>
+                <button id="scmCommitBtn" class="btn primary" style="width:100%;margin-top:6px">✓ Commit</button>
+                <div id="scmCommitStatus" class="small" style="margin-top:6px;min-height:14px;color:var(--fg-secondary)"></div>
+              </div>
+              <div id="scmChanges" class="scm__changes"></div>
             </div>
-            <div id="gitLogView"></div>
-            <div id="gitDiffView" style="display:none"></div>
-            <div id="gitBlameView" style="display:none"></div>
           </div>
           <div id="vsPanelDebug" style="display:none;flex:1;flex-direction:column;min-height:0;padding:12px">
             <div style="font-size:11px;font-weight:600;letter-spacing:.5px;color:var(--fg-secondary);margin-bottom:8px">RUN AND DEBUG</div>
@@ -149,7 +203,7 @@ export function mountVSCode() {
           <span class="vscode__statusbar-item" id="vsCursorInfo">Ln 1, Col 1</span>
           <span class="vscode__statusbar-item">Spaces: 2</span>
           <span class="vscode__statusbar-item">UTF-8</span>
-          <span class="vscode__statusbar-item">JavaScript</span>
+          <span class="vscode__statusbar-item">Java</span>
           <span class="vscode__statusbar-item">🔔</span>
         </div>
       </div>
@@ -177,13 +231,24 @@ export function mountVSCode() {
         <div class="small muted" style="margin-top:8px">多游標：按住 Alt 點擊編輯器多點編輯（模擬）</div>
       </div>
     </div>
+    <!-- SonarQube modal -->
+    <div id="sonarModal" class="sonar-modal" style="display:none" role="dialog" aria-modal="true">
+      <div class="sonar-modal__card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+          <h3 style="margin:0;font-size:16px">❌ SonarQube 掃描失敗</h3>
+          <button id="sonarModalClose" class="btn" style="padding:4px 10px">關閉</button>
+        </div>
+        <div id="sonarModalBody" class="small" style="line-height:1.6;white-space:pre-wrap"></div>
+        <div class="small muted" style="margin-top:10px">請修正後重新 Commit</div>
+      </div>
+    </div>
   `;
   renderTree();
   renderTabs();
   openFile(currentFile);
   bindVSCode();
   renderTerminalIntro();
-  renderGitLog();
+  renderScmChanges();
   bindShortcuts();
 }
 
@@ -224,13 +289,19 @@ function bindVSCode() {
   });
   document.getElementById('vsHelpOverlay')?.addEventListener('click', e => { if (e.target.id === 'vsHelpOverlay') e.target.style.display = 'none'; });
 
+  // Sonar modal
+  document.getElementById('sonarModalClose')?.addEventListener('click', () => {
+    document.getElementById('sonarModal').style.display = 'none';
+  });
+  document.getElementById('sonarModal')?.addEventListener('click', e => { if (e.target.id === 'sonarModal') e.target.style.display = 'none'; });
+
+  // SCM commit
+  document.getElementById('scmCommitBtn')?.addEventListener('click', handleCommit);
+  document.getElementById('scmGraphBtn')?.addEventListener('click', openGitGraphInEditor);
+
   // Terminal binding
   const tInput = document.getElementById('vsTerminalInput');
   tInput?.addEventListener('keydown', handleTerminalKey);
-  // Git tabs
-  document.querySelectorAll('.git__tab').forEach(b => {
-    b.addEventListener('click', () => switchGitTab(b.dataset.git));
-  });
   // QuickOpen binding
   const qoInput = document.getElementById('quickOpenInput');
   qoInput?.addEventListener('input', e => renderQuickOpen(e.target.value));
@@ -250,31 +321,44 @@ function updateActivityBar() {
   document.getElementById('vsPanelScm').style.display = activeActivity === 'scm' ? 'flex' : 'none';
   document.getElementById('vsPanelDebug').style.display = activeActivity === 'debug' ? 'flex' : 'none';
   document.getElementById('vsPanelExtensions').style.display = activeActivity === 'extensions' ? 'flex' : 'none';
-  if (activeActivity === 'scm') { renderGitLog(); renderGitDiff(); renderGitBlame(); }
+  if (activeActivity === 'scm') { renderScmChanges(); }
 }
 
 function renderTree(filter = '') {
   const c = document.getElementById('vsTree');
   if (!c) return;
   const tree = vfs.buildTree();
+  // Vizual Studio Code 僅顯示公司官網系統（/workspace），隱藏內網 /intranet
+  const VISIBLE_ROOTS = ['/workspace'];
+  function isVisiblePath(p) { return VISIBLE_ROOTS.some(r => p === r || p.startsWith(r + '/')); }
   function renderNode(node, depth = 0) {
+    if (!isVisiblePath(node.path) && node.path !== '/workspace') {
+      // 過濾非 /workspace 的頂層節點由外層 map 已處理，此處僅處理子節點遞迴
+      if (node.path === '/' || node.path === '/intranet' || node.path === '/internal') return '';
+    }
     if (node.type === 'dir') {
-      const visibleChildren = node.children.filter(ch => !filter || ch.path.toLowerCase().includes(filter) || hasDescendant(ch, filter));
-      if (filter && visibleChildren.length === 0) return '';
-      return `<div class="tree__node tree__node--dir" style="padding-left:${8+depth*8}px" data-path="${node.path}">📁 ${escapeHtml(node.name)}</div>
+      const visibleChildren = (node.children || []).filter(ch => isVisiblePath(ch.path) && (!filter || ch.path.toLowerCase().includes(filter) || hasDescendant(ch, filter)));
+      if (filter && visibleChildren.length === 0 && !node.path.toLowerCase().includes(filter)) return '';
+      // 隱藏非可見目錄本身（除非是 /workspace）
+      if (!isVisiblePath(node.path) && node.path !== '/') return visibleChildren.map(ch => renderNode(ch, depth)).join('');
+      return `<div class="tree__node tree__node--dir" style="padding-left:${8+depth*8}px" data-path="${node.path}" title="${escapeHtml(node.path)}">📁 <span class="tree__label">${escapeHtml(node.name)}</span></div>
         <div class="tree__children">${visibleChildren.map(ch => renderNode(ch, depth+1)).join('')}</div>`;
     } else {
+      if (!isVisiblePath(node.path)) return '';
       if (filter && !node.path.toLowerCase().includes(filter)) return '';
       const active = node.path === currentFile ? 'active' : '';
-      return `<div class="tree__node ${active}" data-path="${node.path}" data-file="1" style="padding-left:${8+depth*8}px">📄 ${escapeHtml(node.name)}</div>`;
+      const dirty = isDirty(node.path) ? '●' : '';
+      return `<div class="tree__node ${active}" data-path="${node.path}" data-file="1" style="padding-left:${8+depth*8}px" title="${escapeHtml(node.path)}">📄 <span class="tree__label">${escapeHtml(node.name)}</span> <span style="margin-left:auto;font-size:10px;color:var(--warning);flex-shrink:0">${dirty}</span></div>`;
     }
   }
   function hasDescendant(node, q) {
+    if (!isVisiblePath(node.path)) return false;
     if (node.path.toLowerCase().includes(q)) return true;
     if (node.children) return node.children.some(ch => hasDescendant(ch, q));
     return false;
   }
-  c.innerHTML = tree.children.map(ch => renderNode(ch, 0)).join('');
+  const visibleRoots = tree.children.filter(ch => isVisiblePath(ch.path));
+  c.innerHTML = visibleRoots.map(ch => renderNode(ch, 0)).join('');
   c.querySelectorAll('[data-file="1"]').forEach(el => {
     el.addEventListener('click', () => openFile(el.dataset.path));
   });
@@ -284,130 +368,392 @@ function renderTabs() {
   const tabs = document.getElementById('vsTabs');
   if (!tabs) return;
   const files = vfs.listFiles('/workspace').slice(0, 8);
-  if (!files.some(f => f.path === currentFile)) {
+  if (!files.some(f => f.path === currentFile) && currentFile !== GIT_GRAPH_PATH) {
     const cur = vfs.getFile(currentFile);
     if (cur) files.unshift({ path: currentFile, ...cur });
   }
-  tabs.innerHTML = files.map(f => `<div class="vscode__tab ${f.path===currentFile?'active':''}" data-path="${f.path}"><span class="vscode__tab-dot"></span>${escapeHtml(f.path.split('/').pop())} <span style="opacity:.6;font-size:11px;margin-left:4px">${f.path===currentFile?'●':''}</span></div>`).join('');
-  tabs.querySelectorAll('.vscode__tab').forEach(el => el.addEventListener('click', () => openFile(el.dataset.path)));
+  // ensure OrderService is always in tabs for visibility
+  if (!files.some(f => f.path === '/workspace/src/main/java/com/acme/OrderService.java')) {
+    const o = vfs.getFile('/workspace/src/main/java/com/acme/OrderService.java');
+    if (o) files.unshift({ path: '/workspace/src/main/java/com/acme/OrderService.java', ...o });
+  }
+  // append Git Graph tab at the most right if opened
+  if (gitGraphOpen && !files.some(f => f.path === GIT_GRAPH_PATH)) {
+    files.push({ path: GIT_GRAPH_PATH, name: 'Git Graph' });
+  }
+  tabs.innerHTML = files.map(f => {
+    if (f.path === GIT_GRAPH_PATH) {
+      const active = f.path === currentFile ? 'active' : '';
+      return `<div class="vscode__tab ${active}" data-path="${GIT_GRAPH_PATH}"><span class="vscode__tab-dot" style="display:${active?'block':'none'}"></span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true" style="flex-shrink:0"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="12" r="3"/><path d="M8.3 7.3L15.7 10.7"/><path d="M8.3 16.7L15.7 13.3"/></svg> Git Graph <span class="vscode__tab-close" data-close-graph="1" title="Close" style="margin-left:6px;opacity:.6;font-size:12px;cursor:pointer">✕</span></div>`;
+    }
+    const dirty = isDirty(f.path) ? '<span style="color:var(--warning);font-size:12px">●</span>' : '';
+    return `<div class="vscode__tab ${f.path===currentFile?'active':''}" data-path="${f.path}"><span class="vscode__tab-dot"></span>${escapeHtml((f.path.split('/').pop() || f.path))} ${dirty} <span style="opacity:.6;font-size:11px;margin-left:4px">${f.path===currentFile?'●':''}</span></div>`;
+  }).join('');
+  tabs.querySelectorAll('.vscode__tab').forEach(el => el.addEventListener('click', (e) => {
+    if (e.target.closest('[data-close-graph]')) {
+      e.stopPropagation();
+      closeGitGraphInEditor();
+      return;
+    }
+    openFile(el.dataset.path);
+  }));
 }
 
-// --- Editor: highlight + line numbers + folding ---
-function highlightCode(code, lang) {
-  // Placeholder approach to avoid nested escaping
-  const placeholders = [];
-  const store = (cls, text) => {
-    const idx = placeholders.length;
-    placeholders.push(`<span class="${cls}">${escapeHtml(text)}</span>`);
-    return `@@__HL_${idx}__@@`;
+function openGitGraphInEditor() {
+  gitGraphOpen = true;
+  expandedGraphHash = null;
+  openFile(GIT_GRAPH_PATH);
+}
+
+function closeGitGraphInEditor() {
+  gitGraphOpen = false;
+  expandedGraphHash = null;
+  if (currentFile === GIT_GRAPH_PATH) {
+    currentFile = '/workspace/src/main/java/com/acme/OrderService.java';
+  }
+  renderTabs();
+  if (currentFile === GIT_GRAPH_PATH) openFile(currentFile);
+  else openFile(currentFile);
+}
+
+function renderGitGraphEditor() {
+  const editor = document.getElementById('vsEditor');
+  if (!editor) return;
+  const titleEl = document.getElementById('vsTitle');
+  if (titleEl) titleEl.textContent = `Git Graph — Code & Conspiracy — Vizual Studio Code`;
+  renderTabs();
+  const rows = gitGraphCommits.map((c, idx) => {
+    const color = branchColors[c.branch] || 'var(--accent)';
+    const isExpanded = expandedGraphHash === c.hash;
+    const diffHtml = c.diff.split('\n').map(l => {
+      const esc = escapeHtml(l);
+      if (l.startsWith('+')) return `<div class="diff-add">${esc}</div>`;
+      if (l.startsWith('-')) return `<div class="diff-del">${esc}</div>`;
+      return `<div>${esc}</div>`;
+    }).join('');
+    return `
+      <div class="gitgraph-row ${isExpanded ? 'expanded' : ''}" data-hash="${c.hash}">
+        <div class="gitgraph-row__main">
+          <div class="gitgraph-graph-col">
+            <span class="gitgraph-dot" style="background:${color};box-shadow:0 0 0 2px ${color}33"></span>
+            ${idx < gitGraphCommits.length - 1 ? `<span class="gitgraph-vline"></span>` : ``}
+          </div>
+          <div class="gitgraph-info">
+            <div class="gitgraph-top">
+              <span class="gitgraph-branch" style="background:${color}22;color:${color};border-color:${color}44">${escapeHtml(c.branch)}</span>
+              <span class="mono gitgraph-hash" style="color:${color}">${escapeHtml(c.hash)}</span>
+              <span class="gitgraph-date">${escapeHtml(c.date)}</span>
+              <span class="gitgraph-author">${escapeHtml(c.author)}</span>
+            </div>
+            <div class="gitgraph-msg">${escapeHtml(c.msg)}</div>
+          </div>
+          <span class="gitgraph-chevron">${isExpanded ? '▾' : '▸'}</span>
+        </div>
+        ${isExpanded ? `<div class="gitgraph-diff"><div class="gitgraph-diff__header">Commit ${escapeHtml(c.hash)} — ${escapeHtml(c.date)} · ${escapeHtml(c.author)}</div><pre class="gitgraph-diff__content">${diffHtml}</pre></div>` : ``}
+      </div>
+    `;
+  }).join('');
+  editor.innerHTML = `
+    <div class="gitgraph-editor">
+      <div class="gitgraph-editor__header">
+        <div style="display:flex;align-items:center;gap:8px">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="12" r="3"/><path d="M8.3 7.3L15.7 10.7"/><path d="M8.3 16.7L15.7 13.3"/></svg>
+          <b>Git Graph</b>
+          <span class="small muted">${gitGraphCommits.length} commits — 5 branches</span>
+        </div>
+        <div class="gitgraph-legend">
+          ${Object.entries(branchColors).map(([b, col]) => `<span class="gitgraph-branch" style="background:${col}22;color:${col};border-color:${col}44">${escapeHtml(b)}</span>`).join('')}
+        </div>
+      </div>
+      <div class="gitgraph-list">
+        ${rows}
+      </div>
+      <div class="small muted" style="padding:8px 12px;border-top:1px solid var(--border)">點擊任一 commit 展開 / 收合 diff · 最新提交在上方</div>
+    </div>
+  `;
+  editor.querySelectorAll('.gitgraph-row__main').forEach(header => {
+    header.addEventListener('click', () => {
+      const row = header.closest('.gitgraph-row');
+      const h = row?.dataset.hash;
+      if (!h) return;
+      expandedGraphHash = expandedGraphHash === h ? null : h;
+      renderGitGraphEditor();
+    });
+  });
+  appendTerminal(`$ open Git Graph`);
+}
+
+// --- CSV helper: Excel-like table ---
+function parseCSV(content) {
+  const lines = content.split('\n').filter(l => l.trim() !== '');
+  if (!lines.length) return { header: [], rows: [] };
+  const parseLine = (line) => {
+    const out = []; let cur = ''; let inQuote = false;
+    for (let i = 0; i < line.length; i++) {
+      const ch = line[i];
+      if (ch === '"') {
+        if (inQuote && line[i+1] === '"') { cur += '"'; i++; }
+        else inQuote = !inQuote;
+      } else if (ch === ',' && !inQuote) { out.push(cur); cur = ''; }
+      else cur += ch;
+    }
+    out.push(cur);
+    return out;
   };
-  let tmp = code;
-  // 1) Comments first
-  tmp = tmp.replace(/\/\/.*?$|\/\*[\s\S]*?\*\/|^#.*?$|^\/\/.*?$|^\/\*[\s\S]*?\*\//gm, m => store('hl-comment', m));
-  // handle # comments for python (after // to avoid double)
-  if (lang === 'python') tmp = tmp.replace(/(^#.*?$)/gm, m => store('hl-comment', m));
-  // 2) Strings
-  tmp = tmp.replace(/`[^`]*`|"[^"]*"|'[^']*'/g, m => store('hl-string', m));
-  // 3) Escape remaining
-  tmp = escapeHtml(tmp);
-  // 4) Keywords
-  const kws = lang === 'python'
-    ? '\\b(import|from|def|return|if|else|elif|for|while|class|print|with|as|in)\\b'
-    : lang === 'java' ? '\\b(package|import|public|private|class|return|switch|case|default|double|String|new)\\b'
-    : '\\b(import|export|from|function|const|let|var|if|else|return|class|switch|case|default|new|async|await|try|catch)\\b';
-  tmp = tmp.replace(new RegExp(kws, 'g'), '<span class="hl-keyword">$1</span>');
-  // 5) Numbers (only on escaped text, safe)
-  tmp = tmp.replace(/\b(\d+\.\d+|\d+)\b/g, '<span class="hl-number">$1</span>');
-  // 6) Functions (word before '(')
-  tmp = tmp.replace(/\b([a-zA-Z_]\w*)\s*(?=\()/g, '<span class="hl-func">$1</span>');
-  if (lang === 'java') tmp = tmp.replace(/\b(double|String|OrderService)\b/g, '<span class="hl-type">$1</span>');
-  // 7) Restore placeholders
-  placeholders.forEach((html, i) => { tmp = tmp.split(`@@__HL_${i}__@@`).join(html); });
-  return tmp;
+  const header = parseLine(lines[0]);
+  const rows = lines.slice(1).map(parseLine);
+  return { header, rows };
+}
+function renderCSVTableHTML(path, content) {
+  const { header, rows } = parseCSV(content);
+  const thead = `<thead><tr>${header.map(h => `<th>${escapeHtml(h)}</th>`).join('')}</tr></thead>`;
+  const tbody = `<tbody>${rows.map((r, idx) => `<tr>${r.map(c => `<td>${escapeHtml(c)}</td>`).join('')}${r.length < header.length ? `<td colspan="${header.length - r.length}"></td>` : ''}</tr>`).join('')}</tbody>`;
+  return `
+    <div class="csv-view">
+      <div class="csv-view__header">
+        <span class="small muted mono">${escapeHtml(path)} — 表格檢視（Excel 樣式）</span>
+        <span class="small muted">${rows.length} 列 × ${header.length} 欄</span>
+      </div>
+      <div class="csv-view__table-wrap">
+        <table class="csv-table">${thead}${tbody}</table>
+      </div>
+    </div>
+  `;
 }
 
+// --- Editor: editable textarea ---
 function openFile(path) {
+  // Git Graph virtual file
+  if (path === GIT_GRAPH_PATH) {
+    currentFile = path;
+    renderGitGraphEditor();
+    renderTree(document.getElementById('vsQuickOpen')?.value.trim().toLowerCase() || '');
+    return;
+  }
   currentFile = path;
   const entry = vfs.getFile(path);
-  const content = vfs.readFile(path);
+  const content = getCurrentContent(path);
   const editor = document.getElementById('vsEditor');
   if (!editor) return;
 
-  // Track onboarding: viewing billing/service.js
-  if (path === '/workspace/src/billing/service.js') {
+  // Track onboarding: viewing OrderService.java
+  if (path === '/workspace/src/main/java/com/acme/OrderService.java' || path === '/workspace/src/billing/service.js') {
     trackOnboarding('vscode_viewed');
   }
   if (content == null) {
     editor.innerHTML = '<div class="editor__lines" style="padding:16px;color:var(--fg-muted)">檔案不存在或尚未解鎖 — 嘗試 Search 搜尋 "cocoa" 或觸發隱藏邏輯</div>';
+  } else if (path.toLowerCase().endsWith('.csv')) {
+    editor.innerHTML = renderCSVTableHTML(path, content);
   } else {
     const lang = entry?.meta?.lang || (path.endsWith('.py') ? 'python' : path.endsWith('.java') ? 'java' : 'javascript');
     const lines = content.split('\n');
-    // detect foldable lines: ends with {  or contains function/class
-    const foldable = new Set();
-    lines.forEach((l, i) => {
-      const t = l.trim();
-      if (t.endsWith('{') && !t.startsWith('//') && !t.startsWith('#')) foldable.add(i + 1);
-      if (/^(export )?function|class\s/.test(t)) foldable.add(i + 1);
-    });
-    const htmlLines = lines.map((raw, idx) => {
-      const ln = idx + 1;
-      const hl = highlightCode(raw || ' ', lang);
-      const isFoldable = foldable.has(ln);
-      const isCollapsed = folded.has(path + ':' + ln);
-      const foldBtn = isFoldable ? `<span class="editor__fold ${isCollapsed?'collapsed':''}" data-fold="${ln}" title="${isCollapsed?'展開':'摺疊'}">${isCollapsed?'▸':'▾'}</span>` : '<span style="width:14px"></span>';
-      // hidden due to collapsed parent
-      let hidden = false;
-      for (let p of folded) {
-        const [pp, pl] = p.split(':');
-        if (pp !== path) continue;
-        const pln = parseInt(pl, 10);
-        if (ln > pln) {
-          const parentLine = lines[pln - 1];
-          const indentParent = parentLine ? parentLine.search(/\S/) : 0;
-          const curIndent = raw.search(/\S/);
-          if (curIndent > indentParent || raw.trim() === '}') {
-            // check if still within block - naive: hide until dedent or }
-            if (ln - pln < 40) hidden = true; // simple range
-          }
-        }
-      }
-      return `<div class="editor__line ${hidden?'hidden':''}" data-ln="${ln}"><span class="hl-number" style="min-width:36px;text-align:right;padding-right:12px;opacity:.6">${ln}</span><span style="width:16px;display:flex;align-items:center;justify-content:center">${foldBtn}</span><span class="editor__code">${hl}</span></div>`;
-    }).join('');
+    const gutter = lines.map((_, idx) => `<div class="editor__gutter-line" style="height:20px;line-height:20px">${idx+1}</div>`).join('');
     editor.innerHTML = `
-      <div class="editor__gutter" style="display:none"></div>
-      <div class="editor__lines" style="flex:1;overflow:auto;padding:12px 0 12px 4px">${htmlLines}</div>
+      <div class="editor__editable-wrap">
+        <div class="editor__gutter" style="padding:12px 0;min-width:52px">${gutter}</div>
+        <textarea id="vsEditorArea" class="editor__textarea" spellcheck="false" data-path="${escapeHtml(path)}" data-lang="${lang}">${escapeHtml(content)}</textarea>
+      </div>
     `;
-    // bind folds
-    editor.querySelectorAll('[data-fold]').forEach(el => {
-      el.addEventListener('click', () => {
-        const key = path + ':' + el.dataset.fold;
-        if (folded.has(key)) folded.delete(key); else folded.add(key);
-        openFile(path);
-      });
-    });
-    // click to update cursor info
-    editor.querySelectorAll('.editor__line').forEach(el => {
-      el.addEventListener('click', () => {
-        const ln = el.dataset.ln;
-        const col = 1;
+    const ta = document.getElementById('vsEditorArea');
+    if (ta) {
+      ta.addEventListener('input', e => {
+        const newVal = e.target.value;
+        markDirty(path, newVal);
+        // update gutter line numbers dynamically
+        const newLines = newVal.split('\n').length;
+        const gutterEl = editor.querySelector('.editor__gutter');
+        if (gutterEl) {
+          gutterEl.innerHTML = Array.from({length:newLines}, (_,i)=>`<div class="editor__gutter-line" style="height:20px;line-height:20px">${i+1}</div>`).join('');
+        }
+        // update cursor info
+        const pos = ta.selectionStart;
+        const before = newVal.slice(0, pos);
+        const ln = before.split('\n').length;
+        const col = before.split('\n').pop().length + 1;
         const info = document.getElementById('vsCursorInfo');
         if (info) info.textContent = `Ln ${ln}, Col ${col}`;
       });
-    });
+      ta.addEventListener('click', e => {
+        const pos = ta.selectionStart;
+        const before = ta.value.slice(0, pos);
+        const ln = before.split('\n').length;
+        const col = before.split('\n').pop().length + 1;
+        const info = document.getElementById('vsCursorInfo');
+        if (info) info.textContent = `Ln ${ln}, Col ${col}`;
+      });
+      ta.addEventListener('keydown', e => {
+        if (e.key === 'Tab') {
+          e.preventDefault();
+          const start = ta.selectionStart;
+          const end = ta.selectionEnd;
+          ta.value = ta.value.substring(0, start) + '  ' + ta.value.substring(end);
+          ta.selectionStart = ta.selectionEnd = start + 2;
+          ta.dispatchEvent(new Event('input'));
+        }
+      });
+      // auto focus for OrderService
+      if (path.includes('OrderService')) setTimeout(()=> ta.focus(), 50);
+    }
   }
   const titleEl = document.getElementById('vsTitle');
   if (titleEl) {
     const name = path.split('/').pop();
-    titleEl.textContent = `${name} — ${path} — Code & Conspiracy — Visual Studio Code`;
+    titleEl.textContent = `${name} — ${path} — Code & Conspiracy — Vizual Studio Code`;
   }
   renderTree(document.getElementById('vsQuickOpen')?.value.trim().toLowerCase() || '');
   renderTabs();
   appendTerminal(`$ open ${path}`);
 }
 
+// SCM helpers
+function renderScmChanges() {
+  const el = document.getElementById('scmChanges');
+  if (!el) return;
+  const dirty = [...editedFiles.entries()].filter(([p,v])=> v !== getOriginalContent(p));
+  if (!dirty.length) {
+    el.innerHTML = '<div class="small muted" style="padding:8px 0">沒有變更 — 編輯 OrderService.java 後會顯示於此</div>';
+    return;
+  }
+  el.innerHTML = `
+    <div class="small" style="font-weight:600;margin:10px 0 6px">變更 (${dirty.length})</div>
+    ${dirty.map(([p]) => {
+      const name = p.split('/').pop();
+      return `<div class="scm__file" data-path="${escapeHtml(p)}" title="${escapeHtml(p)}">
+        <span style="color:var(--warning)">M</span> ${escapeHtml(name)} <span class="small muted" style="margin-left:auto">${escapeHtml(p)}</span>
+      </div>`;
+    }).join('')}
+  `;
+  el.querySelectorAll('.scm__file').forEach(n => n.addEventListener('click', () => openFile(n.dataset.path)));
+}
+
+function validateVipFix(content) {
+  // expected mapping: 1->0.90, 2->0.85, 3->0.80, 4->0.75, 5->0.70 (allow 0.9, 0.90 etc)
+  const expected = {1:0.90,2:0.85,3:0.80,4:0.75,5:0.70};
+  const lines = content.split('\n');
+  const found = {};
+  let errorLine = null;
+  let errorDetail = '';
+  // parse each line for case
+  lines.forEach((line, idx) => {
+    const m = line.match(/case\s*([1-5])\s*:\s*price\s*\*=\s*([0-9.]+%?)/i);
+    if (m) {
+      const vip = parseInt(m[1],10);
+      let valStr = m[2].replace('%','').trim();
+      let val = parseFloat(valStr);
+      // handle 95% style mistakenly? 0.95 vs 95 -> normalize
+      if (val > 1) val = val / 100;
+      found[vip] = { val, line: idx+1, raw: line.trim() };
+    } else {
+      // alternative: price = price * 0.90
+      const m2 = line.match(/case\s*([1-5])\s*:\s*price\s*=\s*price\s*\*\s*([0-9.]+)/i);
+      if (m2) {
+        const vip = parseInt(m2[1],10);
+        let val = parseFloat(m2[2]);
+        if (val > 1) val = val / 100;
+        found[vip] = { val, line: idx+1, raw: line.trim() };
+      }
+    }
+  });
+  for (let vip=1; vip<=5; vip++) {
+    const exp = expected[vip];
+    const entry = found[vip];
+    if (!entry) {
+      errorLine = lines.findIndex(l=> l.includes(`case ${vip}:`)) + 1 || 18 + vip;
+      errorDetail = `缺少 case ${vip} 或格式無法解析`;
+      return { ok:false, line: errorLine, detail: errorDetail, found };
+    }
+    if (Math.abs(entry.val - exp) > 0.001) {
+      return { ok:false, line: entry.line, detail: `VIP${vip} 應為 ${(exp*100).toFixed(0)}% (0.${String(exp).split('.')[1].padEnd(2,'0')})，目前為 ${(entry.val*100).toFixed(0)}%`, found };
+    }
+  }
+  // also ensure no leftover buggy 0.95 for vip1 etc not caught? Already checked
+  return { ok:true, found };
+}
+
+function handleCommit() {
+  const msgEl = document.getElementById('scmCommitMsg');
+  const statusEl = document.getElementById('scmCommitStatus');
+  const msg = (msgEl?.value.trim() || 'fix: correct VIP discount');
+  const dirty = [...editedFiles.entries()].filter(([p,v])=> v !== getOriginalContent(p));
+  if (!dirty.length) {
+    if (statusEl) statusEl.textContent = '沒有變更可提交 — 請先編輯 OrderService.java';
+    return;
+  }
+  // Focus validation on OrderService.java
+  const orderPath = '/workspace/src/main/java/com/acme/OrderService.java';
+  const orderContent = getCurrentContent(orderPath);
+  if (orderContent == null) {
+    if (statusEl) statusEl.textContent = '找不到 OrderService.java';
+    return;
+  }
+  const result = validateVipFix(orderContent);
+  if (!result.ok) {
+    // SonarQube modal centered
+    const modal = document.getElementById('sonarModal');
+    const body = document.getElementById('sonarModalBody');
+    if (body) {
+      body.textContent = `SonarQube 掃描失敗 — 計算錯誤\n\n檔案: ${orderPath}\n行號: ${result.line}\n錯誤: ${result.detail}\n\n規則: VIP 折扣應為 VIP1 90%、VIP2 85%、VIP3 80%、VIP4 75%、VIP5 70%\n\n請修正後重新 Commit。`;
+    }
+    if (modal) modal.style.display = 'flex';
+    if (statusEl) statusEl.innerHTML = `<span style="color:var(--error)">✕ SonarQube: 行 ${result.line} 計算錯誤</span>`;
+    appendTerminal(`✕ commit 失敗 — SonarQube 行 ${result.line}: ${result.detail}`);
+    return;
+  }
+  // Success: create commit
+  const hash = Math.random().toString(36).slice(2,8);
+  const date = new Date().toISOString().slice(0,10);
+  const author = 'Casey';
+  const diff = `M ${orderPath}\n` + Object.entries(result.found).map(([vip,info])=>`  case ${vip}: price*=${info.val.toFixed(2)}`).join('\n');
+  gitCommits.unshift({ hash, author, date, msg, diff });
+  // also add to Git Graph (branch main)
+  gitGraphCommits.unshift({ hash, branch: 'main', author, date, msg, diff });
+  // persist edited content to vfs (overwrite original)
+  const origEntry = vfs.getFile(orderPath);
+  if (origEntry) origEntry.content = orderContent;
+  // also update fileRegistry via vfs read? directly set map content
+  vfs.registerFile(orderPath, { content: orderContent, meta: { lang: 'java' } });
+  editedFiles.clear();
+  if (msgEl) msgEl.value = '';
+  if (statusEl) statusEl.innerHTML = `<span style="color:var(--success)">✓ Commit 成功: ${hash}</span>`;
+  appendTerminal(`✓ commit ${hash} — ${msg}`);
+  renderTabs();
+  renderTree();
+  renderScmChanges();
+  if (gitGraphOpen && currentFile === GIT_GRAPH_PATH) renderGitGraphEditor();
+  // Mark Jira ticket as Done and redirect
+  try {
+    // dynamic import to avoid circular
+    import('../jira/index.js').then(mod => {
+      if (mod.markTicketDone) mod.markTicketDone('INV-2024-0042');
+      else if (mod.completeVipTicket) mod.completeVipTicket();
+    });
+  } catch(e) {}
+  // fallback direct handling via state flag and switch view
+  state.setFlag('ch0_vip_fixed', true);
+  state.setFlag('onboarding_done', true);
+  // Switch to Jira view after short delay
+  setTimeout(() => {
+    import('../../ui/dock.js').then(dock => {
+      if (dock.setActiveView) {
+        dock.setActiveView('jira');
+        localStorage.setItem('cc_active_view', 'jira');
+      }
+    }).catch(()=> {
+      localStorage.setItem('cc_active_view', 'jira');
+      document.querySelectorAll('.view').forEach(v=> v.classList.toggle('active', v.id==='view-jira'));
+      document.querySelectorAll('.taskbar__app').forEach(b=> b.classList.toggle('active', b.dataset.view==='jira'));
+    });
+    // also ensure jira re-renders with Done status
+    setTimeout(()=> {
+      const ev = new CustomEvent('jira:refresh');
+      window.dispatchEvent(ev);
+    }, 100);
+  }, 400);
+}
+
 function renderTerminalIntro() {
-  appendTerminal('tip: 在 editor 搜尋 "redirectTo" 找到隱藏分支');
-  appendTerminal('tip: 在 .env.example 找到 INTERNAL_PORTAL_TOKEN');
+  appendTerminal('tip: 在 editor 搜尋 "calculateVipPrice" 找到 VIP 折扣邏輯');
+  appendTerminal('tip: 編輯 OrderService.java 後至 Source Control 提交');
   appendTerminal('輸入 help 查看可用指令 · Tab 補全 · ↑↓ 歷史');
 }
 function appendTerminal(line) {
@@ -471,11 +817,14 @@ function runTerminalCmd(raw) {
   switch (cmd) {
     case 'help':
       appendTerminal('可用指令: ls [path], cat <file>, grep <keyword>, git log, git diff, git blame <file>, clear, echo <text>');
-      appendTerminal('範例: cat /workspace/.env.example | grep 420.69');
+      appendTerminal('範例: cat /workspace/src/main/java/com/acme/OrderService.java');
       break;
     case 'ls': {
+      // Vizual Studio Code 僅顯示公司官網系統（/workspace），過濾內網資料
       const p = args[0] || '/workspace';
-      const list = vfs.listFiles(p);
+      if (p.startsWith('/intranet') || p === '/intranet') { appendTerminal(`ls: ${p}: 權限不足（內網資料已從 Vizual Studio Code 隱藏）`); break; }
+      const raw = vfs.listFiles(p);
+      const list = raw.filter(f => f.path.startsWith('/workspace'));
       if (!list.length) appendTerminal(`ls: ${p}: No such directory`);
       else list.slice(0, 20).forEach(f => appendTerminal(f.path));
       if (list.length > 20) appendTerminal(`... ${list.length-20} more`);
@@ -484,6 +833,7 @@ function runTerminalCmd(raw) {
     case 'cat': {
       const p = args[0];
       if (!p) { appendTerminal('cat: 缺少檔案路徑'); break; }
+      if (p.startsWith('/intranet')) { appendTerminal(`cat: ${p}: 權限不足（內網資料已從 Vizual Studio Code 隱藏，僅顯示官網系統）`); break; }
       const c = vfs.readFile(p) || vfs.readFile('/workspace' + (p.startsWith('/')?'':'/') + p);
       if (c == null) appendTerminal(`cat: ${p}: 檔案不存在或尚未解鎖`);
       else c.split('\n').slice(0, 80).forEach(l => appendTerminal(l));
@@ -492,8 +842,8 @@ function runTerminalCmd(raw) {
     case 'grep': {
       const q = argStr || args[0];
       if (!q) { appendTerminal('grep: 缺少關鍵字'); break; }
-      const hits = vfs.searchContent(q);
-      if (!hits.length) appendTerminal(`grep: "${q}" 無結果`);
+      const hits = vfs.searchContent(q).filter(h => h.path.startsWith('/workspace'));
+      if (!hits.length) appendTerminal(`grep: "${q}" 無結果（僅搜尋 /workspace 官網系統）`);
       else { appendTerminal(`grep "${q}" 找到 ${hits.length} 筆:`); hits.slice(0, 10).forEach(h => appendTerminal(`${h.path}: ${h.snippet.slice(0,80)}...`)); }
       if (q.includes('420.69')) appendTerminal('hint: 試試在 Search 活動列輸入 420.69 觸發隱藏路由');
       break;
@@ -504,20 +854,19 @@ function runTerminalCmd(raw) {
       } else if (args[0] === 'diff') {
         const c = gitCommits[1];
         c.diff.split('\n').forEach(l => {
-          const cls = l.startsWith('+') ? 'diff-add' : l.startsWith('-') ? 'diff-del' : '';
           appendTerminal(l);
         });
-        // also show in SCM view if open
-        switchGitTab('diff');
+        appendTerminal('hint: 點擊 Source Control 右上角的 Git Graph 按鈕查看完整圖像化歷史');
       } else if (args[0] === 'blame') {
         const p = args[1] || currentFile;
         appendTerminal(`blame ${p}:`);
         const bl = fakeBlame[p] || fakeBlame['/workspace/src/billing/service.js'];
         bl.forEach(b => appendTerminal(`${String(b.line).padStart(3)} ${b.commit} ${b.author}`));
-        switchGitTab('blame');
-        updateActivityBar(); // ensure scm visible hint
+      } else if (args[0] === 'graph') {
+        openGitGraphInEditor();
+        appendTerminal('→ 已開啟 Git Graph 編輯器分頁');
       } else {
-        appendTerminal('git: 未知子指令，試 help');
+        appendTerminal('git: 未知子指令，試 help (支援: git log / git diff / git blame / git graph)');
       }
       break;
     }
@@ -531,60 +880,12 @@ function runTerminalCmd(raw) {
   }
 }
 
-// --- Git panel ---
-function renderGitLog() {
-  const el = document.getElementById('gitLogView');
-  if (!el) return;
-  el.innerHTML = gitCommits.map(c => `
-    <div class="git__commit">
-      <div style="display:flex;justify-content:space-between;align-items:center">
-        <b class="mono" style="color:var(--accent)">${c.hash}</b>
-        <span class="small muted">${c.date} — ${c.author}</span>
-      </div>
-      <div style="margin:4px 0">${escapeHtml(c.msg)}</div>
-      <div class="small muted">點擊看 diff</div>
-    </div>
-  `).join('');
-  el.querySelectorAll('.git__commit').forEach((n,i) => n.addEventListener('click', () => { switchGitTab('diff'); }));
-}
-function renderGitDiff() {
-  const el = document.getElementById('gitDiffView');
-  if (!el) return;
-  const diff = gitCommits[1].diff;
-  el.innerHTML = `<div class="git__diff">${diff.split('\n').map(l => {
-    const esc = escapeHtml(l);
-    if (l.startsWith('+')) return `<div class="diff-add">${esc}</div>`;
-    if (l.startsWith('-')) return `<div class="diff-del">${esc}</div>`;
-    return `<div>${esc}</div>`;
-  }).join('')}</div>
-  <div class="small muted" style="margin-top:6px">變更檔案: <a href="#" data-open="/workspace/src/billing/service.js" style="color:var(--accent)">src/billing/service.js</a></div>`;
-  el.querySelectorAll('[data-open]').forEach(a => a.addEventListener('click', e => { e.preventDefault(); openFile(a.dataset.open); }));
-}
-function renderGitBlame() {
-  const el = document.getElementById('gitBlameView');
-  if (!el) return;
-  const path = currentFile;
-  const lines = (vfs.readFile(path) || '').split('\n').slice(0, 20);
-  const bl = fakeBlame[path] || fakeBlame['/workspace/src/billing/service.js'];
-  const map = new Map(bl.map(b => [b.line, b]));
-  el.innerHTML = `<div style="border:1px solid var(--border);border-radius:6px;overflow:hidden;max-height:220px;overflow:auto">` + lines.map((code, idx) => {
-    const ln = idx + 1;
-    const m = map.get(ln);
-    const meta = m ? `${m.commit.slice(0,7)} ${m.author}` : '—';
-    return `<div class="blame__line" style="${ln%2?'background:var(--bg-primary)':'background:var(--bg-secondary)'}"><span class="blame__meta">${String(ln).padStart(2)} ${escapeHtml(meta)}</span><span style="flex:1;white-space:pre-wrap">${escapeHtml(code.slice(0,80))}</span></div>`;
-  }).join('') + `</div><div class="small muted" style="margin-top:6px">顯示 ${path} blame (共 ${lines.length} 行縮略)</div>`;
-}
-function switchGitTab(which) {
-  document.querySelectorAll('.git__tab').forEach(b => b.classList.toggle('active', b.dataset.git===which));
-  const log = document.getElementById('gitLogView');
-  const diff = document.getElementById('gitDiffView');
-  const blame = document.getElementById('gitBlameView');
-  if (log) log.style.display = which==='log' ? 'block' : 'none';
-  if (diff) diff.style.display = which==='diff' ? 'block' : 'none';
-  if (blame) blame.style.display = which==='blame' ? 'block' : 'none';
-  if (which==='diff') renderGitDiff();
-  if (which==='blame') renderGitBlame();
-}
+// --- Legacy Git panel stubs (Log/Diff/Blame removed; Graph moved to editor) ---
+function renderGitLog() {}
+function renderGitGraph() { if (gitGraphOpen && currentFile === GIT_GRAPH_PATH) renderGitGraphEditor(); }
+function renderGitDiff() {}
+function renderGitBlame() {}
+function switchGitTab() { /* removed — use Git Graph editor tab */ }
 
 // QuickOpen + shortcuts
 function bindShortcuts() {
@@ -602,6 +903,7 @@ function bindShortcuts() {
     } else if (e.key === 'Escape') {
       closeQuickOpen();
       const ho=document.getElementById('vsHelpOverlay'); if(ho) ho.style.display='none';
+      const sm=document.getElementById('sonarModal'); if(sm) sm.style.display='none';
     } else if (mod && e.key === '/') {
       e.preventDefault(); document.getElementById('vsTerminalInput')?.focus();
     }
@@ -624,7 +926,6 @@ function renderQuickOpen(query) {
   if (!list) return;
   const q = (query || '').trim().toLowerCase();
   let files = vfs.listFiles('/workspace');
-  // support :line jump like service.js:12
   let lineJump = null;
   if (q.includes(':')) {
     const [fq, ln] = q.split(':');
@@ -634,7 +935,7 @@ function renderQuickOpen(query) {
     files = files.filter(f => f.path.toLowerCase().includes(q));
   }
   files = files.slice(0, 10);
-  if (!files.length) { list.innerHTML = '<div class="quickopen__item muted">無符合檔案 — 試輸入 coin / billing</div>'; return; }
+  if (!files.length) { list.innerHTML = '<div class="quickopen__item muted">無符合檔案 — 試輸入 OrderService / billing</div>'; return; }
   list.innerHTML = files.map((f,i) => `
     <div class="quickopen__item ${i===0?'active':''}" data-path="${f.path}">
       <span>${escapeHtml(f.path)}</span>
@@ -664,8 +965,21 @@ function handleQuickOpenKey(e) {
   }
 }
 function scrollToLine(ln) {
+  const ta = document.getElementById('vsEditorArea');
+  if (ta) {
+    // for textarea, set selection
+    const lines = ta.value.split('\n');
+    let pos = 0;
+    for (let i=0;i<Math.min(ln-1, lines.length); i++) pos += lines[i].length +1;
+    ta.focus();
+    ta.setSelectionRange(pos, pos);
+    return;
+  }
   const editor = document.getElementById('vsEditor');
   if (!editor) return;
   const target = editor.querySelector(`[data-ln="${ln}"]`);
   if (target) target.scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
+
+export function getEditedContent(path) { return getCurrentContent(path); }
+export function isFileDirty(path) { return isDirty(path); }

@@ -12,10 +12,10 @@ export function renderDock({ onSwitch, onOpenSettings, onOpenNotebook, t }) {
   const activeView = localStorage.getItem('cc_active_view') || 'vscode';
 
   const ICONS = {
-    vscode: '/icon/Visual_Studio_Code.svg.webp',
-    jira: '/icon/jira-icon.webp',
-    whatsapp: '/icon/whatsapp.png',
-    // search uses emoji fallback (no icon file provided)
+    vscode: 'fa-duotone fa-solid fa-cube',
+    jira: 'fa-brands fa-jira',
+    whatsapp: 'fa-duotone fa-solid fa-comment-sms',
+    // intranet + search use emoji fallback
   };
   const ACTION_ICONS = {
     notebook: '/icon/notepad.png',
@@ -25,9 +25,23 @@ export function renderDock({ onSwitch, onOpenSettings, onOpenNotebook, t }) {
     const locked = !isUnlocked(id);
     const active = activeView === id ? 'active' : '';
     const src = ICONS[id];
-    const iconHtml = src
-      ? `<img class="taskbar__app-icon-img" src="${src}" alt="${label}" width="22" height="22" loading="eager" />`
-      : `<span class="taskbar__app-icon" aria-hidden="true">${icon}</span>`;
+    let iconHtml;
+    if (src && src.startsWith('fa-')) {
+      if (id === 'jira') {
+        iconHtml = `<i class="${src}" aria-hidden="true" style="font-size:22px;line-height:1;--fa-primary-color:rgba(19,91,205,1);--fa-secondary-color:rgba(19,91,205,0.4);color:rgba(19,91,205,1)"></i>`;
+      } else if (id === 'vscode') {
+        // https://fontawesome.com/icons/classic/solid/cube?pc=rgba(87,165,229,1.00)&sc=rgba(87,165,229,0.4)
+        iconHtml = `<i class="${src}" aria-hidden="true" style="font-size:22px;line-height:1;--fa-primary-color:rgba(87,165,229,1);--fa-secondary-color:rgba(87,165,229,0.4);color:rgba(87,165,229,1)"></i>`;
+      } else if (id === 'whatsapp') {
+        iconHtml = `<i class="${src}" aria-hidden="true" style="font-size:22px;line-height:1;--fa-primary-color:rgba(0,203,90,1);--fa-secondary-color:rgba(0,203,90,0.4);color:rgba(0,203,90,1)"></i>`;
+      } else {
+        iconHtml = `<i class="${src}" aria-hidden="true" style="font-size:22px;line-height:1;color:currentColor"></i>`;
+      }
+    } else if (src) {
+      iconHtml = `<img class="taskbar__app-icon-img" src="${src}" alt="${label}" width="22" height="22" loading="eager" />`;
+    } else {
+      iconHtml = `<span class="taskbar__app-icon" aria-hidden="true">${icon}</span>`;
+    }
     return `<button class="taskbar__app ${active}" data-view="${id}" ${locked ? 'disabled title="尚未解鎖"' : `title="${label}"`}>
       ${iconHtml}
       <span class="taskbar__app-dot"></span>
@@ -64,13 +78,14 @@ export function renderDock({ onSwitch, onOpenSettings, onOpenNotebook, t }) {
         </svg>
       </button>
 
-      <div class="taskbar__search" role="search" aria-label="Search">
+      <div class="taskbar__search" role="search" aria-label="Search" aria-disabled="true">
         <span aria-hidden="true">🔍</span>
         <span>搜尋</span>
       </div>
 
       <div class="taskbar__apps" role="toolbar" aria-label="Apps">
         ${appBtn('vscode', '🧩', t('dock.vscode'))}
+        ${appBtn('intranet', '🏢', t('dock.intranet'))}
         ${appBtn('jira', '📋', t('dock.jira'))}
         ${appBtn('whatsapp', '💬', t('dock.whatsapp'))}
         ${appBtn('search', '🔍', t('dock.search'))}
@@ -101,12 +116,6 @@ export function renderDock({ onSwitch, onOpenSettings, onOpenNotebook, t }) {
   });
   dock.querySelector('[data-action="settings"]')?.addEventListener('click', onOpenSettings);
   dock.querySelector('[data-action="notebook"]')?.addEventListener('click', onOpenNotebook);
-
-  // Search bar click focuses VS Code search or switches to search view
-  dock.querySelector('.taskbar__search')?.addEventListener('click', () => {
-    if (isUnlocked('search')) onSwitch('search');
-    else if (isUnlocked('vscode')) onSwitch('vscode');
-  });
 
   startClock();
 }

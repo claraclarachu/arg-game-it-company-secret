@@ -11,6 +11,14 @@ const puzzles = [
     reward: {},
     title: '完成新手引導'
   },
+  // Chapter 0 — VIP discount fix (new INV-2024-0042)
+  {
+    id: 'ch0_vip_fix',
+    chapter: 0,
+    check: () => state.hasFlag('ch0_vip_fixed'),
+    reward: { evidence: { id: 'e000', title: 'VIP 折扣已修正 (INV-2024-0042)', chapter: 0, type: 'fix' } },
+    title: '修正 VIP 折扣計算 (INV-2024-0042)'
+  },
   // Chapter 1 — The Anomaly
   {
     id: 'ch1_trigger_hidden_route',
@@ -151,6 +159,7 @@ function evaluatePuzzles() {
   // chapter progression heuristic
   const chapterFlags = [
     'onboarding_done',
+    'ch0_vip_fixed',
     'hidden_portal_accessed',
     'portal_auth_bypassed',
     'found_crypto_mixer',
@@ -164,8 +173,8 @@ function evaluatePuzzles() {
     if (state.hasFlag(f)) idx++;
     else break;
   }
-  // also map ledger_exported (idx 5) => chapter 4, supplier etc => 5
-  const chapterMap = [0,1,2,2,3,3,4,5];
+  // map: 0->0, 1->0 (onboarding but not yet vip), 2->1, 3->2, etc.
+  const chapterMap = [0,0,1,2,2,3,3,4,5];
   const ch = chapterMap[idx] ?? idx;
   if (ch !== state.get('currentChapter')) {
     state.set('currentChapter', ch);

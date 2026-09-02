@@ -2,7 +2,7 @@
   "id": 5,
   "title": "The Network",
   "title_zh": "網絡",
-  "desc": "WhatsApp 供應商、反向圖片搜尋、殼公司、海外 ssh 跡",
+  "desc": "WhatUp 供應商、反向圖片搜尋、殼公司、海外 ssh 跡",
   "objectives": ["找到供應商", "反向圖片搜尋", "發現殼公司", "追蹤伺服器"],
   "unlock": [],
   "evidence": ["e010","e011","e012","e013"]

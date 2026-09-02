@@ -4,22 +4,20 @@ import { trackOnboarding } from '../../main.js';
 const tickets = [
   {
     key: 'INV-2024-0042',
-    title: '修復計費模組邊緣案例 — 特定金額計算錯誤',
+    title: '修正 VIP 折扣計算錯誤 — VIP1 應為 90% 非 95%',
     status: 'To Do',
-    assignee: '你',
+    assignee: 'Casey',
     priority: 'High',
-    points: 5,
+    points: 3,
     epic: 'Billing',
-    desc: `復現步驟: 使用特定總金額觸發計費流程，觀察是否重新導向到內部頁。\n\n關聯檔案: src/billing/service.js#calculateAmount\n評論: @qa-lee "這個 420.69 的數好像會跳到一個內部 portal，之前 finance 說別碰"`,
-    comments: ['qa-lee: 別動 portal，那邊有 legacy code', 'pm: 按時修復，其他不用管', 'finance@internal: feeRate 別動，vendorId 映射是 legacy'],
+    desc: `【問題描述】\nVIP 用戶訂單金額計算錯誤：目前 VIP 等級折扣比預期少 5%，導致 VIP 用戶實際支付過高。\n\n【復現步驟】\n1. 以 VIP1 身份建立訂單 (金額 1000)\n2. 實際扣款為 950 (95%)，預期應為 900 (90%)\n3. VIP2~VIP5 同樣偏移 5%\n\n【錯誤代碼】 src/main/java/com/acme/OrderService.java#calculateVipPrice\nswitch(vipLv){\n  case 1: price*=0.95; break; // 應為 0.90\n  case 2: price*=0.90; break; // 應為 0.85\n  case 3: price*=0.85; break; // 應為 0.80\n  case 4: price*=0.80; break; // 應為 0.75\n  case 5: price*=0.75; break; // 應為 0.70\n  default: break;\n}\n\n【正確對照】\nVIP1 → 90% (0.90)\nVIP2 → 85% (0.85)\nVIP3 → 80% (0.80)\nVIP4 → 75% (0.75)\nVIP5 → 70% (0.70)\n\n【操作指引】\n請在 Vizual Studio Code 編輯 OrderService.java 修正上述 switch，並透過左側 Source Control 提交 (Commit)。\n• 若提交內容仍有錯誤，畫面中央會彈出 SonarQube 掃描錯誤並標示行號\n• 若正確，票據將自動標記為 Done 並跳轉回 Jira\n\n關聯檔案: src/main/java/com/acme/OrderService.java`,
+    comments: ['qa-lee: 是 switch 寫錯，VIP1 少打 5% 折扣', 'Maggie: @Casey 麻煩幫忙修一下，記得 commit 後看 SonarQube 結果', 'pm: 修完請直接 commit，不用另開分支'],
     attachments: [
-      { name: 'billing-service.diff', type: 'diff', snippet: 'if (total === 420.69) return redirectTo("/internal/portal")' },
-      { name: 'INV-2024-0042.png', type: 'image', snippet: '截圖：計費頁重新導向異常' },
+      { name: 'OrderService.java', type: 'java', snippet: 'switch(vipLv){case 1: price*=0.95; break;... // VIP1 應為 0.90' },
+      { name: 'vip-discount-spec.md', type: 'md', snippet: 'VIP1 90% | VIP2 85% | VIP3 80% | VIP4 75% | VIP5 70%' },
     ],
     history: [
-      { from: '—', to: 'To Do', by: 'pm', at: '2024-08-08' },
-      { from: 'To Do', to: 'In Progress', by: 'qa-lee', at: '2024-08-10' },
-      { from: 'In Progress', to: 'To Do', by: 'pm', at: '2024-08-11' },
+      { from: '—', to: 'To Do', by: 'Maggie', at: '2024-08-12' },
     ],
   },
   {
@@ -347,6 +345,26 @@ function openTicket(key) {
     renderBoard();
   });
 }
+
+export function markTicketDone(key) {
+  const t = tickets.find(x => x.key === key);
+  if (!t) return false;
+  if (t.status === 'Done') return true;
+  const from = t.status;
+  t.status = 'Done';
+  t.history.push({ from, to: 'Done', by: 'Casey', at: new Date().toISOString().slice(0,10) });
+  state.set('jiraTickets.' + key, true);
+  state.setFlag('ch0_vip_fixed', true);
+  // refresh board if mounted
+  const board = document.getElementById('jiraBoard');
+  if (board) {
+    renderBoard();
+    openTicket(key);
+  }
+  return true;
+}
+export function getTickets() { return tickets; }
+export function openTicketByKey(key) { openTicket(key); }
 
 function renderBurndown() {
   const svg = document.getElementById('burndownSvg');

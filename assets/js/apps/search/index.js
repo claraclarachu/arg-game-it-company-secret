@@ -3,6 +3,8 @@ import { state } from '../../core/state.js';
 import { escapeHtml } from '../../utils/helpers.js';
 
 const webIndex = [
+  { title: 'Java switch-case 語法詳解 — 基礎教學 (繁中)', url: 'https://java-tutorial.example/switch-case', snippet: '【switch 用法】switch 會依變數值跳到對應 case，需搭配 break 避免貫穿。範例：switch(vipLv){ case 1: price *= 0.90; break; case 2: price *= 0.85; break; case 3: price *= 0.80; break; case 4: price *= 0.75; break; case 5: price *= 0.70; break; default: break; } 注意：若缺少 break 會繼續執行下一個 case。常與 if-else 比較，適用於枚舉分級如 VIP 折扣。', type: 'web', image: null },
+  { title: '【StackOverflow】VIP 等級折扣用 switch 寫，VIP1 被算成 95% 而不是 90% 該怎麼修？', url: 'https://stackoverflow.com/questions/789421/vip-discount-switch-case-wrong-percentage', snippet: '發問：我的 switch(vipLv) 中 case 1 寫成 price*=0.95，但需求是 VIP1 90%、VIP2 85%、VIP3 80%、VIP4 75%、VIP5 70%，現在全部多 5%。已嘗試修改但 Sonar 仍報錯... 回答：請將 case 1 改為 0.90、case 2 改為 0.85，其餘依序下調 5%，並確認每個 case 都有 break。另建議抽成 Map 或 enum 避免魔法數字。 (瀏覽 2.3k, 已解決)', type: 'web', image: null },
   { title: 'Cocoa bean import license — Acme Docs', url: 'https://acme.internal/docs/cocoa-license', snippet: '無相關進口許可記錄。搜尋代號 cocoa 對應 "可可豆" 但實際無海關記錄。', type: 'web', image: null },
   { title: 'Cocoa — Chemical codes (學術)', url: 'https://chem.example/search?q=cocoa', snippet: '代號 cocoa / bean / leaf / crystal 在內部庫存表中出現，疑似毒品代號。', type: 'academic', image: null },
   { title: '快遞追蹤 — 範例單號 118-bean (新聞)', url: 'https://track.example/118-bean', snippet: '物流資訊可在搜尋引擎透過單號反查 (後續章節)。該單號對應 BEAN 118 單位。', type: 'news', image: null },
@@ -15,6 +17,8 @@ const webIndex = [
 const trends = ['cocoa bean import license', 'site:acme.internal', 'filetype:js 420.69', 'crystal 供應鏈', 'X-Internal-Token', 'ledger.db'];
 let activeTab = 'all'; // all | image | news | academic
 let lastQuery = '';
+let lastResults = [];
+let lastBaseQuery = '';
 
 function getSuggestions(q) {
   if (!q) return [];
@@ -92,37 +96,33 @@ export function mountSearch() {
         <button class="search__tab" data-tab="news">新聞</button>
         <button class="search__tab" data-tab="academic">學術</button>
       </div>
-      <div class="search__layout">
-        <div class="search__main">
-          <div id="searchResults"></div>
-          <div id="searchAdvancedHint" class="small muted" style="margin-top:8px"></div>
-        </div>
-        <div class="search__side">
-          <div class="search__history">
-            <h4>搜尋歷史</h4>
-            <div id="searchHistoryList"></div>
+      <div id="searchViewContainer">
+        <div id="searchLayout" class="search__layout">
+          <div class="search__main">
+            <div id="searchResults"></div>
+            <div id="searchAdvancedHint" class="small muted" style="margin-top:8px"></div>
           </div>
-          <div class="search__trends">
-            <h4>搜尋趨勢</h4>
-            <div id="searchTrendList"></div>
-          </div>
-          <div class="card" style="padding:10px">
-            <b>Portal 快捷存取</b>
-            <div class="small muted" style="margin:6px 0">已觸發隱藏路由後，在此輸入 portal 所需 header 存取內部庫存：</div>
-            <div style="display:flex;gap:6px">
-              <input id="portalToken" class="input" placeholder="X-Internal-Token (提示: .env.example)" value="cocoa-beans-2024" />
-              <button id="portalBypassBtn" class="btn">存取 /internal/portal</button>
+          <div class="search__side">
+            <div class="search__history">
+              <h4>搜尋歷史</h4>
+              <div id="searchHistoryList"></div>
             </div>
-            <div id="portalResult" class="small" style="margin-top:8px"></div>
+            <div class="search__trends">
+              <h4>搜尋趨勢</h4>
+              <div id="searchTrendList"></div>
+            </div>
+            <div class="card" style="padding:10px">
+              <b>Portal 快捷存取</b>
+              <div class="small muted" style="margin:6px 0">已觸發隱藏路由後，在此輸入 portal 所需 header 存取內部庫存：</div>
+              <div style="display:flex;gap:6px">
+                <input id="portalToken" class="input" placeholder="X-Internal-Token (提示: .env.example)" value="cocoa-beans-2024" />
+                <button id="portalBypassBtn" class="btn">存取 /internal/portal</button>
+              </div>
+              <div id="portalResult" class="small" style="margin-top:8px"></div>
+            </div>
           </div>
         </div>
-      </div>
-    </div>
-    <div id="snapshotModal" class="snapshot" role="dialog">
-      <div class="snapshot__card">
-        <div class="snapshot__bar"><span id="snapshotTitle">快照預覽</span><button class="btn" id="snapshotClose">關閉</button></div>
-        <div id="snapshotContent" class="small" style="white-space:pre-wrap;line-height:1.6"></div>
-        <div class="small muted" style="margin-top:8px">提示：快照為已刪除內容，可能與 VFS 檔案差異</div>
+        <div id="searchDetail" class="search__detail-view" style="display:none"></div>
       </div>
     </div>
   `;
@@ -177,8 +177,6 @@ function bindSearch() {
       out.textContent = '403 Forbidden — token 錯誤';
     }
   });
-  document.getElementById('snapshotClose')?.addEventListener('click', () => document.getElementById('snapshotModal')?.classList.remove('open'));
-  document.getElementById('snapshotModal')?.addEventListener('click', e => { if (e.target.id === 'snapshotModal') e.target.classList.remove('open'); });
 }
 
 function renderHistory() {
@@ -210,6 +208,7 @@ function doSearch(q) {
   if (raw.toLowerCase().includes('cocoa') || raw.toLowerCase().includes('crystal')) state.setFlag('found_supplier', true);
   renderHistory();
   const { base, filters } = parseAdvanced(raw);
+  lastBaseQuery = base;
   const hint = document.getElementById('searchAdvancedHint');
   if (hint) {
     const parts = [];
@@ -254,15 +253,18 @@ function doSearch(q) {
     }
   }
 
+  lastResults = results.slice(0, 12);
   const c = document.getElementById('searchResults');
   if (!c) return;
-  if (!results.length) {
+  // ensure we are in results view when doing a new search
+  showResultsView();
+  if (!lastResults.length) {
     c.innerHTML = `<div class="muted small" style="margin-top:12px">無結果 — 嘗試 "cocoa" 或 <code>filetype:js</code> 或 <code>site:acme.internal</code></div>`;
     return;
   }
-  c.innerHTML = results.slice(0, 12).map(r => `
-    <div class="result" data-url="${escapeHtml(r.url)}">
-      <div class="result__title" data-snap="${escapeHtml(r.title)}">${escapeHtml(r.title)}</div>
+  c.innerHTML = lastResults.map((r, idx) => `
+    <div class="result" data-idx="${idx}">
+      <div class="result__title" data-open="${idx}">${escapeHtml(r.title)}</div>
       <div class="result__url">${escapeHtml(r.url)}</div>
       <div class="result__snippet">${highlightSnippet(r.snippet, base)}</div>
       <div class="result__meta">
@@ -272,33 +274,89 @@ function doSearch(q) {
       </div>
       ${r.image ? `<div class="result__image"><img src="${r.image}" alt="preview" loading="lazy" /></div>` : ''}
       <div class="result__actions">
-        <span class="result__snap" data-snap="${escapeHtml(r.title)}">快照預覽</span>
-        <span class="result__snap" data-open="${escapeHtml(r.url)}">開啟</span>
+        <span class="result__snap" data-open="${idx}">開啟</span>
       </div>
     </div>
   `).join('');
-  c.querySelectorAll('[data-snap]').forEach(el => el.addEventListener('click', () => openSnapshot(el.dataset.snap)));
   c.querySelectorAll('[data-open]').forEach(el => el.addEventListener('click', () => {
-    const url = el.dataset.open;
-    if (url.startsWith('file://') || url.startsWith('/workspace')) {
-      // open in VS Code if possible
-      const ev = new CustomEvent('search:openFile', { detail: url.replace('file://','') });
-      window.dispatchEvent(ev);
-      // try to trigger via vfs
-      const p = url.replace('file://','');
+    const idx = Number(el.dataset.open);
+    const item = lastResults[idx];
+    if (!item) return;
+    if (item.url.startsWith('file://') || item.url.startsWith('/workspace')) {
+      const p = item.url.replace('file://','');
       if (vfs.exists(p)) { state.setFlag('found_code_map', true); }
-    } else {
-      openSnapshot(el.dataset.open);
+      // also dispatch event for VSCode integration
+      const ev = new CustomEvent('search:openFile', { detail: p });
+      window.dispatchEvent(ev);
     }
+    openDetail(idx);
   }));
 }
 
-function openSnapshot(title) {
-  const modal = document.getElementById('snapshotModal');
-  const content = document.getElementById('snapshotContent');
-  const t = document.getElementById('snapshotTitle');
-  if (!modal || !content) return;
-  if (t) t.textContent = `快照 — ${title}`;
-  content.textContent = `快照預覽 — ${title}\n\n此為已刪除或快取內容，可能與當前 VFS 檔案差異。\n\n片段：\n${webIndex.find(r=>r.title===title)?.snippet || '無快照內容，嘗試搜尋 "cocoa bean import license" 以查看暗網紀錄。'}\n\n時間：${new Date().toLocaleString('zh-TW')} · 來源：acme.internal 快照`;
-  modal.classList.add('open');
+function showResultsView() {
+  const layout = document.getElementById('searchLayout');
+  const detail = document.getElementById('searchDetail');
+  if (layout) layout.style.display = '';
+  if (detail) { detail.style.display = 'none'; detail.innerHTML = ''; detail.classList.remove('open'); }
+  // scroll search container to top
+  const searchEl = document.querySelector('.search');
+  if (searchEl) searchEl.scrollTop = 0;
+  const viewSearch = document.getElementById('view-search');
+  if (viewSearch) viewSearch.scrollTop = 0;
+}
+
+function openDetail(idx) {
+  const item = lastResults[idx];
+  if (!item) return;
+  const layout = document.getElementById('searchLayout');
+  const detail = document.getElementById('searchDetail');
+  if (!layout || !detail) return;
+  layout.style.display = 'none';
+  detail.style.display = 'block';
+  detail.classList.add('open');
+
+  // try to get full content if it's a VFS file
+  let fullContent = '';
+  let vfsPath = null;
+  if (item.url.startsWith('/workspace') || item.url.startsWith('file://')) {
+    vfsPath = item.url.replace('file://','');
+    const file = vfs.getFile(vfsPath);
+    if (file && typeof file.content === 'string') {
+      fullContent = file.content;
+      // also trigger read for flags
+      vfs.readFile(vfsPath);
+    }
+  } else if (vfs.exists(item.url)) {
+    vfsPath = item.url;
+    const file = vfs.getFile(vfsPath);
+    if (file && typeof file.content === 'string') fullContent = file.content;
+  }
+  // if it's a webIndex item that maps to a VFS file via title, try lookup
+  if (!fullContent && item.title.startsWith('/workspace')) {
+    const file = vfs.getFile(item.title);
+    if (file && typeof file.content === 'string') fullContent = file.content;
+  }
+
+  const displayContent = fullContent || item.snippet || '無內容';
+
+  detail.innerHTML = `
+    <button id="searchBackBtn" class="btn detail__back">← 上一頁</button>
+    <div class="detail__card">
+      <h2 class="detail__title">${escapeHtml(item.title)}</h2>
+      <div class="detail__url">${escapeHtml(item.url)}</div>
+      ${item.image ? `<div class="detail__image"><img src="${item.image}" alt="preview" /></div>` : ''}
+      <div class="detail__snippet">${highlightSnippet(displayContent, lastBaseQuery)}</div>
+      ${fullContent ? `<pre class="detail__pre">${escapeHtml(fullContent)}</pre>` : ''}
+      <div class="result__meta" style="margin-top:12px">
+        <span class="result__tag">${item.type}</span>
+      </div>
+    </div>
+  `;
+  detail.querySelector('#searchBackBtn')?.addEventListener('click', () => showResultsView());
+  // scroll to top of search
+  const searchEl = document.querySelector('.search');
+  if (searchEl) searchEl.scrollTop = 0;
+  const viewSearch = document.getElementById('view-search');
+  if (viewSearch) viewSearch.scrollTop = 0;
+  detail.scrollIntoView({ behavior: 'auto', block: 'start' });
 }

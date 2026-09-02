@@ -1,5 +1,6 @@
-/* WhatsApp — green tone + sidebar layout (like VS Code activity bar) */
-#view-whatsapp{
+/* WhatUp — green tone + sidebar layout (like Vizual Studio Code activity bar) — same as WhatsApp green theme */
+#view-whatsapp,
+#view-whatup{
   background:#111b21;
   /* override for green tone scope */
   --wa-sidebar-bg:#111b21;
@@ -16,6 +17,23 @@
   --wa-bubble-me:#005c4b;
   --wa-bubble-other:#202c33;
 }
+:root[data-theme="light"] #view-whatsapp,
+:root[data-theme="light"] #view-whatup{
+  background:#f0f2f5;
+  --wa-sidebar-bg:#ffffff;
+  --wa-list-bg:#ffffff;
+  --wa-list-header-bg:#f0f2f5;
+  --wa-chat-bg:#efeae2;
+  --wa-chat-header-bg:#f0f2f5;
+  --wa-border:#e9edef;
+  --wa-accent:#00a884;
+  --wa-accent-hover:#008069;
+  --wa-fg-primary:#111b21;
+  --wa-fg-secondary:#54656f;
+  --wa-fg-muted:#667781;
+  --wa-bubble-me:#d9fdd3;
+  --wa-bubble-other:#ffffff;
+}
 
 .wa{
   display:flex;
@@ -25,7 +43,7 @@
   color:var(--wa-fg-primary);
 }
 
-/* Left sidebar like VS Code */
+/* Left sidebar like Vizual Studio Code */
 .wa__sidebar{
   width:56px;
   min-width:56px;
@@ -250,6 +268,12 @@
 .bubble.other .bubble__time{color:var(--wa-fg-muted)}
 .bubble__check{font-size:11px}
 .bubble__check.read{color:#53bdeb}
+.wa__msg-row{display:flex;gap:8px;align-items:flex-end;max-width:85%}
+.wa__msg-row.me{align-self:flex-end;flex-direction:row-reverse}
+.wa__msg-row.other{align-self:flex-start}
+.wa__msg-row .bubble{max-width:none;flex:1}
+.wa__msg-avatar{width:28px;height:28px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;border:1px solid rgba(0,0,0,.2);box-shadow:0 1px 2px rgba(0,0,0,.2)}
+.bubble__sender{font-size:11px;font-weight:700;margin-bottom:4px;line-height:1}
 .wa__media{margin-top:6px;border-radius:8px;overflow:hidden;border:1px solid var(--wa-border);max-width:260px;background:#111b21}
 .wa__media img{width:100%;display:block;cursor:pointer}
 .wa__file{
@@ -289,6 +313,36 @@
 .wa__composer .btn.primary{ background:var(--wa-accent); border-color:var(--wa-accent); }
 .wa__composer .btn.primary:hover{ background:var(--wa-accent-hover); }
 .wa__export{position:absolute;top:48px;right:12px;background:var(--wa-list-bg);border:1px solid var(--wa-border);border-radius:8px;padding:8px;box-shadow:0 8px 24px rgba(0,0,0,.35);z-index:4;min-width:180px}
+
+/* Light theme overrides for hardcoded dark surfaces */
+:root[data-theme="light"] #view-whatsapp .wa__search input,
+:root[data-theme="light"] #view-whatsapp .wa__composer input{background:#ffffff;border-color:var(--wa-border);color:var(--wa-fg-primary)}
+:root[data-theme="light"] #view-whatsapp .wa__search input:focus,
+:root[data-theme="light"] #view-whatsapp .wa__composer input:focus{background:#ffffff;border-color:#d1d7db}
+:root[data-theme="light"] #view-whatsapp .wa__search::before{opacity:.5}
+:root[data-theme="light"] #view-whatsapp .wa__filter{border-color:#e9edef;color:var(--wa-fg-secondary)}
+:root[data-theme="light"] #view-whatsapp .wa__filter:hover{background:#f5f6f6;color:var(--wa-fg-primary)}
+:root[data-theme="light"] #view-whatsapp .wa__list-scroll{background:var(--wa-list-bg)}
+:root[data-theme="light"] #view-whatsapp .wa__item{border-bottom-color:#e9edef}
+:root[data-theme="light"] #view-whatsapp .wa__item:hover{background:#f5f6f6}
+:root[data-theme="light"] #view-whatsapp .wa__item.active{background:#f0f2f5}
+:root[data-theme="light"] #view-whatsapp .wa__avatar{background:#e9edef;border-color:#e9edef;color:var(--wa-fg-primary)}
+:root[data-theme="light"] #view-whatsapp .wa__sidebar-tab:hover{background:#f5f6f6;color:var(--wa-fg-primary)}
+:root[data-theme="light"] #view-whatsapp .wa__sidebar-tab.active{background:#e9edef;color:var(--wa-fg-primary)}
+:root[data-theme="light"] #view-whatsapp .wa__account-pane{background:var(--wa-list-bg)}
+:root[data-theme="light"] #view-whatsapp .wa__account-circle{background:#f0f2f5;border-color:#e9edef;color:var(--wa-fg-secondary)}
+:root[data-theme="light"] #view-whatsapp .wa__messages{background-color:#efeae2;background-image:radial-gradient(rgba(0,0,0,.04) 1px, transparent 1px), linear-gradient(180deg, rgba(0,0,0,.02), transparent 40%)}
+:root[data-theme="light"] #view-whatsapp .wa__day{background:#ffffff;color:var(--wa-fg-secondary);border-color:#e9edef;box-shadow:0 1px 2px rgba(0,0,0,.08)}
+:root[data-theme="light"] #view-whatsapp .bubble.other{background:var(--wa-bubble-other);color:var(--wa-fg-primary);border-color:#e9edef;box-shadow:0 1px 1px rgba(0,0,0,.08)}
+:root[data-theme="light"] #view-whatsapp .bubble.me{color:#111b21}
+:root[data-theme="light"] #view-whatsapp .wa__media{background:#ffffff;border-color:#e9edef}
+:root[data-theme="light"] #view-whatsapp .wa__file,
+:root[data-theme="light"] #view-whatsapp .wa__voice{background:#f5f6f6;border-color:#e9edef}
+:root[data-theme="light"] #view-whatsapp .wa__wave span{background:var(--wa-fg-muted)}
+:root[data-theme="light"] #view-whatsapp .wa__iconbtn:hover{background:#f5f6f6;border-color:#e9edef;color:var(--wa-fg-primary)}
+:root[data-theme="light"] #view-whatsapp .wa__composer{background:var(--wa-list-header-bg)}
+:root[data-theme="light"] #view-whatsapp .wa__info{background:var(--wa-list-bg);border-left-color:var(--wa-border)}
+:root[data-theme="light"] #view-whatsapp .wa__msg-avatar{border-color:rgba(0,0,0,.08)}
 
 @media (max-width: 768px){
   .wa{flex-direction:column}

@@ -1,4 +1,5 @@
 import { state } from '../../core/state.js';
+import { escapeHtml } from '../../utils/helpers.js';
 
 const chats = [
   {
@@ -123,10 +124,12 @@ export function mountWhatsApp() {
   const root = document.getElementById('view-whatsapp');
   if (!root) return;
   root.innerHTML = `<div class="wa">
-    <nav class="wa__sidebar" aria-label="WhatsApp 側邊欄">
+    <nav class="wa__sidebar" aria-label="WhatUp 側邊欄">
       <div class="wa__sidebar-top">
-        <div class="wa__sidebar-tabs" role="tablist" aria-label="WhatsApp 功能">
-          <button class="wa__sidebar-tab active" data-wa-tab="chat" role="tab" aria-selected="true" title="聊天" aria-label="聊天">💬</button>
+        <div class="wa__sidebar-tabs" role="tablist" aria-label="WhatUp 功能">
+          <button class="wa__sidebar-tab active" data-wa-tab="chat" role="tab" aria-selected="true" title="聊天" aria-label="聊天">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5a8.5 8.5 0 0 1-8.5 8.5H8l-4 3v-7A8.5 8.5 0 0 1 12.5 3"/><path d="M8 9h8"/><path d="M8 13h5"/></svg>
+          </button>
         </div>
       </div>
       <div class="wa__sidebar-bottom">
@@ -267,7 +270,7 @@ function renderChat(id) {
   const el = document.getElementById('waChat');
   if (!c || !el) return;
   if (!isUnlocked(id)) {
-    el.innerHTML = `<div class="view__placeholder"><h2>🔒 未解鎖</h2><div class="muted">先去 VS Code 觸發 420.69 隱藏路由</div></div>`;
+    el.innerHTML = `<div class="view__placeholder"><h2>🔒 未解鎖</h2><div class="muted">先去 Vizual Studio Code 觸發 420.69 隱藏路由</div></div>`;
     return;
   }
   if (id === 'supplier') state.setFlag('found_supplier', true);
@@ -293,10 +296,18 @@ function renderChat(id) {
         <div class="wa__chat-sub">${c.desc} · ${c.members ? c.members.join(', ') : c.phone || ''}</div>
       </div>
       <div class="wa__chat-actions">
-        <button class="wa__iconbtn" title="搜尋訊息" id="waMsgSearchBtn">🔍</button>
-        <button class="wa__iconbtn" title="匯出聊天記錄" id="waExportBtn">📤</button>
-        <button class="wa__iconbtn" title="聯絡資訊" id="waInfoBtn">ℹ️</button>
-        <button class="wa__iconbtn" title="更多" id="waMoreBtn">⋯</button>
+        <button class="wa__iconbtn" title="搜尋訊息" id="waMsgSearchBtn" aria-label="搜尋訊息">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="6"/><path d="M15 15l4 4"/></svg>
+        </button>
+        <button class="wa__iconbtn" title="匯出聊天記錄" id="waExportBtn" aria-label="匯出聊天記錄">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V4"/><path d="M8 8l4-4 4 4"/><path d="M4 12v6a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-6"/></svg>
+        </button>
+        <button class="wa__iconbtn" title="聯絡資訊" id="waInfoBtn" aria-label="聯絡資訊">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5"/><path d="M12 8h.01"/></svg>
+        </button>
+        <button class="wa__iconbtn" title="更多" id="waMoreBtn" aria-label="更多">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="12" cy="12" r="1.2" fill="currentColor" stroke="none"/><circle cx="12" cy="5.5" r="1.2" fill="currentColor" stroke="none"/><circle cx="12" cy="18.5" r="1.2" fill="currentColor" stroke="none"/></svg>
+        </button>
       </div>
     </div>
     <div id="waMsgSearchBar" style="display:${msgSearch?'flex':'none'};gap:8px;padding:8px 12px;border-bottom:1px solid var(--border);background:var(--bg-secondary)">
@@ -306,14 +317,18 @@ function renderChat(id) {
     <div class="wa__messages" id="waMessages">
       ${Object.entries(groups).map(([day, arr]) => `
         <div class="wa__day">${day}</div>
-        ${arr.map(m => bubbleHtml(m)).join('')}
+        ${arr.map(m => bubbleHtml(m, c)).join('')}
       `).join('')}
     </div>
     <div class="wa__composer">
-      <button class="wa__iconbtn" title="附件">📎</button>
+      <button class="wa__iconbtn" title="附件" aria-label="附件">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/></svg>
+      </button>
       <input id="waComposerInput" class="input" placeholder="輸入訊息" style="flex:1" />
       <button class="btn primary" id="waSendBtn">送出</button>
-      <button class="wa__iconbtn" title="語音">🎤</button>
+      <button class="wa__iconbtn" title="語音" aria-label="語音">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 10a7 7 0 0014 0"/><path d="M12 14v4"/><path d="M8 18h8"/></svg>
+      </button>
     </div>
     <div class="wa__info ${infoOpen?'open':''}" id="waInfoPanel">
       <div style="padding:12px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
@@ -371,7 +386,18 @@ function renderChat(id) {
   });
 }
 
-function bubbleHtml(m) {
+function getInitial(name) {
+  if (!name) return '?';
+  if (name === 'you' || name === '你') return '你';
+  return name.trim().charAt(0).toUpperCase();
+}
+function getAvatarColor(name) {
+  const palette = ['#1f7aec','#e542a3','#00a884','#ff8c00','#6a5acd','#d93025','#0d9488','#7c3aed'];
+  let h = 0;
+  for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) >>> 0;
+  return palette[h % palette.length];
+}
+function bubbleHtml(m, chat) {
   const isMe = m.from === 'you';
   const check = isMe ? (m.read === 'read' ? '<span class="bubble__check read">✓✓</span>' : m.read === 'delivered' ? '<span class="bubble__check">✓✓</span>' : '<span class="bubble__check">✓</span>') : '';
   let media = '';
@@ -380,12 +406,22 @@ function bubbleHtml(m) {
   } else if (m.type === 'voice') {
     media = `<div class="wa__voice"><span class="wa__play" data-play>▶️</span><div class="wa__wave">${Array.from({length:12}, (_,i)=>`<span style="height:${8+Math.random()*14}px"></span>`).join('')}</div><span class="small muted">${m.duration}</span></div>`;
   } else if (m.type === 'file') {
-    media = `<div class="wa__file"><div class="wa__file-icon">📄</div><div style="flex:1;min-width:0"><div style="font-weight:600;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${m.fileName}</div><div class="small muted">${m.fileSize}</div></div><button class="btn" style="padding:4px 8px">下載</button></div>`;
+    media = `<div class="wa__file"><div class="wa__file-icon">📄</div><div style="flex:1;min-width:0"><div style="font-weight:600;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escapeHtml(m.fileName)}</div><div class="small muted">${escapeHtml(m.fileSize)}</div></div><button class="btn" style="padding:4px 8px">下載</button></div>`;
   }
-  return `<div class="bubble ${isMe?'me':'other'}">
-    ${m.text ? `<div>${m.text}</div>` : ''}
-    ${media}
-    <div class="bubble__time">${m.time} ${check}</div>
+  const textHtml = m.text ? `<div>${escapeHtml(m.text)}</div>` : '';
+  const timeHtml = `<div class="bubble__time">${escapeHtml(m.time)} ${check}</div>`;
+  if (isMe) {
+    return `<div class="wa__msg-row me">
+      <div class="bubble me">${textHtml}${media}${timeHtml}</div>
+    </div>`;
+  }
+  const initial = getInitial(m.from);
+  const color = getAvatarColor(m.from);
+  const isGroup = Array.isArray(chat?.members) && chat.members.length > 2;
+  const senderHtml = isGroup ? `<div class="bubble__sender" style="color:${color}">${escapeHtml(m.from)}</div>` : '';
+  return `<div class="wa__msg-row other">
+    <div class="wa__msg-avatar" style="background:${color}" aria-label="${escapeHtml(m.from)}" title="${escapeHtml(m.from)}">${escapeHtml(initial)}</div>
+    <div class="bubble other">${senderHtml}${textHtml}${media}${timeHtml}</div>
   </div>`;
 }
 
@@ -410,7 +446,7 @@ function sendMessage(chat) {
 }
 
 function exportChat(chat) {
-  const text = `WhatsApp 匯出 — ${chat.name}\n${chat.messages.map(m=>`[${m.time}] ${m.from}: ${m.text || m.fileName || m.type}`).join('\n')}`;
+  const text = `WhatUp 匯出 — ${chat.name}\n${chat.messages.map(m=>`[${m.time}] ${m.from}: ${m.text || m.fileName || m.type}`).join('\n')}`;
   const blob = new Blob([text], {type:'text/plain'});
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');

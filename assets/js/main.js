@@ -10,6 +10,7 @@ import { mountVSCode } from './apps/vscode/index.js';
 import { mountJira } from './apps/jira/index.js';
 import { mountWhatsApp, openChat as openWhatsAppChat } from './apps/whatsapp/index.js';
 import { mountSearch } from './apps/search/index.js';
+import { mountIntranet } from './apps/intranet/index.js';
 
 function applyTheme() {
   const theme = state.get('settings.theme') || 'dark';
@@ -27,9 +28,10 @@ function mountAll() {
   mountJira();
   mountWhatsApp();
   mountSearch();
+  mountIntranet();
 }
 
-// Windows-style WhatsApp notification (bottom-right, 10s, click -> Dev Team chat)
+// Windows-style WhatUp notification (bottom-right, 10s, click -> Dev Team chat)
 let _notifTimer = null;
 function showMaggieNotification() {
   // avoid duplicate if already shown this session
@@ -41,8 +43,8 @@ function showMaggieNotification() {
   container.setAttribute('aria-live', 'polite');
   container.innerHTML = `
     <div class="win-notif__app">
-      <img src="/icon/whatsapp.png" alt="WhatsApp" width="20" height="20" style="width:20px;height:20px;object-fit:contain;" onerror="this.style.display='none'" />
-      <span class="win-notif__app-name">WhatsApp</span>
+      <i class="fa-duotone fa-solid fa-comment-sms" style="font-size:20px;--fa-primary-color:rgba(0,203,90,1);--fa-secondary-color:rgba(0,203,90,0.4);color:rgba(0,203,90,1)"></i>
+      <span class="win-notif__app-name">WhatUp</span>
       <span class="win-notif__app-sub">Dev Team</span>
       <button class="win-notif__close" aria-label="關閉">✕</button>
     </div>
@@ -57,12 +59,12 @@ function showMaggieNotification() {
     <div class="win-notif__progress"></div>
   `;
 
-  // click anywhere on notification -> open WhatsApp Dev Team
+  // click anywhere on notification -> open WhatUp Dev Team
   container.addEventListener('click', (e) => {
     // close button handled separately
     if (e.target.closest('.win-notif__close')) return;
     dismissNotification();
-    // Ensure WhatsApp is mounted then switch
+    // Ensure WhatUp is mounted then switch
     try { openWhatsAppChat('dev-team'); } catch (_) {}
     switchView('whatsapp');
   });
@@ -108,7 +110,7 @@ function init() {
   startEngine();
   // Mark onboarding done immediately (no dialog) so engine progresses
   if (!state.hasFlag('onboarding_done')) state.setFlag('onboarding_done', true);
-  // Show Windows-style WhatsApp notification shortly after load
+  // Show Windows-style WhatUp notification shortly after load
   setTimeout(() => showMaggieNotification(), 800);
   events.on('puzzle:solved', p => { toast('✓ ' + p.title); });
   events.on('interfaceUnlocked', id => { toast(t('toast.unlocked') + ': ' + id); renderDock({ onSwitch: switchView, onOpenSettings: openSettings, onOpenNotebook: openNotebook, t }); });

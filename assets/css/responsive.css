@@ -11,7 +11,7 @@
   .activitybar__btn{width:42px;height:42px;font-size:18px;border-left:none;border-bottom:2px solid transparent}
   .activitybar__btn.active{border-left-color:transparent;border-bottom-color:var(--accent)}
   .activitybar__btn.active::before{left:0;right:0;top:auto;bottom:0;height:2px;width:auto}
-  .vscode__side{width:100%;max-height:38%;order:1}
+  .vscode__side{width:100%;max-width:none;max-height:38%;order:1;min-width:0}
   .wa{flex-direction:column}
   .wa__list{width:100%;max-width:100%;max-height:38%}
   .jira__board{grid-template-columns:1fr}
