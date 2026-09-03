@@ -51,21 +51,7 @@ const tickets = [
     ],
     history: [{ from: 'To Do', to: 'Done', by: 'ops', at: '2024-08-07' }],
   },
-  {
-    key: 'INV-2024-0043',
-    title: '修復訂單模組一般錯誤',
-    status: 'To Do',
-    assignee: 'Casey',
-    priority: 'Medium',
-    points: 2,
-    epic: 'Billing',
-    desc: `一般 bug fix，修復前人刪減行導致的顯示異常。\n\n此為普通任務，外觀與日常無異。`,
-    comments: ['Maggie: @Casey 麻煩幫忙修一下'],
-    attachments: [],
-    history: [
-      { from: '—', to: 'To Do', by: 'Maggie', at: '2024-08-14' },
-    ],
-  },
+  // INV-2024-0043 will be added dynamically after Ch1 Event2 (10s after reading Nori all staff tree message)
   {
     key: 'INV-2024-0033',
     title: 'Sprint 24 燃盡圖異常 — 故事點未下降',
@@ -354,6 +340,34 @@ export function markTicketDone(key) {
     openTicket(key);
   }
   return true;
+}
+export function addTicket0043() {
+  if (tickets.some(t => t.key === 'INV-2024-0043')) return;
+  tickets.push({
+    key: 'INV-2024-0043',
+    title: '修復訂單模組一般錯誤',
+    status: 'To Do',
+    assignee: 'Casey',
+    priority: 'Medium',
+    points: 2,
+    epic: 'Billing',
+    desc: `一般 bug fix，修復前人刪減行導致的顯示異常。\n\n此為普通任務，外觀與日常無異。`,
+    comments: ['Maggie: @Casey 麻煩幫忙修一下'],
+    attachments: [],
+    history: [
+      { from: '—', to: 'To Do', by: 'Maggie', at: new Date().toISOString().slice(0,10) },
+    ],
+  });
+  // Refresh board if mounted
+  const board = document.getElementById('jiraBoard');
+  if (board) {
+    window.dispatchEvent(new CustomEvent('jira:ticketAdded', { detail: 'INV-2024-0043' }));
+  }
+  // Also try to re-render if mountJira is available via global
+  try {
+    const ev = new CustomEvent('jira:refresh');
+    window.dispatchEvent(ev);
+  } catch {}
 }
 export function getTickets() { return tickets; }
 export function openTicketByKey(key) { openTicket(key); }

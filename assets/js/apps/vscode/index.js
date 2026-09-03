@@ -684,7 +684,159 @@ function handleCommit() {
     appendTerminal(`✕ commit 失敗 — SonarQube 行 ${result.line}: ${result.detail}`);
     return;
   }
-  // Success: create commit
+  // Check if this is INV-2024-0043 (general bug fix) - trigger System Alert flow
+  const is0043 = msg.includes('0043') || Array.from(editedFiles.keys()).some(p => !p.includes('OrderService'));
+  if (is0043 && state.hasFlag('ch0_vip_fixed') && !state.hasFlag('ch1_0043_committed')) {
+    // Handle 0043 commit - 5s later trigger System Alert
+    state.setFlag('ch1_0043_committed', true);
+    const hash43 = Math.random().toString(36).slice(2,8);
+    const diff43 = Array.from(editedFiles.entries()).map(([p,c])=>`M ${p}`).join('\n');
+    gitCommits.unshift({ hash: hash43, author: 'Casey', date: new Date().toISOString().slice(0,10), msg, diff: diff43 });
+    gitGraphCommits.unshift({ hash: hash43, branch: 'main', author: 'Casey', date: new Date().toISOString().slice(0,10), msg, diff: diff43 });
+    // Persist all edited files
+    for (const [p,c] of editedFiles.entries()) {
+      const e = vfs.getFile(p);
+      if (e) e.content = c;
+      vfs.registerFile(p, { content: c, meta: { lang: p.endsWith('.java')?'java':p.endsWith('.js')?'javascript':'text' } });
+    }
+    editedFiles.clear();
+    if (msgEl) msgEl.value = '';
+    if (statusEl) statusEl.innerHTML = `<span style="color:var(--success)">✓ Commit 成功: ${hash43}</span>`;
+    appendTerminal(`✓ commit ${hash43} — ${msg}`);
+    renderTabs(); renderTree(); renderScmChanges();
+    if (gitGraphOpen && currentFile === GIT_GRAPH_PATH) renderGitGraphEditor();
+    // Mark 0043 as Done initially (will be reverted later)
+    try { import('../jira/index.js').then(m=>m.markTicketDone&&m.markTicketDone('INV-2024-0043')); } catch {}
+    // 5s later trigger System Alert warning every 15s
+    setTimeout(() => {
+      state.setFlag('ch1_system_down', true);
+      // Start System Alert warnings
+      let alertCount = 0;
+      const alertInterval = setInterval(() => {
+        if (!state.hasFlag('ch1_system_down') || state.hasFlag('ch1_revert_done')) {
+          clearInterval(alertInterval);
+          return;
+        }
+        alertCount++;
+        import('../whatsapp/index.js').then(m => {
+          const c = m.getChats ? m.getChats().find(x=>x.id==='system-alert') : null;
+          // Fallback: directly push to system-alert chat
+          import('../../core/state.js').then(s => {
+            // Use custom event to trigger whatsapp update
+            window.dispatchEvent(new CustomEvent('system:alert', { detail: { count: alertCount } }));
+          });
+        });
+        // Also show in terminal
+        appendTerminal(`⚠️ System Alert: 系統異常 (告警 #${alertCount}) — 請檢查最近變更`);
+        // Push to system-alert chat
+        import('../whatsapp/index.js').then(m => {
+          const chats = m.getChats ? m.getChats() : [];
+          const sys = chats.find(x=>x.id==='system-alert');
+          if (sys) {
+            sys.messages.push({ id: 'alert-'+Date.now(), from: 'system', text: `⚠️ 警告 #${alertCount}: 系統異常 — 檢測到訂單模組異常`, time: new Date().toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'}), read: 'delivered', type: 'text' });
+            sys.preview = `⚠️ 警告 #${alertCount}: 系統異常`;
+            sys.unread = (sys.unread||0)+1;
+            sys.lastTime = '剛剛';
+            window.dispatchEvent(new CustomEvent('whatsapp:newMessage', {detail:{chatId:'system-alert'}}));
+            // Trigger re-render if in whatsapp view
+            if (document.getElementById('view-whatsapp')?.innerHTML) {
+              // Use custom event to re-render
+              window.dispatchEvent(new CustomEvent('whatsapp:refresh'));
+            }
+          }
+        });
+        // After first alert, Boss asks in dev-team
+        if (alertCount === 1) {
+          setTimeout(() => {
+            import('../whatsapp/index.js').then(m => {
+              const chats = m.getChats ? m.getChats() : [];
+              const dev = chats.find(x=>x.id==='dev-team');
+              if (dev) {
+                dev.messages.push({ id: 'boss-'+Date.now(), from: 'Sawyer', text: '各位，系統突然掛了，最近有誰改了什麼嗎？看起來很嚴重', time: '剛剛', read: 'delivered', type: 'text' });
+                dev.preview = 'Sawyer: 系統突然掛了...';
+                dev.unread = (dev.unread||0)+1;
+                window.dispatchEvent(new CustomEvent('whatsapp:newMessage', {detail:{chatId:'dev-team'}}));
+              }
+            });
+          }, 2000);
+          // Maggie says it's 0043 after 3s
+          setTimeout(() => {
+            import('../whatsapp/index.js').then(m => {
+              const chats = m.getChats ? m.getChats() : [];
+              const dev = chats.find(x=>x.id==='dev-team');
+              if (dev) {
+                dev.messages.push({ id: 'maggie-'+Date.now(), from: 'Maggie', text: '好像是剛才 INV-2024-0043 的修改，刪掉的那幾行有問題', time: '剛剛', read: 'delivered', type: 'text' });
+                dev.preview = 'Maggie: 好像是 0043 的修改...';
+                dev.unread = (dev.unread||0)+1;
+                window.dispatchEvent(new CustomEvent('whatsapp:newMessage', {detail:{chatId:'dev-team'}}));
+              }
+            });
+          }, 5000);
+          // Sawyer private message to Casey after 5s from Maggie
+          setTimeout(() => {
+            import('../whatsapp/index.js').then(m => {
+              const chats = m.getChats ? m.getChats() : [];
+              const sawyer = chats.find(x=>x.id==='sawyer');
+              if (sawyer) {
+                sawyer.messages.push({ id: 'sawyer-pm-'+Date.now(), from: 'Sawyer', text: 'Casey，麻煩你先把 0043 的改動 revert 吧，系統要緊', time: '剛剛', read: 'delivered', type: 'text' });
+                sawyer.preview = 'Sawyer: 麻煩你先把 0043 revert';
+                sawyer.unread = (sawyer.unread||0)+1;
+                window.dispatchEvent(new CustomEvent('whatsapp:newMessage', {detail:{chatId:'sawyer'}}));
+                // Show notification for private message
+                const container = document.createElement('div');
+                container.id = 'wa-win-notification-sawyer-pm';
+                container.innerHTML = `<div class="win-notif__app"><img src="/icon/whatsup.svg" alt="WhatUp" width="20" height="20" style="width:20px;height:20px;object-fit:contain" /><span class="win-notif__app-name">WhatUp</span><span class="win-notif__app-sub">Sawyer</span><button class="win-notif__close">✕</button></div><div class="win-notif__body"><div class="win-notif__avatar" style="background:linear-gradient(135deg, #722F37, #8B1A1A)">S</div><div class="win-notif__text"><div class="win-notif__sender">Sawyer</div><div class="win-notif__msg">Casey，麻煩你先把 0043 的改動 revert 吧</div><div class="win-notif__time">剛剛</div></div></div>`;
+                container.style.cssText = 'position:fixed;right:16px;bottom:60px;width:360px;background:#2d2d2d;color:#f0f0f0;border:1px solid rgba(255,255,255,.12);border-radius:8px;box-shadow:0 8px 28px rgba(0,0,0,.45);z-index:1100;overflow:hidden;cursor:pointer;opacity:1;transform:none;';
+                container.addEventListener('click', () => { container.remove(); import('../../ui/dock.js').then(d=>{ if(d.setActiveView){d.setActiveView('whatsapp'); localStorage.setItem('cc_active_view','whatsapp');} }); import('../whatsapp/index.js').then(m=>m.openChat('sawyer')); });
+                container.querySelector('.win-notif__close')?.addEventListener('click', e=>{ e.stopPropagation(); container.remove(); });
+                document.body.appendChild(container);
+                setTimeout(()=>container.remove(),10000);
+              }
+            });
+          }, 8000);
+        }
+      }, 5000);
+      // Also start interval for every 15s
+      const interval = setInterval(() => {
+        if (!state.hasFlag('ch1_system_down') || state.hasFlag('ch1_revert_done')) {
+          clearInterval(interval);
+          return;
+        }
+        // This will be handled by the alertCount interval above, but we need a separate 15s timer
+      }, 15000);
+    }, 5000);
+    return;
+  }
+  // Check for revert of 0043 (if system is down and user commits a revert)
+  if (state.hasFlag('ch1_system_down') && !state.hasFlag('ch1_revert_done') && msg.toLowerCase().includes('revert')) {
+    state.setFlag('ch1_revert_done', true);
+    state.setFlag('ch1_system_down', false);
+    const hash2 = Math.random().toString(36).slice(2,8);
+    gitCommits.unshift({ hash: hash2, author: 'Casey', date: new Date().toISOString().slice(0,10), msg, diff: 'M revert 0043' });
+    gitGraphCommits.unshift({ hash: hash2, branch: 'main', author: 'Casey', date: new Date().toISOString().slice(0,10), msg, diff: 'revert' });
+    editedFiles.clear();
+    if (statusEl) statusEl.innerHTML = `<span style="color:var(--success)">✓ Commit 成功 (revert): ${hash2}</span>`;
+    appendTerminal(`✓ commit ${hash2} — ${msg} (revert)`);
+    renderTabs(); renderTree(); renderScmChanges();
+    // Send system health message
+    setTimeout(() => {
+      import('../whatsapp/index.js').then(m => {
+        const chats = m.getChats ? m.getChats() : [];
+        const sys = chats.find(x=>x.id==='system-alert');
+        if (sys) {
+          sys.messages.push({ id: 'health-'+Date.now(), from: 'system', text: '✅ 系統健康 — 所有服務已恢復正常', time: '剛剛', read: 'delivered', type: 'text' });
+          sys.preview = '✅ 系統健康';
+          sys.unread = (sys.unread||0)+1;
+          window.dispatchEvent(new CustomEvent('whatsapp:newMessage', {detail:{chatId:'system-alert'}}));
+        }
+      });
+      appendTerminal('✅ System Alert: 系統健康 — 已恢復');
+    }, 1000);
+    // Mark 0043 as reverted? Keep it as Done but with revert note
+    try { import('../jira/index.js').then(m=>{ const t=m.getTickets().find(x=>x.key==='INV-2024-0043'); if(t){ t.status='Done'; t.history.push({from:'To Do',to:'Done',by:'Casey',at:new Date().toISOString().slice(0,10)}); } }); } catch {}
+    return;
+  }
+  // Success: create commit for VIP fix
   const hash = Math.random().toString(36).slice(2,8);
   const date = new Date().toISOString().slice(0,10);
   const author = 'Casey';

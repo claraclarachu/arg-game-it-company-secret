@@ -338,6 +338,41 @@ function init() {
     if (e && e.path && e.path.includes('ch5_triggered')) {
       renderDock({ onSwitch: switchView, onOpenSettings: openSettings, onOpenNotebook: openNotebook, t });
     }
+    // Ch1 Event1 trigger: 10s after ch0 (VIP fix) done, Sawyer tree message
+    if (e && e.path && e.path.includes('ch0_vip_fixed') && !state.hasFlag('ch1_event1_triggered')) {
+      state.setFlag('ch1_event1_triggered', true);
+      setTimeout(() => {
+        import('./apps/whatsapp/index.js').then(m => {
+          if (m.triggerCh1Event1) m.triggerCh1Event1();
+        });
+      }, 10000);
+    }
+  });
+  // Also check on load if ch0 already done but Event1 not yet triggered (for reload case)
+  if (state.hasFlag('ch0_vip_fixed') && !state.hasFlag('ch1_event1_triggered')) {
+    state.setFlag('ch1_event1_triggered', true);
+    setTimeout(() => {
+      import('./apps/whatsapp/index.js').then(m => {
+        if (m.triggerCh1Event1) m.triggerCh1Event1();
+      });
+    }, 10000);
+  }
+  // Listen for Jira ticket added to re-render board
+  window.addEventListener('jira:ticketAdded', () => {
+    // Force re-render Jira board if visible
+    const board = document.getElementById('jiraBoard');
+    if (board) {
+      import('./apps/jira/index.js').then(m => {
+        // The tickets array is updated, we need to re-render
+        // Since renderBoard is not exported, we can trigger a custom event or just reload the view
+        // For now, dispatch a state change to trigger re-render
+        events.emit('jira:refresh');
+      });
+    }
+  });
+  window.addEventListener('jira:refresh', () => {
+    // Try to re-mount Jira if needed
+    try { mountJira(); } catch {}
   });
   document.querySelectorAll('dialog').forEach(d => {
     d.addEventListener('click', e => { if (e.target === d) d.close(); });

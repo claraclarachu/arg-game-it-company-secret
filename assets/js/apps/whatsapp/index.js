@@ -17,8 +17,6 @@ const chats = [
     lastTime: '2023-06-15',
     messages: [
       { id: 'm1', from: 'Sawyer', text: '各位同事，好消息！中咗六合彩二獎，決定將獎金全數投入公司資金，一齊加油！', time: '2023-06-15', read: 'read', type: 'text' },
-      { id: 'm2', from: 'Sawyer', text: '另外，聽聞風水師建議，已在 Lobby 擺放一棵發財樹擋災，請大家切勿觸碰，否則運氣會散。', time: '2023-11-20 09:00', read: 'read', type: 'text' },
-      { id: 'm3', from: 'Sawyer', text: '今晚收工後請大家一齊去食飯唱K，辛苦大家！', time: '2023-12-01 18:30', read: 'read', type: 'text' },
     ]
   },
   {
@@ -124,6 +122,14 @@ export function openChat(id) {
   activeId = id;
   const c = chats.find(x => x.id === id);
   if (c) c.unread = 0;
+  if (id === 'nori-all') {
+    // If this is the first time reading the tree message after Event1, trigger Event2
+    setTimeout(() => markNoriAllRead(), 100);
+  }
+  if (id === 'nori-all') {
+    // If this is the first time reading the tree message after Event1, trigger Event2
+    setTimeout(() => markNoriAllRead(), 100);
+  }
   // re-render if mounted
   const root = document.getElementById('view-whatsapp');
   if (root && root.innerHTML) {
@@ -264,6 +270,9 @@ function renderList() {
     activeId = n.dataset.id;
     const c = chats.find(x=>x.id===activeId);
     if (c) c.unread = 0;
+    if (n.dataset.id === 'nori-all') {
+      setTimeout(() => markNoriAllRead(), 100);
+    }
     infoOpen = false;
     renderList(); renderChat(activeId);
   }));
@@ -457,6 +466,135 @@ function sendMessage(chat) {
       chat.messages.push({ id: 'r'+Date.now(), from: chat.id === 'backend-team'?'ops':'supplier', text: '收到，後續私聊', time: '剛剛', read: 'delivered', type: 'text' });
       renderChat(chat.id); renderList();
     }, 1200);
+  }
+}
+
+// Ch1 Event1 & Event2 helpers
+let ch1Event1Triggered = false;
+let ch1Event2Triggered = false;
+let ch1Event1Timer = null;
+let ch1Event2Timer = null;
+
+export function triggerCh1Event1() {
+  if (ch1Event1Triggered) return;
+  ch1Event1Triggered = true;
+  const c = chats.find(x => x.id === 'nori-all');
+  if (!c) return;
+  // Add tree message from Sawyer after 10 sec
+  setTimeout(() => {
+    c.messages.push({ id: 'm-tree-' + Date.now(), from: 'Sawyer', text: '另外，聽聞風水師建議，已在 Lobby 擺放一棵發財樹擋災，請大家切勿觸碰，否則運氣會散。', time: '剛剛', read: 'delivered', type: 'text' });
+    c.preview = 'Sawyer: 已在 Lobby 擺放一棵發財樹擋災';
+    c.lastTime = '剛剛';
+    c.unread = (c.unread || 0) + 1;
+    window.dispatchEvent(new CustomEvent('whatsapp:newMessage', { detail: { chatId: 'nori-all' } }));
+    const root = document.getElementById('view-whatsapp');
+    if (root && root.innerHTML) {
+      renderList();
+    }
+    // Pop up at right bottom like initial ch0 notification
+    const container = document.createElement('div');
+    container.id = 'wa-win-notification-sawyer-tree';
+    container.setAttribute('role', 'alert');
+    container.innerHTML = `
+      <div class="win-notif__app">
+        <img src="/icon/whatsup.svg" alt="WhatUp" width="20" height="20" style="width:20px;height:20px;object-fit:contain" />
+        <span class="win-notif__app-name">WhatUp</span>
+        <span class="win-notif__app-sub">Nori 全體</span>
+        <button class="win-notif__close" aria-label="關閉">✕</button>
+      </div>
+      <div class="win-notif__body">
+        <div class="win-notif__avatar" style="background:linear-gradient(135deg, #722F37, #8B1A1A)">S</div>
+        <div class="win-notif__text">
+          <div class="win-notif__sender">Sawyer</div>
+          <div class="win-notif__msg">已在 Lobby 擺放一棵發財樹擋災，請大家切勿觸碰</div>
+          <div class="win-notif__time">剛剛 · 點擊開啟對話</div>
+        </div>
+      </div>
+      <div class="win-notif__progress"></div>
+    `;
+    container.style.cssText = 'position:fixed;right:16px;bottom:60px;width:360px;background:#2d2d2d;color:#f0f0f0;border:1px solid rgba(255,255,255,.12);border-radius:8px;box-shadow:0 8px 28px rgba(0,0,0,.45);z-index:1100;overflow:hidden;cursor:pointer;opacity:0;transform:translateY(12px);transition:opacity .28s,transform .28s;';
+    container.addEventListener('click', (e) => {
+      if (e.target.closest('.win-notif__close')) return;
+      container.remove();
+      import('../../ui/dock.js').then(dock => {
+        if (dock.setActiveView) { dock.setActiveView('whatsapp'); localStorage.setItem('cc_active_view', 'whatsapp'); }
+      });
+      openChat('nori-all');
+    });
+    container.querySelector('.win-notif__close')?.addEventListener('click', (e) => { e.stopPropagation(); container.remove(); });
+    document.body.appendChild(container);
+    requestAnimationFrame(() => { container.style.opacity='1'; container.style.transform='none'; });
+    setTimeout(() => { container.style.opacity='0'; setTimeout(()=>container.remove(),300); }, 10000);
+  }, 10000);
+}
+
+export function triggerCh1Event2() {
+  if (ch1Event2Triggered) return;
+  ch1Event2Triggered = true;
+  const c = chats.find(x => x.id === 'dev-team');
+  if (!c) return;
+  setTimeout(() => {
+    c.messages.push({ id: 'm-0043-' + Date.now(), from: 'Maggie', text: 'Hi @Casey, 有新的工單 INV-2024-0043, 請協助處理一下', time: '剛剛', read: 'delivered', type: 'text' });
+    c.preview = 'Hi @Casey, 有新的工單 INV-2024-0043';
+    c.lastTime = '剛剛';
+    c.unread = (c.unread || 0) + 1;
+    window.dispatchEvent(new CustomEvent('whatsapp:newMessage', { detail: { chatId: 'dev-team' } }));
+    // Add Jira ticket
+    import('../jira/index.js').then(m => {
+      if (m.addTicket0043) m.addTicket0043();
+      const board = document.getElementById('jiraBoard');
+      if (board) {
+        window.dispatchEvent(new CustomEvent('jira:ticketAdded'));
+      }
+    });
+    const root = document.getElementById('view-whatsapp');
+    if (root && root.innerHTML) {
+      renderList();
+    }
+    // Pop up at right bottom like initial ch0
+    const container = document.createElement('div');
+    container.id = 'wa-win-notification-maggie-0043';
+    container.setAttribute('role', 'alert');
+    container.innerHTML = `
+      <div class="win-notif__app">
+        <img src="/icon/whatsup.svg" alt="WhatUp" width="20" height="20" style="width:20px;height:20px;object-fit:contain" />
+        <span class="win-notif__app-name">WhatUp</span>
+        <span class="win-notif__app-sub">Dev Team</span>
+        <button class="win-notif__close" aria-label="關閉">✕</button>
+      </div>
+      <div class="win-notif__body">
+        <div class="win-notif__avatar" style="background:linear-gradient(135deg, #25D366, #128C7E)">M</div>
+        <div class="win-notif__text">
+          <div class="win-notif__sender">Maggie</div>
+          <div class="win-notif__msg">Hi @Casey, 有新的工單 INV-2024-0043, 請協助處理一下</div>
+          <div class="win-notif__time">剛剛 · 點擊開啟對話</div>
+        </div>
+      </div>
+      <div class="win-notif__progress"></div>
+    `;
+    container.style.cssText = 'position:fixed;right:16px;bottom:60px;width:360px;background:#2d2d2d;color:#f0f0f0;border:1px solid rgba(255,255,255,.12);border-radius:8px;box-shadow:0 8px 28px rgba(0,0,0,.45);z-index:1100;overflow:hidden;cursor:pointer;opacity:0;transform:translateY(12px);transition:opacity .28s,transform .28s;';
+    container.addEventListener('click', (e) => {
+      if (e.target.closest('.win-notif__close')) return;
+      container.remove();
+      import('../../ui/dock.js').then(dock => {
+        if (dock.setActiveView) { dock.setActiveView('whatsapp'); localStorage.setItem('cc_active_view', 'whatsapp'); }
+      });
+      openChat('dev-team');
+    });
+    container.querySelector('.win-notif__close')?.addEventListener('click', (e) => { e.stopPropagation(); container.remove(); });
+    document.body.appendChild(container);
+    requestAnimationFrame(() => { container.style.opacity='1'; container.style.transform='none'; });
+    setTimeout(() => { container.style.opacity='0'; setTimeout(()=>container.remove(),300); }, 10000);
+  }, 10000);
+}
+
+export function markNoriAllRead() {
+  const c = chats.find(x => x.id === 'nori-all');
+  if (c) {
+    // Mark as read and trigger Event2 after 10 sec if Event1 was triggered
+    if (ch1Event1Triggered && !ch1Event2Triggered) {
+      triggerCh1Event2();
+    }
   }
 }
 
