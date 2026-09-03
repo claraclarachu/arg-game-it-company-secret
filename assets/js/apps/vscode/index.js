@@ -72,6 +72,7 @@ let gitGraphCommits = [
   { hash: 'b5c8e11', branch: 'develop', author: 'ops-li', date: '2024-08-05', msg: 'chore: update CI pipeline for billing tests', diff: `M .github/workflows/ci.yml\n+ - run: npm test -- billing\n+ - run: sonar-scan` },
   { hash: '4c2a1e0', branch: 'main', author: 'dev', date: '2024-08-01', msg: 'chore: init billing service', diff: `+ export function calculateAmount(items, opts) {}\n+ export function computeFee(amount, opts) {}` },
   { hash: 'c8d3e9f', branch: 'develop', author: 'ops-li', date: '2024-07-28', msg: 'chore: scaffold workspace & payment stubs', diff: `+ workspace/src/payment/gateway.js\n+ workspace/src/payment/mixer.js` },
+  { hash: 'd4e5f6a', branch: 'main', author: 'dev-chen', date: '2023-11-20', msg: 'refactor: simplify portal auth (remove dynamic generator)', diff: `- function generateSecretPath(domain){ const cid = redis.get('companyId'); const y = redis.get('year'); const k='70BTa3A1a13ad4212GHdybJmn'; return domain + 'hash=' + md5(\`companyId=\${cid}&year=\${y}&key=\${k}\`); }\n+ // removed: secret path is now static\n  // md5 key from .env.example: 70BTa3A1a13ad4212GHdybJmn` },
 ];
 
 export function mountVSCode() {
@@ -83,7 +84,7 @@ export function mountVSCode() {
       <div class="vscode__titlebar" role="banner">
         <div class="titlebar__left">
           <span class="vscode__logo" aria-hidden="true">
-            <i class="fa-duotone fa-solid fa-cube" style="font-size:14px;--fa-primary-color:rgba(87,165,229,1);--fa-secondary-color:rgba(87,165,229,0.4);color:rgba(87,165,229,1)"></i>
+            <img src="/icon/vizual-studio-code.svg" alt="Vizual Studio Code" width="16" height="16" style="width:16px;height:16px;object-fit:contain" />
           </span>
           <nav class="titlebar__menu" aria-label="Menu">
             <span>File</span><span>Edit</span><span>Selection</span><span>View</span><span>Go</span><span>Run</span><span>Terminal</span><span data-help="1" style="cursor:pointer">Help</span>
@@ -258,26 +259,10 @@ function bindVSCode() {
     renderTree(q);
   });
 
-  // Hidden trigger: typing 420.69 in SEARCH panel activates portal
+  // 420.69 觸發已於 2024 移除（現由暗網 hash 驗證取代）
   const searchInput = document.getElementById('vsSearchInput');
   const searchResult = document.getElementById('vsSearchResult');
-  function handleSearchTrigger(val) {
-    const v = val.trim();
-    if (!v) { if (searchResult) searchResult.textContent = ''; return; }
-    const num = parseFloat(v);
-    if (v.includes('420.69') || num === 420.69) {
-      const res = vfs.tryAccessPortal({ amount: 420.69 });
-      if (res) {
-        state.setFlag('found_code_map', true);
-        if (searchResult) searchResult.textContent = '→ 已觸發隱藏路由 /internal/portal (查看 Search / Portal 頁)';
-        appendTerminal('→ SEARCH 觸發隱藏路由 /internal/portal (420.69)');
-      } else { if (searchResult) searchResult.textContent = ''; }
-      return;
-    }
-    if (searchResult) searchResult.textContent = '';
-  }
-  searchInput?.addEventListener('input', e => handleSearchTrigger(e.target.value));
-  searchInput?.addEventListener('keydown', e => { if (e.key==='Enter') handleSearchTrigger(e.target.value); });
+  if (searchResult) searchResult.textContent = '';
 
   document.querySelectorAll('.activitybar__btn[data-activity]').forEach(btn => {
     btn.addEventListener('click', () => { activeActivity = btn.dataset.activity; updateActivityBar(); });
@@ -845,7 +830,7 @@ function runTerminalCmd(raw) {
       const hits = vfs.searchContent(q).filter(h => h.path.startsWith('/workspace'));
       if (!hits.length) appendTerminal(`grep: "${q}" 無結果（僅搜尋 /workspace 官網系統）`);
       else { appendTerminal(`grep "${q}" 找到 ${hits.length} 筆:`); hits.slice(0, 10).forEach(h => appendTerminal(`${h.path}: ${h.snippet.slice(0,80)}...`)); }
-      if (q.includes('420.69')) appendTerminal('hint: 試試在 Search 活動列輸入 420.69 觸發隱藏路由');
+      // 420.69 hint 已移除，現由暗網 hash 觸發
       break;
     }
     case 'git': {

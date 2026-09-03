@@ -43,13 +43,28 @@ const tickets = [
     priority: 'Low',
     points: 3,
     epic: 'Supply',
-    desc: '採購系統位於 /internal/portal，需 X-Internal-Token。庫存代號已同步。\n\n代號對照：COCOA=可卡因, BEAN=海洛因, LEAF=大麻, CRYSTAL=冰毒',
-    comments: ['ops: 庫存 COCOA 420 已盤點'],
+    desc: '採購系統位於 /internal/portal，需 X-Internal-Token。庫存代號已同步。\n\n代號對照：COCOA=可卡因, BEAN=海洛因, LEAF=大麻, CRYSTAL=冰毒\n\n【備註】曾於暗網 SECRET 頁面發現：需點擊標題「SECRET」六下才會進入新的 file system（機密文件庫）。',
+    comments: ['ops: 庫存 COCOA 420 已盤點', 'qa-lee: 暗網進入方式已記錄於此票備註'],
     attachments: [
       { name: '架構圖.pdf', type: 'pdf', snippet: '實為物流路線圖：台灣→東南亞→北美' },
       { name: 'ledger.db', type: 'db', snippet: 'SQLite 匯出位於 /internal/portal/export' },
     ],
     history: [{ from: 'To Do', to: 'Done', by: 'ops', at: '2024-08-07' }],
+  },
+  {
+    key: 'INV-2024-0043',
+    title: '修復訂單模組一般錯誤',
+    status: 'To Do',
+    assignee: 'Casey',
+    priority: 'Medium',
+    points: 2,
+    epic: 'Billing',
+    desc: `一般 bug fix，修復前人刪減行導致的顯示異常。\n\n此為普通任務，外觀與日常無異。`,
+    comments: ['Maggie: @Casey 麻煩幫忙修一下'],
+    attachments: [],
+    history: [
+      { from: '—', to: 'To Do', by: 'Maggie', at: '2024-08-14' },
+    ],
   },
   {
     key: 'INV-2024-0033',
@@ -104,33 +119,10 @@ export function mountJira() {
 
       <div id="jiraBoard" class="jira__board"></div>
       <div id="jiraDetail" class="card" style="display:none"></div>
-
-      <div class="jira__report">
-        <div class="jira__report-header">
-          <h3 style="margin:0">Sprint 24 報表 · 燃盡圖</h3>
-          <span class="small muted">假資料 · 用於 Phase 3 展示</span>
-        </div>
-        <div style="display:grid;grid-template-columns:1fr 320px;gap:12px;align-items:start">
-          <div class="jira__burndown">
-            <svg id="burndownSvg" viewBox="0 0 400 160" width="100%" height="160" style="display:block"></svg>
-            <div class="small muted" style="margin-top:6px">理想 (灰虛線) vs 實際 (藍) — Day 4 後持平暗示隱藏任務</div>
-          </div>
-          <div class="card" style="padding:10px">
-            <div class="small" style="font-weight:600">Sprint 統計</div>
-            <div class="small muted" style="margin-top:6px">總故事點: 19</div>
-            <div class="small muted">已完成: 3 (INV-2024-0011)</div>
-            <div class="small muted">進行中: 8</div>
-            <div class="small muted">待辦: 8</div>
-            <div style="margin-top:8px;height:8px;background:var(--bg-tertiary);border-radius:999px;overflow:hidden"><div style="width:16%;height:100%;background:var(--accent)"></div></div>
-            <div class="small muted" style="margin-top:4px">16% 完成 — 落後</div>
-          </div>
-        </div>
-      </div>
     </div>
   `;
   bindJira();
   renderBoard();
-  renderBurndown();
 }
 
 function bindJira() {
@@ -366,34 +358,4 @@ export function markTicketDone(key) {
 export function getTickets() { return tickets; }
 export function openTicketByKey(key) { openTicket(key); }
 
-function renderBurndown() {
-  const svg = document.getElementById('burndownSvg');
-  if (!svg) return;
-  // Simple burndown: 10 days, ideal linear, actual flat after day4
-  const w = 400, h = 140, pad = 24;
-  const ptsIdeal = Array.from({length:10}, (_,i)=> [pad + i*( (w-pad*2)/9 ), pad + (1 - i/9)*(h-pad*2)]);
-  const ptsActual = [ [ptsIdeal[0][0], ptsIdeal[0][1]], [ptsIdeal[3][0], ptsIdeal[5][1]], [ptsIdeal[9][0], ptsIdeal[6][1]] ];
-  // grid
-  let html = `<rect x="0" y="0" width="${w}" height="${h}" fill="var(--bg-primary)" rx="6" />`;
-  // Y axis
-  for (let i=0;i<=4;i++) {
-    const y = pad + i*(h-pad*2)/4;
-    html += `<line x1="${pad}" y1="${y}" x2="${w-pad}" y2="${y}" stroke="var(--border)" stroke-opacity="0.5" stroke-width="1"/>`;
-    html += `<text x="4" y="${y+3}" font-size="9" fill="var(--fg-muted)">${19 - i*5}</text>`;
-  }
-  // X labels
-  for (let i=0;i<10;i++) {
-    const x = pad + i*(w-pad*2)/9;
-    html += `<text x="${x}" y="${h-4}" font-size="9" fill="var(--fg-muted)" text-anchor="middle">D${i+1}</text>`;
-  }
-  // Ideal line dashed
-  const idealPath = ptsIdeal.map((p,i)=> i===0?`M ${p[0]} ${p[1]}`:`L ${p[0]} ${p[1]}`).join(' ');
-  html += `<path d="${idealPath}" fill="none" stroke="#9aa0a6" stroke-width="1.5" stroke-dasharray="5 4"/>`;
-  // Actual
-  const actualPath = `M ${ptsActual[0][0]} ${ptsActual[0][1]} L ${ptsActual[1][0]} ${ptsActual[1][1]} L ${ptsActual[2][0]} ${ptsActual[2][1]}`;
-  html += `<path d="${actualPath}" fill="none" stroke="var(--accent)" stroke-width="2.5"/>`;
-  html += `<circle cx="${ptsActual[0][0]}" cy="${ptsActual[0][1]}" r="3" fill="var(--accent)"/>`;
-  html += `<circle cx="${ptsActual[1][0]}" cy="${ptsActual[1][1]}" r="3" fill="var(--accent)"/>`;
-  html += `<circle cx="${ptsActual[2][0]}" cy="${ptsActual[2][1]}" r="3" fill="var(--warning)" stroke="var(--warning)" />`;
-  svg.innerHTML = html;
-}
+function renderBurndown() { /* removed Sprint 24 report */ }

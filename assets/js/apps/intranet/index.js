@@ -1,5 +1,6 @@
 import { vfs } from '../../core/vfs.js';
 import { escapeHtml } from '../../utils/helpers.js';
+import { triggerDarknetFromIntranet } from '../darknet/index.js';
 
 let currentPath = '/intranet';
 let searchQuery = '';
@@ -76,8 +77,23 @@ export function mountIntranet() {
 
 function bindIntranet() {
   document.getElementById('intraSearch')?.addEventListener('input', e => {
-    searchQuery = e.target.value.trim().toLowerCase();
+    const val = e.target.value.trim();
+    // Dark web entrance: full URL
+    if (val === 'https://nori-intranet.internal/portal?hash=f665a7117959b667b7f283eaebf69cae') {
+      triggerDarknetFromIntranet();
+      return;
+    }
+    searchQuery = val.toLowerCase();
     renderMain();
+  });
+  document.getElementById('intraSearch')?.addEventListener('keydown', e => {
+    if (e.key === 'Enter') {
+      const val = e.target.value.trim();
+      if (val === 'https://nori-intranet.internal/portal?hash=f665a7117959b667b7f283eaebf69cae') {
+        e.preventDefault();
+        triggerDarknetFromIntranet();
+      }
+    }
   });
   document.getElementById('intraPreviewClose')?.addEventListener('click', closePreview);
   document.getElementById('intraPreview')?.addEventListener('click', e => {

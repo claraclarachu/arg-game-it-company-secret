@@ -17,7 +17,20 @@ export function openNotebook() {
   const dlg = document.getElementById('notebookDialog');
   if (!dlg) return;
   renderNotebook();
-  dlg.showModal?.() || (dlg.style.display = 'block');
+  if (typeof dlg.showModal === 'function') {
+    if (!dlg.open) dlg.showModal();
+  } else {
+    dlg.setAttribute('open', '');
+    dlg.style.display = 'block';
+  }
+  // Ensure backdrop click closes correctly
+  if (!dlg._boundClose) {
+    dlg.addEventListener('close', () => {
+      dlg.style.display = 'none';
+      dlg.removeAttribute('open');
+    });
+    dlg._boundClose = true;
+  }
 }
 
 function renderNotebook() {
@@ -82,8 +95,21 @@ function renderNotebook() {
     </details>
 
     <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
-      <button class="btn" onclick="navigator.clipboard.writeText(JSON.stringify(JSON.parse(localStorage.getItem('code_conspiracy_state')), null, 2))">複製存檔 JSON</button>
-      <button class="btn" onclick="if(confirm('重置後將失去證據，確定？')){localStorage.removeItem('code_conspiracy_state'); location.reload();}">重置 notebook</button>
+      <button class="btn" onclick="navigator.clipboard.writeText(JSON.stringify(JSON.parse(localStorage.getItem('code_conspiracy_state')||'{}'), null, 2))">複製存檔 JSON</button>
+      <button class="btn" id="notebookResetBtn">重置 notebook</button>
     </div>
   `;
+  // Bind reset button with proper state reset and rerender
+  setTimeout(() => {
+    document.getElementById('notebookResetBtn')?.addEventListener('click', () => {
+      if (!confirm('重置後將失去證據，確定？')) return;
+      try { state.reset(); } catch {}
+      try { localStorage.removeItem('code_conspiracy_state'); localStorage.clear(); } catch {}
+      // Close dialog first
+      const dlg = document.getElementById('notebookDialog');
+      if (dlg && dlg.open) dlg.close();
+      // Force reload with cache bust
+      setTimeout(() => location.reload(), 100);
+    });
+  }, 0);
 }

@@ -3,6 +3,59 @@ import { escapeHtml } from '../../utils/helpers.js';
 
 const chats = [
   {
+    id: 'nori-all',
+    name: 'Nori 全體',
+    avatar: '🏢',
+    desc: 'Nori 全體員工群組',
+    members: ['Sawyer', 'Casey', 'Maggie', 'Taylor', 'Aiko', 'all'],
+    preview: 'Sawyer: 中咗六合彩二獎，決定全放公司資金',
+    locked: false,
+    pinned: true,
+    muted: false,
+    archived: false,
+    unread: 0,
+    lastTime: '2023-06-15',
+    messages: [
+      { id: 'm1', from: 'Sawyer', text: '各位同事，好消息！中咗六合彩二獎，決定將獎金全數投入公司資金，一齊加油！', time: '2023-06-15', read: 'read', type: 'text' },
+      { id: 'm2', from: 'Sawyer', text: '另外，聽聞風水師建議，已在 Lobby 擺放一棵發財樹擋災，請大家切勿觸碰，否則運氣會散。', time: '2023-11-20 09:00', read: 'read', type: 'text' },
+      { id: 'm3', from: 'Sawyer', text: '今晚收工後請大家一齊去食飯唱K，辛苦大家！', time: '2023-12-01 18:30', read: 'read', type: 'text' },
+    ]
+  },
+  {
+    id: 'system-alert',
+    name: 'System Alert',
+    avatar: '🚨',
+    desc: '系統監控告警',
+    members: ['system', 'Casey'],
+    preview: '✅ 系統健康',
+    locked: false,
+    pinned: true,
+    muted: false,
+    archived: false,
+    unread: 0,
+    lastTime: '剛剛',
+    messages: [
+      { id: 'm1', from: 'system', text: '✅ 系統健康 — 所有服務正常', time: '剛剛', read: 'read', type: 'text' },
+    ]
+  },
+  {
+    id: 'sawyer',
+    name: 'Boss Sawyer',
+    avatar: '👔',
+    desc: 'Sawyer · 創辦人',
+    phone: '+852 9123 4567',
+    preview: '有空嗎？',
+    locked: false,
+    pinned: false,
+    muted: false,
+    archived: false,
+    unread: 0,
+    lastTime: '2023-12-20',
+    messages: [
+      { id: 'm1', from: 'Sawyer', text: 'Casey，有空嗎？想同你傾下。', time: '2023-12-20', read: 'read', type: 'text' },
+    ]
+  },
+  {
     id: 'dev-team',
     name: 'Dev Team',
     avatar: '👩‍💻',
@@ -37,44 +90,6 @@ const chats = [
       { id: 'm2', from: 'ops', text: '上次 bean 的 118 單位還在倉庫，leaf 新貨到了', time: '10:30', read: 'read', type: 'text' },
       { id: 'm3', from: 'you', text: '收到', time: '10:31', read: 'read', type: 'text' },
       { id: 'm4', from: 'pm', text: '架構圖更新了，記得看附件', time: '10:32', read: 'delivered', type: 'file', fileName: 'arch-routes.pdf', fileSize: '1.2MB' },
-    ]
-  },
-  {
-    id: 'qa-lee',
-    name: 'QA Lee',
-    avatar: '🧪',
-    desc: 'QA · 測試',
-    phone: '+886 912 345 678',
-    preview: '別動 payment 模組，那邊有 legacy code',
-    locked: false,
-    pinned: false,
-    muted: false,
-    archived: false,
-    unread: 0,
-    lastTime: '09:15',
-    messages: [
-      { id: 'm1', from: 'qa-lee', text: '別動 payment 模組，那邊有 legacy code，finance 會找你', time: '09:10', read: 'read', type: 'text' },
-      { id: 'm2', from: 'you', text: '知道了，420.69 那個分支是幹嘛的？', time: '09:12', read: 'read', type: 'text' },
-      { id: 'm3', from: 'qa-lee', text: '內部審核用的 portal，需要 token，你在 .env.example 找', time: '09:13', read: 'read', type: 'text' },
-      { id: 'm4', from: 'qa-lee', text: '語音有細節', time: '09:14', read: 'read', type: 'voice', duration: '0:18' },
-    ]
-  },
-  {
-    id: 'supplier',
-    name: 'Supplier (未知)',
-    avatar: '🤝',
-    desc: '未知供應商',
-    phone: '+66 81 234 5678',
-    preview: '新批次 crystal 已發出',
-    locked: false,
-    pinned: false,
-    muted: true,
-    archived: false,
-    unread: 1,
-    lastTime: '昨天',
-    messages: [
-      { id: 'm1', from: 'supplier', text: '新批次 crystal 已發出，追蹤號可查', time: '昨天', read: 'delivered', type: 'text' },
-      { id: 'm2', from: 'supplier', text: '圖片為證', time: '昨天', read: 'delivered', type: 'image', media: 'https://via.placeholder.com/240x160?text=package' },
     ]
   },
   {

@@ -17,11 +17,23 @@
   --win-wallpaper:#a8d8f0;
   --taskbar-bg:#f3f3f3;
 }
-/* Dialogs - fix dark mode showing light background */
+/* Dialogs - fix dark mode showing light background + top layer */
 dialog{
   background:var(--bg-secondary);
   color:var(--fg-primary);
   border:1px solid var(--border);
+  position: fixed;
+  inset: 0;
+  width: fit-content;
+  height: fit-content;
+  max-width: calc(100vw - 24px);
+  max-height: calc(100vh - 24px);
+  margin: auto;
+  z-index: 2000;
+  display: none;
+}
+dialog[open]{
+  display: block;
 }
 dialog::backdrop{
   background:rgba(0,0,0,.45);
@@ -30,6 +42,12 @@ dialog::backdrop{
 #settingsDialog, #notebookDialog{
   background:var(--bg-secondary);
   color:var(--fg-primary);
+}
+#notebookDialog{
+  z-index: 2001;
+}
+#notebookDialog::backdrop{
+  z-index: 2000;
 }
 *{box-sizing:border-box}
 html,body{height:100%;margin:0;background:var(--bg-primary);color:var(--fg-primary);font-family:var(--font-ui);-webkit-font-smoothing:antialiased}

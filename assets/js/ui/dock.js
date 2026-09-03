@@ -5,7 +5,10 @@ export function renderDock({ onSwitch, onOpenSettings, onOpenNotebook, t }) {
   if (!dock) return;
 
   function isUnlocked(id) {
-    // No locking — all pages free to visit
+    if (id === 'email') {
+      // Email app only shows after ch5 triggered and mail dialog closed
+      return state.hasFlag('ch5_triggered');
+    }
     return true;
   }
 
@@ -17,6 +20,7 @@ export function renderDock({ onSwitch, onOpenSettings, onOpenNotebook, t }) {
     jira: '/icon/jiua.svg',
     whatsapp: '/icon/whatsup.svg',
     search: '/icon/browser.svg',
+    email: '/icon/mail.svg',
   };
   const ACTION_ICONS = {
     notebook: '/icon/notepad.png',
@@ -92,6 +96,7 @@ export function renderDock({ onSwitch, onOpenSettings, onOpenNotebook, t }) {
         ${appBtn('jira', '📋', t('dock.jira'))}
         ${appBtn('whatsapp', '💬', t('dock.whatsapp'))}
         ${appBtn('search', '🔍', t('dock.search'))}
+        ${isUnlocked('email') ? appBtn('email', '✉️', 'Email') : ''}
         <div class="taskbar__sep"></div>
         ${actionBtn('notebook', '📒', t('dock.notebook'))}
         <button class="taskbar__action" data-action="settings" title="${t('dock.settings')}">
@@ -115,7 +120,25 @@ export function renderDock({ onSwitch, onOpenSettings, onOpenNotebook, t }) {
   `;
 
   dock.querySelectorAll('[data-view]').forEach(b => {
-    b.addEventListener('click', () => onSwitch(b.dataset.view));
+    b.addEventListener('click', () => {
+      if (b.dataset.view === 'email') {
+        const dlg = document.getElementById('mailDialog');
+        if (dlg) {
+          // Update To field based on current title
+          const title = document.getElementById('mailTitle');
+          const to = document.getElementById('mailTo');
+          if (title && to) {
+            const v = title.value;
+            if (v === 'Report') to.value = 'DEA <dea@nori.example>';
+            else if (v === 'Coperation') to.value = 'Sawyer <sawyer@nori.example>';
+            else if (v === 'Resign') to.value = 'Sawyer <sawyer@nori.example>';
+          }
+          dlg.showModal();
+        }
+        return;
+      }
+      onSwitch(b.dataset.view);
+    });
   });
   dock.querySelector('[data-action="settings"]')?.addEventListener('click', onOpenSettings);
   dock.querySelector('[data-action="notebook"]')?.addEventListener('click', onOpenNotebook);

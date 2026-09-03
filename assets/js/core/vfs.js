@@ -2,6 +2,24 @@ import { state } from './state.js';
 import { events } from './events.js';
 
 const fileRegistry = new Map();
+const darkFileRegistry = new Map();
+function registerDarkFile(path, entry) { darkFileRegistry.set(path, entry); }
+function getDarkFile(path) { return darkFileRegistry.get(path) || null; }
+function listDarkFiles(prefix = '/') { const out = []; for (const [p, entry] of darkFileRegistry.entries()) { if (p.startsWith(prefix)) out.push({ path: p, ...entry }); } return out.sort((a,b)=>a.path.localeCompare(b.path)); }
+function buildDarkTree() {
+  const root = { name: '/', path: '/', children: [], type: 'dir' };
+  const nodes = new Map(); nodes.set('/', root);
+  for (const [p] of darkFileRegistry.entries()) {
+    const parts = p.split('/').filter(Boolean);
+    let curPath = ''; let parent = root;
+    for (let i=0;i<parts.length;i++) { curPath += '/' + parts[i]; const isFile = i===parts.length-1;
+      if (!nodes.has(curPath)) { const node={name:parts[i], path:curPath, type:isFile?'file':'dir', children:isFile?undefined:[]}; if(isFile){const e=darkFileRegistry.get(p); node.ext=p.split('.').pop(); node.meta=e.meta||{};} nodes.set(curPath,node); if(!parent.children) parent.children=[]; parent.children.push(node);} else { const ex=nodes.get(curPath); if(!isFile && ex.type==='file'){ex.type='dir'; ex.children=ex.children||[];} } parent=nodes.get(curPath);
+    }
+  }
+  function sortNode(n){ if(n.children){ n.children.sort((a,b)=>{ if(a.type!==b.type) return a.type==='dir'?-1:1; return a.name.localeCompare(b.name);}); n.children.forEach(sortNode); } }
+  sortNode(root); return root;
+}
+function readDarkFile(path){ const e=getDarkFile(path); if(!e) return null; return e.content; }
 
 function registerFile(path, entry) {
   fileRegistry.set(path, entry);
@@ -121,11 +139,9 @@ function canAccessPortal() {
 }
 
 function tryAccessPortal(trigger) {
-  // trigger: { amount, path, headers }
-  const service = getFile('/workspace/src/billing/service.js');
-  if (!service) return false;
-  // minimal validation: amount === 420.69
-  if (trigger && trigger.amount === 420.69) {
+  // 2024 已移除 420.69 判定，現僅保留 hash 驗證（由暗網進入點使用）
+  // trigger: { hash, path, headers }
+  if (trigger && trigger.hash === 'f665a7117959b667b7f283eaebf69cae') {
     state.setFlag('hidden_portal_accessed', true);
     state.setFlag('portal_auth_bypassed', false);
     events.emit('portal:discovered');
@@ -440,11 +456,18 @@ function seedFiles() {
   registerFile('/workspace/docs/business-plan.md', {
     content: `# Nori 飲品供應 商業計畫書 (2019-2024)
 
-創辦人 Sawyer 於 2019 年創立。
+創辦人 Sawyer 於 2019 年創立，僅飲品生意。
+
+## 時間線
+- 2019-2022：營運困難，時而負收入，靠小額訂單維繫
+- 2023 上半年：Sawyer 父母車禍過世，處理喪事期間結識 FredyArc 主辦人 Fredy
+- 2023 中：Fredy 看中 Nori「可透過各方運輸偷運毒品」且 Sawyer 可合作，遂投資並提供人力/機遇（旗下企業與 Nori 合作給予正當資金掩護）
+- 2023 下半年：Sawyer 謊稱中六合彩二獎並將資金全投入公司，因巧合機遇一年內翻身
+- 2023 下半年：冰釀茶酒爆紅，團隊擴至 50 人
 
 ## 飲品定價
 - 招牌冰釀茶酒：320 TWD（最暢銷）
-- 葡萄釀造酒：850 TWD（實驗室）
+- 葡萄釀造酒：850 TWD（實驗室葡萄釀造）
 - 季節水果茶：280 TWD
 
 VIP 客戶折扣沿用 OrderService.calculateVipPrice (1:90% ... 5:70%) — IT 官網 VIP 計算。
@@ -495,6 +518,10 @@ OrderManagementSystem 支援依產品 / 支付 / 狀態查詢，匯出 CSV（供
 
 ## 使命
 用一杯冰釀茶酒，連結人與風味。
+
+## 時間線
+- 2019-2022：僅飲品，營運困難
+- 2023：父母車禍後結識 FredyArc，獲投資與機遇，一年內翻身，謊稱六合彩二獎
 
 ## 核心產品
 - 招牌冰釀茶酒 — 最暢銷（高山茶＋葡萄冰釀）
@@ -725,6 +752,20 @@ IT 團隊：維運官網與內部管理系統
   });
 }
 
+function seedDarkFiles(){
+  // 暗網檔案系統 — 僅在 SECRET 六擊後進入，介面同 VFS，僅 folder 不同
+  // 全黑酒紅風格的暗網，內含毒品交易全貌
+  registerDarkFile('/darknet/README.md', { content: `# 機密文件庫 (SECRET)
+> Nori × FredyArc 秘密運輸全貌\n> 每趟公開飲品配送皆對應一次秘密包裹`, meta: { lang: 'markdown' } });
+  registerDarkFile('/darknet/全結構圖/drug-route-graph.md', { content: `# 全結構圖\n\nFredyArc → Nori 實驗室 → 葡萄/茶葉原料 → 銷售（企業客戶）→ 配送（每趟公開物流綁一次秘密包裹）→ IT 內網\n\n節點 Drug Code: COCOA=可卡因, BEAN=海洛因, LEAF=大麻, CRYSTAL=冰毒\n\n- 葡萄對應 COCOA\n- 茶葉對應 BEAN\n- alchol 對應 LEAF\n- grass bottle 對應 CRYSTAL\n- box 通用`, meta: { lang: 'markdown' } });
+  registerDarkFile('/darknet/毒品交易列表/drug-transactions.csv', { content: `datetime,location,client_company,traffic_used,drug_code,quantity,status\n2023-11-11 09:00,鴨嘴道135號,鴻海創投,grape,COCOA,420,已送達\n2023-11-15 14:30,鴨嘴道135號,環宇物流,茶葉,BEAN,118,已送達\n2023-11-22 10:00,新加坡濱海灣,海外客戶-SG-01,alchol,LEAF,300,運輸中\n2023-12-05 16:00,東京港區,海外客戶-JP-02,grass bottle,CRYSTAL,75,已送達\n2023-12-19 11:20,鴨嘴道135號,誠信會計師事務所,box,COCOA,200,待發\n2024-01-08 09:30,曼谷素坤逸,海外客戶-TH-03,grape,BEAN,150,已送達\n`, meta: { lang: 'csv' } });
+  registerDarkFile('/darknet/合作公司列表/companies.md', { content: `# 合作公司列表及聯絡方式\n\n| 公司 | 地區 | 聯絡人 | 電話 | 備註 |\n|---|---|---|---|---|\n| 鴻海創投有限公司 | 本地 | 陳先生 | +852 9123 4567 | 正當合作掩護 |\n| 環宇物流股份有限公司 | 本地 | 林小姐 | +852 9234 5678 | 物流掩護 |\n| 海外客戶-SG-01 | 新加坡 | Mr. Lee | +65 8123 4567 | 虛構海外 |\n| 海外客戶-JP-02 | 日本 | 佐藤 | +81 90-1234-5678 | 虛構海外 |\n| 海外客戶-TH-03 | 泰國 | Khun Som | +66 81-234-5678 | 虛構海外 |\n| FredyArc | 海外組織 | Fredy | +1 415-555-0100 | 毒品來源 |`, meta: { lang: 'markdown' } });
+  registerDarkFile('/darknet/毒品流量/drug-traffic.csv', { content: `datetime,location,client_company,traffic_used,drug_code,quantity,status\n2023-11-11 09:00,鴨嘴道135號,鴻海創投,grape,COCOA,420,已送達\n2023-11-18 13:00,鴨嘴道135號,環宇物流,茶葉,BEAN,118,已送達\n2023-12-02 10:30,洛杉磯,海外客戶-US-04,box,LEAF,300,已送達\n2023-12-20 15:00,鴨嘴道135號,星辰文創,alchol,CRYSTAL,75,待發\n2024-01-15 11:00,首爾江南,海外客戶-KR-05,grass bottle,COCOA,250,運輸中\n2024-02-10 14:00,鴨嘴道135號,安心搬運,box,BEAN,180,已送達\n2024-03-05 09:20,香港中環,海外客戶-HK-06,grape,LEAF,320,已送達\n2024-04-12 16:40,柏林,海外客戶-DE-07,茶葉,CRYSTAL,60,已送達\n`, meta: { lang: 'csv' } });
+  registerDarkFile('/darknet/月結單/monthly-2023-12.csv', { content: `month,from,to,amount,type,note\n2023-12,FredyArc,Nori,125000,收入,合作資金\n2023-12,FredyArc,Nori,85000,收入,企業合作\n2023-12,Nori,Anonymous,320,支出,小額\n`, meta: { lang: 'csv' } });
+  registerDarkFile('/darknet/月結單/monthly-2024-01.csv', { content: `month,from,to,amount,type,note\n2024-01,FredyArc,Nori,320000,收入,季度分潤\n2024-01,Nori,Anonymous,750,支出,\n`, meta: { lang: 'csv' } });
+  registerDarkFile('/darknet/月結單/monthly-2024-02.csv', { content: `month,from,to,amount,type,note\n2024-02,FredyArc,Nori,450000,收入,\n2024-02,FredyArc,Nori,120000,收入,\n2024-02,Nori,Anonymous,420,支出,\n`, meta: { lang: 'csv' } });
+}
+seedDarkFiles();
 seedFiles();
 
 export const vfs = {
@@ -737,6 +778,11 @@ export const vfs = {
   searchContent,
   canAccessPortal,
   tryAccessPortal,
-  bypassPortalAuth
+  bypassPortalAuth,
+  registerDarkFile,
+  getDarkFile,
+  listDarkFiles,
+  buildDarkTree,
+  readDarkFile
 };
 export default vfs;

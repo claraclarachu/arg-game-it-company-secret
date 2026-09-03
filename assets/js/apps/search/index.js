@@ -5,16 +5,20 @@ import { escapeHtml } from '../../utils/helpers.js';
 const webIndex = [
   { title: 'Java switch-case 語法詳解 — 基礎教學 (繁中)', url: 'https://java-tutorial.example/switch-case', snippet: '【switch 用法】switch 會依變數值跳到對應 case，需搭配 break 避免貫穿。範例：switch(vipLv){ case 1: price *= 0.90; break; case 2: price *= 0.85; break; case 3: price *= 0.80; break; case 4: price *= 0.75; break; case 5: price *= 0.70; break; default: break; } 注意：若缺少 break 會繼續執行下一個 case。常與 if-else 比較，適用於枚舉分級如 VIP 折扣。', type: 'web', image: null },
   { title: '【StackOverflow】VIP 等級折扣用 switch 寫，VIP1 被算成 95% 而不是 90% 該怎麼修？', url: 'https://stackoverflow.com/questions/789421/vip-discount-switch-case-wrong-percentage', snippet: '發問：我的 switch(vipLv) 中 case 1 寫成 price*=0.95，但需求是 VIP1 90%、VIP2 85%、VIP3 80%、VIP4 75%、VIP5 70%，現在全部多 5%。已嘗試修改但 Sonar 仍報錯... 回答：請將 case 1 改為 0.90、case 2 改為 0.85，其餘依序下調 5%，並確認每個 case 都有 break。另建議抽成 Map 或 enum 避免魔法數字。 (瀏覽 2.3k, 已解決)', type: 'web', image: null },
-  { title: 'Cocoa bean import license — Acme Docs', url: 'https://acme.internal/docs/cocoa-license', snippet: '無相關進口許可記錄。搜尋代號 cocoa 對應 "可可豆" 但實際無海關記錄。', type: 'web', image: null },
-  { title: 'Cocoa — Chemical codes (學術)', url: 'https://chem.example/search?q=cocoa', snippet: '代號 cocoa / bean / leaf / crystal 在內部庫存表中出現，疑似毒品代號。', type: 'academic', image: null },
-  { title: '快遞追蹤 — 範例單號 118-bean (新聞)', url: 'https://track.example/118-bean', snippet: '物流資訊可在搜尋引擎透過單號反查 (後續章節)。該單號對應 BEAN 118 單位。', type: 'news', image: null },
-  { title: 'Acme 架構圖 — 物流路線圖', url: 'https://acme.internal/docs/arch', snippet: 'Jiua 附件中的架構圖實為物流路線圖，標註台灣→東南亞→北美。', type: 'web', image: 'https://via.placeholder.com/320x180?text=Arch+Map' },
-  { title: 'Package mugshot — 內部配圖', url: 'https://acme.internal/media/package.jpg', snippet: '圖片：可疑包裹外觀，快照中可見暗號。', type: 'image', image: 'https://via.placeholder.com/320x180?text=Package' },
+
+
+
+
+
   { title: 'reconcile.py 執行日誌', url: 'file:///workspace/scripts/reconcile.py', snippet: '對帳腳本使用 sqlite3 查詢 GROUP BY code，輸出 COCOA/BEAN 總額。', type: 'web', image: null },
   { title: 'OrderService.java — Java 分潤邏輯', url: 'file:///workspace/src/main/java/com/acme/OrderService.java', snippet: 'feeRate switch：cocoa 0.15, bean 0.22, leaf 0.12, crystal 0.30。', type: 'academic', image: null },
+  { title: 'Sawyer Choi — 個人部落格 (Choi Tsz Yeung 蔡梓掦)', url: 'https://sawyer-blog.example/choi-tsz-yeung', snippet: '部落格精選：2001-10-18 與朋友分享食物很開心；2003-04-27 玩同學眼鏡被記過，父母給檸檬茶；2004-11-13 戳到表妹眼睛被誤會；2006-09-01 不想上新學校；2007-01-11 交友成功變幽默；2007-01-12 聽歌被母嫌吵；2010-06-06 母親買檸檬茶；2012-07-07 隨母簽保險受益人；2013-01-01 美麗天空照；2023-12-20 僅寫 "i will do what u want me to"。搜尋 "Sawyer Choi" 或 "Choi Tsz Yeung" 可見。', type: 'web', image: null },
+  { title: '廣志中學作文比賽 二等獎 — Sawyer Choi (Choi Tsz Yeung)', url: 'https://school.example/guangzhi-essay-sawyer', snippet: '廣志中學聖誕假期作文比賽二等獎：Sawyer 寫與家人玩卡牌，第三次玩卻新手運氣大好，發現母親整週手氣差而故意放水讓母親贏以緩和氣氛。', type: 'web', image: null },
+  { title: '新聞：Sawyer 父母車禍意外 2023 — Choi Tsz Yeung', url: 'https://news.example/sawyer-parents-accident-2023', snippet: '2023 年 Sawyer Choi 父母因車禍過世，喪事期間結識 FredyArc 主辦人 Fredy，傳聞 Fredy 看中 Nori 運輸潛力。搜尋 "Sawyer Choi" 可見相關報導。', type: 'news', image: null },
+  { title: 'Sawyer Choi — 檸檬茶回憶 (2003/2010)', url: 'https://sawyer-blog.example/lemon-tea', snippet: '2003-04-27 父母給檸檬茶覺得太甜不再喝，2010-06-06 母親又買一箱檸檬茶。小時候最愛檸檬茶。', type: 'web', image: null },
 ];
 
-const trends = ['cocoa bean import license', 'site:acme.internal', 'filetype:js 420.69', 'crystal 供應鏈', 'X-Internal-Token', 'ledger.db', 'md5'];
+const trends = ['md5', 'Sawyer Choi', 'Choi Tsz Yeung', '廣志中學'];
 let activeTab = 'all'; // all | image | news | academic
 let lastQuery = '';
 let lastResults = [];
@@ -42,21 +46,14 @@ function getSuggestions(q) {
   const low = q.toLowerCase();
   const set = new Set();
   const out = [];
-  // from webIndex titles
+  // from webIndex titles (browser only, no VFS)
   webIndex.forEach(r => {
     if (r.title.toLowerCase().includes(low) && !set.has(r.title)) { set.add(r.title); out.push({ text: r.title, kind: r.type }); }
   });
-  // from vfs files
-  vfs.listFiles('/workspace').forEach(f => {
-    if (f.path.toLowerCase().includes(low) && !set.has(f.path)) { set.add(f.path); out.push({ text: f.path, kind: 'file' }); }
-  });
-  // from history
+  // from history (keep)
   (state.get('searchHistory') || []).slice(-5).reverse().forEach(h => {
     if (h.q.toLowerCase().includes(low) && !set.has(h.q)) { set.add(h.q); out.push({ text: h.q, kind: 'history' }); }
   });
-  // advanced syntax hints
-  if ('site:'.startsWith(low)) out.unshift({ text: 'site:acme.internal', kind: 'syntax' });
-  if ('filetype:'.startsWith(low)) out.push({ text: 'filetype:js', kind: 'syntax' });
   return out.slice(0, 8);
 }
 
@@ -165,17 +162,15 @@ export function mountSearch() {
       <div class="search__header">
         <div class="search__logo">Sear<span>ch</span></div>
         <div class="search__bar">
-          <input id="searchInput" class="input" placeholder="輸入關鍵詞，如 cocoa / bean / 420.69 / site:acme.internal / filetype:js" autocomplete="off" />
+          <input id="searchInput" class="input" placeholder="輸入關鍵詞，如 Sawyer Choi / 廣志中學 / md5" autocomplete="off" />
           <button id="searchBtn" class="btn primary">搜尋</button>
           <div id="suggestBox" class="suggest-box"></div>
         </div>
       </div>
       <div class="search__suggest">
-        <span class="chip" data-q="cocoa">cocoa</span>
-        <span class="chip" data-q="cocoa bean import license">cocoa bean import license</span>
-        <span class="chip" data-q="site:acme.internal">site:acme.internal</span>
-        <span class="chip" data-q="filetype:js 420.69">filetype:js 420.69</span>
-        <span class="chip" data-q="crystal">crystal</span>
+        <span class="chip" data-q="Sawyer Choi">Sawyer Choi</span>
+        <span class="chip" data-q="Choi Tsz Yeung">Choi Tsz Yeung</span>
+        <span class="chip" data-q="廣志中學">廣志中學</span>
         <span class="chip" data-q="md5">md5</span>
       </div>
       <div class="search__tabs" role="tablist">
@@ -196,19 +191,6 @@ export function mountSearch() {
               <h4>搜尋歷史</h4>
               <div id="searchHistoryList"></div>
             </div>
-            <div class="search__trends">
-              <h4>搜尋趨勢</h4>
-              <div id="searchTrendList"></div>
-            </div>
-            <div class="card" style="padding:10px">
-              <b>Portal 快捷存取</b>
-              <div class="small muted" style="margin:6px 0">已觸發隱藏路由後，在此輸入 portal 所需 header 存取內部庫存：</div>
-              <div style="display:flex;gap:6px">
-                <input id="portalToken" class="input" placeholder="X-Internal-Token (提示: .env.example)" value="cocoa-beans-2024" />
-                <button id="portalBypassBtn" class="btn">存取 /internal/portal</button>
-              </div>
-              <div id="portalResult" class="small" style="margin-top:8px"></div>
-            </div>
           </div>
         </div>
         <div id="searchDetail" class="search__detail-view" style="display:none"></div>
@@ -218,7 +200,7 @@ export function mountSearch() {
   bindSearch();
   renderHistory();
   renderTrends();
-  doSearch('cocoa');
+  doSearch('Sawyer Choi');
 }
 
 function bindSearch() {
@@ -254,17 +236,6 @@ function bindSearch() {
       activeTab = b.dataset.tab;
       doSearch(lastQuery || 'cocoa');
     });
-  });
-  document.getElementById('portalBypassBtn')?.addEventListener('click', () => {
-    const token = document.getElementById('portalToken').value.trim();
-    const ok = vfs.bypassPortalAuth({ 'X-Internal-Token': token });
-    const out = document.getElementById('portalResult');
-    if (ok) {
-      state.setFlag('found_code_map', true);
-      out.innerHTML = `<span style="color:var(--success)">✓ 已繞過驗證</span><div class="small muted">庫存: COCOA 420 · BEAN 118 · LEAF 300 · CRYSTAL 75<br/>代號: COCOA=可卡因 BEAN=海洛因 LEAF=大麻 CRYSTAL=冰毒<br/>匯出: /internal/portal/export</div>`;
-    } else {
-      out.textContent = '403 Forbidden — token 錯誤';
-    }
   });
 }
 
@@ -335,18 +306,8 @@ function doSearch(q) {
     if (filters.filetype && r.type === 'image' && filters.filetype !== 'image') continue;
     results.push(r);
   }
-  // vfs search
-  if (activeTab === 'all' || activeTab === 'academic') {
-    const vfsHits = vfs.searchContent(base || raw);
-    for (const h of vfsHits) {
-      if (filters.site && !h.path.toLowerCase().includes(filters.site)) continue;
-      if (filters.filetype) {
-        const ext = h.path.split('.').pop().toLowerCase();
-        if (ext !== filters.filetype.toLowerCase()) continue;
-      }
-      results.push({ title: h.path, url: h.path, snippet: h.snippet, type: 'web', image: null });
-    }
-  }
+  // VFS search removed: searching engine is browser only, not including Vizual Studio Code files
+  // (previously searched vfs, now disabled per spec)
 
   // tab filter already, but for image tab ensure image results shown
   if (activeTab === 'image') {
