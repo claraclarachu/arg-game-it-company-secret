@@ -35,8 +35,29 @@ export function bindSettings() {
     toast(ok ? t('toast.saved') : 'Import failed', { variant: ok ? undefined : 'error' });
     if (ok) location.reload();
   });
-  document.getElementById('btnReset')?.addEventListener('click', () => {
-    if (confirm('Reset all progress?')) { state.reset(); location.reload(); }
+  document.getElementById('btnReset')?.addEventListener('click', async () => {
+    if (confirm('Reset all progress?')) {
+      try { state.reset(); } catch {}
+      try { localStorage.removeItem('code_conspiracy_state'); } catch {}
+      try { localStorage.clear(); } catch {}
+      const dlg = document.getElementById('settingsDialog');
+      if (dlg && dlg.open) try { dlg.close(); } catch {}
+      if (dlg) { dlg.style.display = 'none'; dlg.removeAttribute('open'); }
+      try {
+        if ('caches' in window) {
+          const keys = await caches.keys();
+          await Promise.all(keys.map(k => caches.delete(k)));
+        }
+        if ('serviceWorker' in navigator) {
+          const regs = await navigator.serviceWorker.getRegistrations();
+          await Promise.all(regs.map(r => r.unregister()));
+        }
+      } catch {}
+      setTimeout(() => {
+        window.location.href = window.location.pathname + '?reset=' + Date.now();
+        window.location.reload(true);
+      }, 150);
+    }
   });
   document.getElementById('settingsDialog')?.addEventListener('close', () => {});
 }

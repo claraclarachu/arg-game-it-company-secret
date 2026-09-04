@@ -7,7 +7,7 @@
   <title>Code & Conspiracy — ARG</title>
   <link rel="manifest" href="/manifest.json" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
-  <script type="module" crossorigin src="/assets/main-q2wRIrJn.js"></script>
+  <script type="module" crossorigin src="/assets/main-Bl5gpAsa.js"></script>
   <link rel="stylesheet" crossorigin href="/assets/main-DTD8qNCp.css">
 </head>
 <body>
@@ -129,7 +129,31 @@
 
   <script>
     if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(()=>{}));
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js').then(reg => {
+          // Force update check on every load
+          reg.update();
+          // If a new SW is found, reload to get fresh assets
+          reg.addEventListener('updatefound', () => {
+            const nw = reg.installing;
+            if (nw) {
+              nw.addEventListener('statechange', () => {
+                if (nw.state === 'installed' && navigator.serviceWorker.controller) {
+                  console.log('New SW installed, reloading for fresh assets');
+                  window.location.reload();
+                }
+              });
+            }
+          });
+        }).catch(()=>{});
+        // Also handle controller change (new SW activated)
+        let refreshing = false;
+        navigator.serviceWorker.addEventListener('controllerchange', () => {
+          if (refreshing) return;
+          refreshing = true;
+          window.location.reload();
+        });
+      });
     }
   </script>
 </body>

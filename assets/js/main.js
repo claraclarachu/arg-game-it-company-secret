@@ -36,9 +36,13 @@ function mountAll() {
   bindEnding();
 }
 
-// Windows-style WhatUp notification (bottom-right, 10s, click -> Dev Team chat)
+// Windows-style WhatUp notification (bottom-right, 10s, click -> Dev Team chat) - only once per game at chp0
 let _notifTimer = null;
 function showMaggieNotification() {
+  // Only show once per game at chp0 (and again after reset to chp0)
+  if (state.hasFlag('ch0_maggie_notified')) return;
+  if (state.hasFlag('ch0_vip_fixed')) return;
+  if ((state.get('currentChapter') ?? 0) !== 0) return;
   // avoid duplicate if already shown this session
   if (document.getElementById('wa-win-notification')) return;
 
@@ -80,6 +84,8 @@ function showMaggieNotification() {
   });
 
   document.body.appendChild(container);
+  // Mark as notified so it only shows once per game at chp0 (until reset)
+  state.setFlag('ch0_maggie_notified', true);
   // trigger entrance
   requestAnimationFrame(() => container.classList.add('show'));
 
@@ -265,13 +271,28 @@ function showEnding(ending) {
 }
 
 function bindEnding() {
-  document.getElementById('endingRestart')?.addEventListener('click', () => {
+  document.getElementById('endingRestart')?.addEventListener('click', async () => {
     try { state.reset(); } catch {}
-    try { localStorage.removeItem('code_conspiracy_state'); localStorage.clear(); } catch {}
+    try { localStorage.removeItem('code_conspiracy_state'); } catch {}
+    try { localStorage.clear(); } catch {}
     const screen = document.getElementById('endingScreen');
     if (screen) screen.style.display = 'none';
-    // Ensure state is cleared before reload
-    setTimeout(() => location.reload(), 100);
+    // Close any open dialogs
+    document.querySelectorAll('dialog[open]').forEach(d => { try { d.close(); } catch {} d.style.display = 'none'; });
+    try {
+      if ('caches' in window) {
+        const keys = await caches.keys();
+        await Promise.all(keys.map(k => caches.delete(k)));
+      }
+      if ('serviceWorker' in navigator) {
+        const regs = await navigator.serviceWorker.getRegistrations();
+        await Promise.all(regs.map(r => r.unregister()));
+      }
+    } catch {}
+    setTimeout(() => {
+      window.location.href = window.location.pathname + '?reset=' + Date.now();
+      window.location.reload(true);
+    }, 150);
   });
   document.getElementById('endingClose')?.addEventListener('click', () => {
     document.getElementById('endingScreen').style.display = 'none';

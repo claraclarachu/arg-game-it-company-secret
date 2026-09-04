@@ -41,7 +41,7 @@ class StateManager {
     } catch (e) {
       console.warn('Failed to load game state:', e);
     }
-    return { ...defaultState };
+    return JSON.parse(JSON.stringify(defaultState));
   }
 
   migrateState(state) {
@@ -176,9 +176,24 @@ class StateManager {
   }
 
   reset() {
-    this.state = { ...defaultState };
+    // Deep copy to avoid shared references and clear timers
+    try { clearTimeout(this.saveDebounce); } catch {}
+    try { clearInterval(this.playtimeInterval); } catch {}
+    this.state = JSON.parse(JSON.stringify(defaultState));
+    // Ensure unlockedInterfaces is a fresh copy
+    this.state.unlockedInterfaces = [...defaultState.unlockedInterfaces];
+    this.state.flags = {};
+    this.state.collectedEvidence = [];
+    this.state.discoveredFiles = [];
+    this.state.endings = [];
+    this.state.searchHistory = [];
+    this.state.jiraTickets = {};
+    this.state.whatsappChats = {};
+    this.state.playtime = 0;
     this.save(true);
     this.emit('reset', this.state);
+    // Restart playtime tracking
+    this.startPlaytimeTracking();
   }
 
   on(event, callback) {

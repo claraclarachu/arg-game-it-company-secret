@@ -101,15 +101,34 @@ function renderNotebook() {
   `;
   // Bind reset button with proper state reset and rerender
   setTimeout(() => {
-    document.getElementById('notebookResetBtn')?.addEventListener('click', () => {
+    const btn = document.getElementById('notebookResetBtn');
+    if (!btn || btn._bound) return;
+    btn._bound = true;
+    btn.addEventListener('click', async () => {
       if (!confirm('重置後將失去證據，確定？')) return;
-      try { state.reset(); } catch {}
-      try { localStorage.removeItem('code_conspiracy_state'); localStorage.clear(); } catch {}
-      // Close dialog first
+      // Close dialog first to avoid backdrop blocking reload
       const dlg = document.getElementById('notebookDialog');
-      if (dlg && dlg.open) dlg.close();
-      // Force reload with cache bust
-      setTimeout(() => location.reload(), 100);
+      try { if (dlg && dlg.open) dlg.close(); } catch {}
+      if (dlg) { dlg.style.display = 'none'; dlg.removeAttribute('open'); }
+      try { state.reset(); } catch {}
+      try { localStorage.removeItem('code_conspiracy_state'); } catch {}
+      try { localStorage.clear(); } catch {}
+      // Clear service worker cache to prevent stale assets on reload
+      try {
+        if ('caches' in window) {
+          const keys = await caches.keys();
+          await Promise.all(keys.map(k => caches.delete(k)));
+        }
+        if ('serviceWorker' in navigator) {
+          const regs = await navigator.serviceWorker.getRegistrations();
+          await Promise.all(regs.map(r => r.unregister()));
+        }
+      } catch {}
+      // Hard reload with cache bust
+      setTimeout(() => {
+        window.location.href = window.location.pathname + '?reset=' + Date.now();
+        window.location.reload(true);
+      }, 150);
     });
   }, 0);
 }
