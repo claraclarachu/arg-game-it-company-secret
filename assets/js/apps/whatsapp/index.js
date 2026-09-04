@@ -274,7 +274,7 @@ function renderList() {
             ${c.archived ? '<div class="small muted">封存</div>' : ''}
           </div>
         </div>`;
-      }).join('') || '<div class="small muted" style="padding:16px;text-align:center">無結果 — 試搜尋 cocoa</div>'}
+      }).join('') || '<div class="small muted" style="padding:16px;text-align:center">無結果 — 試搜尋 Sawyer</div>'}
     </div>
   `;
   // bind

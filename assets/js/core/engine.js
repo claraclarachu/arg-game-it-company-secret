@@ -39,14 +39,14 @@ const puzzles = [
     id: 'ch2_bypass_portal_auth',
     chapter: 2,
     check: () => state.hasFlag('portal_auth_bypassed'),
-    reward: { evidence: { id: 'e002', title: '內部庫存 (COCOA 420/BEAN 118)', chapter: 2, type: 'inventory' } },
+    reward: { evidence: { id: 'e002', title: '內部庫存 (drink-001 420/drink-002 118)', chapter: 2, type: 'inventory' } },
     title: '繞過 Portal 驗證'
   },
   {
     id: 'ch2_find_code_map',
     chapter: 2,
     check: () => state.hasFlag('found_code_map'),
-    reward: { evidence: { id: 'e003', title: '代號對照表 (COCOA=可卡因等)', chapter: 2, type: 'mapping' } },
+    reward: { evidence: { id: 'e003', title: '庫存對照表 (drink-001 等)', chapter: 2, type: 'mapping' } },
     title: '發現代號對照表'
   },
   {

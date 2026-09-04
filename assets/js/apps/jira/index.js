@@ -10,7 +10,7 @@ const tickets = [
     priority: 'High',
     points: 3,
     epic: 'Billing',
-    desc: `【問題描述】\nVIP 用戶訂單金額計算錯誤：目前 VIP 等級折扣比預期少 5%，導致 VIP 用戶實際支付過高。\n\n【復現步驟】\n1. 以 VIP1 身份建立訂單 (金額 1000)\n2. 實際扣款為 950 (95%)，預期應為 900 (90%)\n3. VIP2~VIP5 同樣偏移 5%\n\n【錯誤代碼】 src/main/java/com/acme/OrderService.java#calculateVipPrice\nswitch(vipLv){\n  case 1: price*=0.95; break; // 應為 0.90\n  case 2: price*=0.90; break; // 應為 0.85\n  case 3: price*=0.85; break; // 應為 0.80\n  case 4: price*=0.80; break; // 應為 0.75\n  case 5: price*=0.75; break; // 應為 0.70\n  default: break;\n}\n\n【正確對照】\nVIP1 → 90% (0.90)\nVIP2 → 85% (0.85)\nVIP3 → 80% (0.80)\nVIP4 → 75% (0.75)\nVIP5 → 70% (0.70)\n\n【操作指引】\n請在 Vizual Studio Code 編輯 OrderService.java 修正上述 switch，並透過左側 Source Control 提交 (Commit)。\n• 若提交內容仍有錯誤，畫面中央會彈出 SonarQube 掃描錯誤並標示行號\n• 若正確，票據將自動標記為 Done 並跳轉回 Jiua\n\n關聯檔案: src/main/java/com/acme/OrderService.java`,
+    desc: `【問題描述】\nVIP 用戶訂單金額計算錯誤：目前 VIP 等級折扣比預期少 5%，導致 VIP 用戶實際支付過高。\n\n【復現步驟】\n1. 以 VIP1 身份建立訂單 (金額 1000)\n2. 實際扣款為 950 (95%)，預期應為 900 (90%)\n3. VIP2~VIP5 同樣偏移 5%\n\n【錯誤代碼】 src/main/java/com/nori/OrderService.java#calculateVipPrice\nswitch(vipLv){\n  case 1: price*=0.95; break; // 應為 0.90\n  case 2: price*=0.90; break; // 應為 0.85\n  case 3: price*=0.85; break; // 應為 0.80\n  case 4: price*=0.80; break; // 應為 0.75\n  case 5: price*=0.75; break; // 應為 0.70\n  default: break;\n}\n\n【正確對照】\nVIP1 → 90% (0.90)\nVIP2 → 85% (0.85)\nVIP3 → 80% (0.80)\nVIP4 → 75% (0.75)\nVIP5 → 70% (0.70)\n\n【操作指引】\n請在 Vizual Studio Code 編輯 OrderService.java 修正上述 switch，並透過左側 Source Control 提交 (Commit)。\n• 若提交內容仍有錯誤，畫面中央會彈出 SonarQube 掃描錯誤並標示行號\n• 若正確，票據將自動標記為 Done 並跳轉回 Jiua\n\n關聯檔案: src/main/java/com/nori/OrderService.java`,
     comments: ['qa-lee: 是 switch 寫錯，VIP1 少打 5% 折扣', 'Maggie: @Casey 麻煩幫忙修一下，記得 commit 後看 SonarQube 結果', 'pm: 修完請直接 commit，不用另開分支'],
     attachments: [
       { name: 'OrderService.java', type: 'java', snippet: 'switch(vipLv){case 1: price*=0.95; break;... // VIP1 應為 0.90' },
@@ -28,10 +28,10 @@ const tickets = [
     priority: 'Medium',
     points: 8,
     epic: 'Payment',
-    desc: '接入新的支付網關，注意 feeRate 配置來自 vendorId 映射 (cocoa/bean/leaf/crystal)。\n\n風險：此模組含洗錢邏輯，手續費即分潤。',
+    desc: '接入新的支付網關，注意 feeRate 配置來自 drinkId 映射 (drink-001/drink-002/drink-003)。\n\n風險：需確保費率與後端一致。',
     comments: [],
     attachments: [
-      { name: 'feeRate-mapping.json', type: 'json', snippet: '{"cocoa":0.15,"bean":0.22,"leaf":0.12,"crystal":0.30,"default":0.03}' },
+      { name: 'feeRate-mapping.json', type: 'json', snippet: '{"drink-001":0.05,"drink-002":0.08,"drink-003":0.03,"default":0.03}' },
     ],
     history: [{ from: 'To Do', to: 'In Progress', by: 'finance-bot', at: '2024-08-09' }],
   },
@@ -43,10 +43,10 @@ const tickets = [
     priority: 'Low',
     points: 3,
     epic: 'Supply',
-    desc: '採購系統位於 /internal/portal，需 X-Internal-Token。庫存代號已同步。\n\n代號對照：COCOA=可卡因, BEAN=海洛因, LEAF=大麻, CRYSTAL=冰毒\n\n【備註】曾於暗網 SECRET 頁面發現：需點擊標題「SECRET」六下才會進入新的 file system（機密文件庫）。',
-    comments: ['ops: 庫存 COCOA 420 已盤點', 'qa-lee: 暗網進入方式已記錄於此票備註'],
+    desc: '採購系統位於 /internal/portal，需 X-Internal-Token。庫存已同步。\n\n【備註】曾於暗網 SECRET 頁面發現：需點擊標題「SECRET」六下才會進入新的 file system（機密文件庫）。',
+    comments: ['ops: 庫存 drink-001 420 已盤點', 'qa-lee: 暗網進入方式已記錄於此票備註'],
     attachments: [
-      { name: '架構圖.pdf', type: 'pdf', snippet: '實為物流路線圖：台灣→東南亞→北美' },
+      { name: '架構圖.pdf', type: 'pdf', snippet: '實為物流路線圖：香港→台灣→東南亞→北美' },
       { name: 'ledger.db', type: 'db', snippet: 'SQLite 匯出位於 /internal/portal/export' },
     ],
     history: [{ from: 'To Do', to: 'Done', by: 'ops', at: '2024-08-07' }],
@@ -78,7 +78,7 @@ export function mountJira() {
     <div class="jira">
       <div class="jira__topbar">
         <div class="jira__title">
-          <h2 style="margin:0">Jiua · Acme Board</h2>
+          <h2 style="margin:0">Jiua · Nori Board</h2>
           <span class="badge">Sprint 24</span>
           <span class="badge" style="background:var(--accent);color:#fff;border-color:var(--accent)">4 tickets</span>
         </div>
@@ -100,7 +100,7 @@ export function mountJira() {
 
       <div class="jira__meta">
         <span class="small muted">拖拉卡片可在 To Do ↔ In Progress ↔ Done 間移動（模擬真實看板）· 點擊卡片看詳情/附件/歷史</span>
-        <span class="small muted">JQL 範例: <code>status = "Done"</code> · <code>assignee = 你 AND text ~ "cocoa"</code> · <code>key = INV-2024-0042</code></span>
+        <span class="small muted">JQL 範例: <code>status = "Done"</code> · <code>assignee = 你 AND text ~ "drink"</code> · <code>key = INV-2024-0042</code></span>
       </div>
 
       <div id="jiraBoard" class="jira__board"></div>

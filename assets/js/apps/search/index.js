@@ -4,14 +4,8 @@ import { escapeHtml } from '../../utils/helpers.js';
 
 const webIndex = [
   { title: 'Java switch-case 語法詳解 — 基礎教學 (繁中)', url: 'https://java-tutorial.example/switch-case', snippet: '【switch 用法】switch 會依變數值跳到對應 case，需搭配 break 避免貫穿。範例：switch(vipLv){ case 1: price *= 0.90; break; case 2: price *= 0.85; break; case 3: price *= 0.80; break; case 4: price *= 0.75; break; case 5: price *= 0.70; break; default: break; } 注意：若缺少 break 會繼續執行下一個 case。常與 if-else 比較，適用於枚舉分級如 VIP 折扣。', type: 'web', image: null },
-  { title: '【StackOverflow】VIP 等級折扣用 switch 寫，VIP1 被算成 95% 而不是 90% 該怎麼修？', url: 'https://stackoverflow.com/questions/789421/vip-discount-switch-case-wrong-percentage', snippet: '發問：我的 switch(vipLv) 中 case 1 寫成 price*=0.95，但需求是 VIP1 90%、VIP2 85%、VIP3 80%、VIP4 75%、VIP5 70%，現在全部多 5%。已嘗試修改但 Sonar 仍報錯... 回答：請將 case 1 改為 0.90、case 2 改為 0.85，其餘依序下調 5%，並確認每個 case 都有 break。另建議抽成 Map 或 enum 避免魔法數字。 (瀏覽 2.3k, 已解決)', type: 'web', image: null },
-
-
-
-
-
-  { title: 'reconcile.py 執行日誌', url: 'file:///customer-portal/scripts/reconcile.py', snippet: '對帳腳本使用 sqlite3 查詢 GROUP BY code，輸出 COCOA/BEAN 總額。', type: 'web', image: null },
-  { title: 'OrderService.java — Java 分潤邏輯', url: 'file:///customer-portal/src/main/java/com/acme/OrderService.java', snippet: 'feeRate switch：cocoa 0.15, bean 0.22, leaf 0.12, crystal 0.30。', type: 'academic', image: null },
+  { title: '【StackOverflow】VIP 等級折扣用 switch 寫，VIP1 被算成 60% 而不是 50% 該怎麼修？', url: 'https://stackoverflow.com/questions/789421/vip-discount-switch-case-wrong-percentage', snippet: '發問：我的 switch(vipLv) 中 case 1 寫成 price*=0.95，但需求是 VIP1 60%、VIP2 65%。已嘗試修改但 Sonar 仍報錯... \n回答：請將 case 1 改為 0.50、case 2 改為 0.45，並確認每個 case 都有 break。另建議抽成 Map 或 enum 避免魔法數字。 \n\n(瀏覽 2.3k, 已解決)', type: 'web', image: null },
+  { title: '【StackOverflow】import.meta.env 是什麼？Vite 專案的環境變數怎麼讀取？', url: 'https://stackoverflow.com/questions/5920914/import-meta-env-meaning', snippet: '發問：請問 import.meta.env 是什麼意思？在 Vite 專案常看到 import.meta.env.VITE_API_BASE，有人可以解釋一下嗎？\n\n回答（已採納，4.1k 讚）：import.meta.env 就是讀取 .env 檔案裡的參數，Vite 會在建置時把以 VITE_ 開頭的變數注入到前端。\n\n例子：\n// .env\nVITE_API_BASE=/api\nVITE_ANALYTICS_ID=12345\nVITE_PATH=/user\n\n// src/api/client.js\nconst BASE = import.meta.env.VITE_API_BASE // → "/api"\nconst NAME = import.meta.env.VITE_ANALYTICS_ID // → "12345"\n\n注意：只有 VITE_ 開頭的才會暴露到瀏覽器，沒有前綴的（如 DATABASE_URL）只在後端生效。 (瀏覽 5.7k, 已解決)', type: 'web', image: null },
   { title: 'Sawyer Choi — 2001-10-18', url: 'https://sawyer-blog.example/2001-10-18', snippet: '2001-10-18\n\n今天和好多朋友一起玩，大家都玩得很開心。\n\n我把自己的食物分給大家吃，他們吃完都笑得很開心。我覺得只要大家在一起，好像什麼都很好玩。朋友們都說我很好笑，我也喜歡看他們笑。\n\n回家的時候，我把今天和朋友玩的事情告訴爸爸媽媽。他們聽完也很開心，還一直問我今天跟誰一起玩、玩了什麼。\n\n今天真的很好玩，我希望明天也可以和大家一起玩。 — Sawyer Choi / Choi Tsz Yeung 蔡梓掦', type: 'web', image: null },
   { title: 'Sawyer Choi — 2003-04-27', url: 'https://sawyer-blog.example/2003-04-27', snippet: '2003-04-27\n\n今天上課的時候，我拿同學的眼鏡來玩，圍繞班房一直跑假裝不會再還他，老師看到了，叫住我，問我是不是在欺負同學，還在我的手冊上寫了不好的評語。\n\n我覺得很難過。\n\n更讓我難過的是，那個同學一直什麼都沒有說。我不知道他為什麼不幫我，他不喜歡這樣嗎？但我也沒有傷害到他吧。\n\n晚上吃飯的時候，爸爸媽媽問我老師為什麼會在手冊上這樣寫，我什麼都沒有說。只是眼淚突然掉了一滴在桌上。\n\n他們沒有再問我，只是拿了一包檸檬茶給我。這是我小時候很喜歡喝的東西。\n\n可是現在我覺得它太甜了，已經不太想喝了。\n\n只是爸爸媽媽好像還不知道。他們大概還以為，我一直都很喜歡。 — Sawyer Choi / Choi Tsz Yeung 蔡梓掦', type: 'web', image: null },
   { title: 'Sawyer Choi — 2004-11-13', url: 'https://sawyer-blog.example/2004-11-13', snippet: '2004-11-13\n\n今天和表妹一起玩的時候，我不小心戳到了她的眼睛。\n\n我馬上去看她有沒有受傷，也一直看看她的眼睛有沒有怎麼樣。可是她還是跑去她爸爸那裏，一直說是我弄到她的眼睛。\n\n這時所有大人都看著我，大家都覺得是我的錯。\n\n可是我不知道要說什麼。\n\n我那一刻腦袋裏一片空白。連爸爸媽媽也沒有站在我這邊，一直在問我為什麼要這樣做，我只好一直站在那裏。\n\n那些大人的眼神，讓我覺得很不舒服。\n\n其實，這已經不是第一次有這種感覺了。\n\n（2020 年的 Sawyer 留言）\n現在回頭看，我想那時候如果我懂得先說一句「對不起」，可能事情就會簡單很多。那時候的我，好像完全沒有想到道歉會有這麼大的作用。 — Sawyer Choi / Choi Tsz Yeung 蔡梓掦', type: 'web', image: null },
@@ -26,7 +20,7 @@ const webIndex = [
   { title: '新聞：Sawyer 父母車禍意外 2023 — Choi Tsz Yeung', url: 'https://news.example/sawyer-parents-accident-2023', snippet: '2023 年 Sawyer Choi 父母因車禍過世，喪事期間結識 FredyArc 主辦人 Fredy，傳聞 Fredy 看中 Nori 運輸潛力。搜尋 "Sawyer Choi" 可見相關報導。', type: 'news', image: null },
 ];
 
-const trends = ['md5', 'Sawyer Choi', 'Choi Tsz Yeung', '廣志中學'];
+const trends = ['switch', 'StackOverflow', 'md5'];
 let activeTab = 'all'; // all | image | news | academic
 let lastQuery = '';
 let lastResults = [];
@@ -170,16 +164,14 @@ export function mountSearch() {
       <div class="search__header">
         <div class="search__logo">Sear<span>ch</span></div>
         <div class="search__bar">
-          <input id="searchInput" class="input" placeholder="輸入關鍵詞，如 Sawyer Choi / 廣志中學 / md5" autocomplete="off" />
+          <input id="searchInput" class="input" placeholder="輸入關鍵詞，如 switch" autocomplete="off" />
           <button id="searchBtn" class="btn primary">搜尋</button>
           <div id="suggestBox" class="suggest-box"></div>
         </div>
       </div>
       <div class="search__suggest">
-        <span class="chip" data-q="Sawyer Choi">Sawyer Choi</span>
-        <span class="chip" data-q="Choi Tsz Yeung">Choi Tsz Yeung</span>
-        <span class="chip" data-q="廣志中學">廣志中學</span>
-        <span class="chip" data-q="md5">md5</span>
+        <span class="chip" data-q="switch">switch</span>
+        <span class="chip" data-q="StackOverflow">StackOverflow</span>
       </div>
       <div class="search__tabs" role="tablist">
         <button class="search__tab active" data-tab="all">全部</button>
@@ -208,7 +200,7 @@ export function mountSearch() {
   bindSearch();
   renderHistory();
   renderTrends();
-  doSearch('Sawyer Choi');
+  doSearch('');
 }
 
 function bindSearch() {
@@ -242,7 +234,7 @@ function bindSearch() {
       document.querySelectorAll('.search__tab').forEach(x=>x.classList.remove('active'));
       b.classList.add('active');
       activeTab = b.dataset.tab;
-      doSearch(lastQuery || 'cocoa');
+      doSearch(lastQuery || 'Sawyer');
     });
   });
 }
@@ -304,8 +296,8 @@ function doSearch(q) {
   state.push('searchHistory', { q: raw, at: new Date().toISOString() });
   // Phase 6 flags via search behavior
   if (raw.toLowerCase().includes('package') || raw.toLowerCase().includes('image')) state.setFlag('reverse_image_done', true);
-  if (raw.toLowerCase().includes('shell') || raw.toLowerCase().includes('site:acme')) state.setFlag('found_shell_company', true);
-  if (raw.toLowerCase().includes('cocoa') || raw.toLowerCase().includes('crystal')) state.setFlag('found_supplier', true);
+  if (raw.toLowerCase().includes('shell') || raw.toLowerCase().includes('site:nori')) state.setFlag('found_shell_company', true);
+  if (raw.toLowerCase().includes('drink') || raw.toLowerCase().includes('nori')) state.setFlag('found_supplier', true);
   renderHistory();
   const { base, filters } = parseAdvanced(raw);
   lastBaseQuery = base;
@@ -349,7 +341,7 @@ function doSearch(q) {
   // ensure we are in results view when doing a new search
   showResultsView();
   if (!lastResults.length) {
-    c.innerHTML = `<div class="muted small" style="margin-top:12px">無結果 — 嘗試 "cocoa" 或 <code>filetype:js</code> 或 <code>site:acme.internal</code></div>`;
+    c.innerHTML = `<div class="muted small" style="margin-top:12px">無結果 — 嘗試 "Sawyer" 或 <code>filetype:js</code> 或 <code>site:nori.internal</code></div>`;
     return;
   }
   c.innerHTML = lastResults.map((r, idx) => `

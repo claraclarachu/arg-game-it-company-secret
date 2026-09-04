@@ -27,7 +27,7 @@
 **Phase 6 — Content & Puzzles (全新 18 puzzles)：**
 - **引擎** `engine.js:1` 由 4 → 18 puzzles (ch0-6)：`ch1_read_billing`, `ch2_read_env`, `ch3_find_crypto_mixer/gateway/cryptoConfig`, `ch4_export_ledger/docs/arch/ledger_export.csv`, `ch5_supplier/reverse_image/shell/ssh`, `ch6_collect_all(6證據)/choose_ending`；`chapterFlags` 擴至 8 旗標、`chapterMap` 映射 `currentChapter`；評估每 800ms + `vfs:read/portal:*` 事件
 - **VFS** `vfs.js:139` 新增 9 檔案：`payment/cryptoConfig.json` (mixer wallets), `payment/mixer.js`, `payment/gateway.js` (分潤), `ledger.db` (SQLite dump `COCOA 420`等), `docs/arch.pdf` (物流路線), `data/ledger_export.csv` (座標), `scripts/decrypt.py` (base64), `application.properties` (ssh `203.0.113.45:2222`)；`readFile` 內自動 `setFlag` 對應 (`found_crypto_mixer` 等) 以解鎖後續章
-- **搜尋/WhatsApp 聯動** `search/index.js:200` `doSearch` 搜 `package/image→reverse_image_done`, `site:acme/shell→found_shell_company`, `cocoa→found_supplier`；`whatsapp/index.js:51` `renderChat supplier/backend-team→found_supplier`
+- **搜尋/WhatsApp 聯動** `search/index.js:200` `doSearch` 搜 `package/image→reverse_image_done`, `site:nori/shell→found_shell_company`, `cocoa→found_supplier`；`whatsapp/index.js:51` `renderChat supplier/backend-team→found_supplier`
 - **資料** `assets/data/chapters/ch0-6.json` + `chapters/ch0-6_*.json` (7 章 標題/目標/evidence/ending)，`notebook.js:1` 重構為證據板：章節進度條 `ch/6`、14 枚證據網格可複製/標記、`成就 5` (`first_evidence/collector/master/portal_found/bypass`)、`章節狀態 完成/進行中/未開始`、Flags 摺疊、`複製存檔`按鈕
 - **驗證**：`build` `main-CPQsGydM.js 97KB`, `state.discoveredFiles` 觸發證據即時解鎖
 

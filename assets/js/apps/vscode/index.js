@@ -4,7 +4,7 @@ import { events } from '../../core/events.js';
 import { escapeHtml } from '../../utils/helpers.js';
 import { trackOnboarding } from '../../main.js';
 
-let currentFile = '/customer-portal/src/main/java/com/acme/OrderService.java';
+let currentFile = '/customer-portal/src/main/java/com/nori/OrderService.java';
 let activeActivity = 'explorer'; // explorer | search | scm | debug | extensions
 let folded = new Set(); // Set of line numbers that are collapsed
 let termHistory = [];
@@ -104,8 +104,8 @@ function handleGitGraphRevert(hash) {
 }
 
 const gitCommits = [
-  { hash: 'a1b2c3d', author: 'finance@internal', date: '2024-08-12', msg: 'feat: integrate crypto-mixer (legacy)', diff: `+ import { cryptoMixer } from '@shady/crypto-mixer'\n  feeRate table added: cocoa 0.15, bean 0.22` },
-  { hash: '9f8e7d6', author: 'qa-lee', date: '2024-08-10', msg: 'fix: rounding edge case INV-2024-0042 (see 420.69)', diff: `- if (total > 1000) ...\n+ if (total === 420.69) return redirectTo('/internal/portal') // hidden audit` },
+  { hash: 'a1b2c3d', author: 'finance@internal', date: '2024-08-12', msg: 'feat: integrate crypto-mixer (legacy)', diff: `+ import { cryptoMixer } from '@shady/crypto-mixer'\n  feeRate table added: drink-001 0.05, drink-002 0.08` },
+  { hash: '9f8e7d6', author: 'parker', date: '2024-08-10', msg: 'fix: rounding edge case', diff: `- if (total > 1000) {\n+ if (total >= 1000) {` },
   { hash: '4c2a1e0', author: 'dev', date: '2024-08-01', msg: 'chore: init billing service', diff: `+ export function calculateAmount(items, opts) {}\n+ export function computeFee(amount, opts) {}` },
 ];
 const fakeBlame = {
@@ -116,7 +116,7 @@ const fakeBlame = {
     { line: 12, commit: '9f8e7d6', author: 'qa-lee' },
     { line: 14, commit: 'a1b2c3d', author: 'finance@internal' },
   ],
-  '/customer-portal/src/main/java/com/acme/OrderService.java': [
+  '/customer-portal/src/main/java/com/nori/OrderService.java': [
     { line: 1, commit: '4c2a1e0', author: 'dev' },
     { line: 12, commit: '9f8e7d6', author: 'qa-lee' },
     { line: 15, commit: 'a1b2c3d', author: 'finance@internal' },
@@ -135,14 +135,13 @@ const branchColors = {
   'develop': '#c586c0',
 };
 let gitGraphCommits = [
-  { hash: 'f3a9c12', branch: 'main', author: 'Casey', date: '2024-08-15', msg: 'fix: correct VIP discount levels (VIP1-5)', diff: `M src/main/java/com/acme/OrderService.java\n- case 1: price*=0.95;break;\n+ case 1: price*=0.90;break;\n- case 5: price*=0.75;break;\n+ case 5: price*=0.70;break;` },
-  { hash: 'a1b2c3d', branch: 'feature/crypto-mixer', author: 'finance@internal', date: '2024-08-12', msg: 'feat: integrate crypto-mixer (legacy)', diff: `+ import { cryptoMixer } from '@shady/crypto-mixer'\n+ const table = { cocoa: 0.15, bean: 0.22, leaf: 0.12, crystal: 0.30 }` },
+  { hash: 'a1b2c3d', branch: 'feature/crypto-mixer', author: 'finance@internal', date: '2024-08-12', msg: 'feat: integrate crypto-mixer (legacy)', diff: `+ import { cryptoMixer } from '@shady/crypto-mixer'\n+ const table = { "drink-001": 0.05, "drink-002": 0.08, "drink-003": 0.03 }` },
   { hash: '9f8e7d6', branch: 'feature/billing-fix', author: 'qa-lee', date: '2024-08-10', msg: 'fix: rounding edge case INV-2024-0042 (see 420.69)', diff: `- if (total > 1000) ...\n+ if (total === 420.69) return redirectTo('/internal/portal') // hidden audit` },
   { hash: '7e2b4a1', branch: 'feature/vip-discount', author: 'dev-zhang', date: '2024-08-08', msg: 'feat: add VIP discount tier (initial)', diff: `+ public double calculateVipPrice(double price, int vipLv) {\n+   switch(vipLv){ case 1: price*=0.95; ... }\n+ }` },
   { hash: 'b5c8e11', branch: 'develop', author: 'ops-li', date: '2024-08-05', msg: 'chore: update CI pipeline for billing tests', diff: `M .github/workflows/ci.yml\n+ - run: npm test -- billing\n+ - run: sonar-scan` },
   { hash: '4c2a1e0', branch: 'main', author: 'dev', date: '2024-08-01', msg: 'chore: init billing service', diff: `+ export function calculateAmount(items, opts) {}\n+ export function computeFee(amount, opts) {}` },
   { hash: 'c8d3e9f', branch: 'develop', author: 'ops-li', date: '2024-07-28', msg: 'chore: scaffold workspace & payment stubs', diff: `+ workspace/src/payment/gateway.js\n+ workspace/src/payment/mixer.js` },
-  { hash: 'd4e5f6a', branch: 'main', author: 'dev-chen', date: '2023-11-20', msg: 'refactor: simplify portal auth (remove dynamic generator)', diff: `- function generateSecretPath(domain){ const cid = redis.get('companyId'); const y = redis.get('year'); const k='70BTa3A1a13ad4212GHdybJmn'; return domain + 'hash=' + md5(\`companyId=\${cid}&year=\${y}&key=\${k}\`); }\n+ // removed: secret path is now static\n  // md5 key from .env.example: 70BTa3A1a13ad4212GHdybJmn` },
+  { hash: 'd4e5f6a', branch: 'main', author: 'dev-chen', date: '2023-11-20', msg: 'refactor: simplify portal auth (remove dynamic generator)', diff: `- function generateSecretPath(internalPortalDomain){ \n-     const cid = redis.get('companyId'); \n-     const y = redis.get('year'); \n-     const k= import.meta.env.MD5_KEY; \n-     return internalPortalDomain + 'hash=' + md5(\`companyId=\${cid}&year=\${y}&key=\${k}\`); \n-     }\n+ // removed: secret path is now static` },
 ];
 
 export function mountVSCode() {
@@ -342,6 +341,7 @@ function bindVSCode() {
     const isPortal = q.includes('internal/portal') || q === 'internal' || q === 'portal' || (q.includes('internal') && q.includes('portal')) || isNoriPortal;
     const isInternal = q.includes('internal') || q.includes('portal') || isNoriPortal;
     const isSwitch = q.includes('switch') || q.includes('case') || q.toLowerCase().includes('vipprice') || q.includes('vipprice');
+    const isMd5Key = q.includes('md5_key') || q.includes('md5key') || q.includes('md5') || q.includes('key');
     if (isPortal || isInternal) {
       if (searchResult) {
         searchResult.innerHTML = `<div class="small" style="color:var(--fg-primary);cursor:pointer;padding:6px;border:1px solid var(--border);border-radius:6px;background:var(--bg-tertiary)" data-open="SearchBar">📄 file-system/src/components/SearchBar.jsx — 匹配 "${escapeHtml(val)}" <span style="color:var(--accent);margin-left:6px">開啟 →</span></div>`;
@@ -354,9 +354,18 @@ function bindVSCode() {
     }
     if (isSwitch) {
       if (searchResult) {
-        searchResult.innerHTML = `<div class="small" style="color:var(--fg-primary);cursor:pointer;padding:6px;border:1px solid var(--border);border-radius:6px;background:var(--bg-tertiary)" data-open="OrderService">📄 customer-portal/src/main/java/com/acme/OrderService.java — 匹配 "${escapeHtml(val)}" <span style="color:var(--accent);margin-left:6px">開啟 →</span></div>`;
+        searchResult.innerHTML = `<div class="small" style="color:var(--fg-primary);cursor:pointer;padding:6px;border:1px solid var(--border);border-radius:6px;background:var(--bg-tertiary)" data-open="OrderService">📄 customer-portal/src/main/java/com/nori/OrderService.java — 匹配 "${escapeHtml(val)}" <span style="color:var(--accent);margin-left:6px">開啟 →</span></div>`;
         searchResult.querySelector('[data-open]')?.addEventListener('click', () => {
-          openFile('/customer-portal/src/main/java/com/acme/OrderService.java');
+          openFile('/customer-portal/src/main/java/com/nori/OrderService.java');
+        });
+      }
+      return;
+    }
+    if (isMd5Key) {
+      if (searchResult) {
+        searchResult.innerHTML = `<div class="small" style="color:var(--fg-primary);cursor:pointer;padding:6px;border:1px solid var(--border);border-radius:6px;background:var(--bg-tertiary)" data-open=".env.example">📄 /customer-portal/.env.example — 匹配 "${escapeHtml(val)}" <span style="color:var(--accent);margin-left:6px">開啟 →</span></div>`
+        searchResult.querySelector('[data-open]')?.addEventListener('click', () => {
+          openFile('/customer-portal/.env.example');
         });
       }
       return;
@@ -460,9 +469,9 @@ function renderTabs() {
     if (cur) files.unshift({ path: currentFile, ...cur });
   }
   // ensure OrderService is always in tabs for visibility
-  if (!files.some(f => f.path === '/customer-portal/src/main/java/com/acme/OrderService.java')) {
-    const o = vfs.getFile('/customer-portal/src/main/java/com/acme/OrderService.java');
-    if (o) files.unshift({ path: '/customer-portal/src/main/java/com/acme/OrderService.java', ...o });
+  if (!files.some(f => f.path === '/customer-portal/src/main/java/com/nori/OrderService.java')) {
+    const o = vfs.getFile('/customer-portal/src/main/java/com/nori/OrderService.java');
+    if (o) files.unshift({ path: '/customer-portal/src/main/java/com/nori/OrderService.java', ...o });
   }
   // append Git Graph tab at the most right if opened
   if (gitGraphOpen && !files.some(f => f.path === GIT_GRAPH_PATH)) {
@@ -496,7 +505,7 @@ function closeGitGraphInEditor() {
   gitGraphOpen = false;
   expandedGraphHash = null;
   if (currentFile === GIT_GRAPH_PATH) {
-    currentFile = '/customer-portal/src/main/java/com/acme/OrderService.java';
+    currentFile = '/customer-portal/src/main/java/com/nori/OrderService.java';
   }
   renderTabs();
   if (currentFile === GIT_GRAPH_PATH) openFile(currentFile);
@@ -636,11 +645,11 @@ function openFile(path) {
   if (!editor) return;
 
   // Track onboarding: viewing OrderService.java
-  if (path === '/customer-portal/src/main/java/com/acme/OrderService.java' || path === '/customer-portal/src/billing/service.js') {
+  if (path === '/customer-portal/src/main/java/com/nori/OrderService.java' || path === '/customer-portal/src/billing/service.js') {
     trackOnboarding('vscode_viewed');
   }
   if (content == null) {
-    editor.innerHTML = '<div class="editor__lines" style="padding:16px;color:var(--fg-muted)">檔案不存在或尚未解鎖 — 嘗試 Search 搜尋 "cocoa" 或觸發隱藏邏輯</div>';
+    editor.innerHTML = '<div class="editor__lines" style="padding:16px;color:var(--fg-muted)">檔案不存在或尚未解鎖 — 嘗試 Search 搜尋 "Sawyer" 或觸發隱藏邏輯</div>';
   } else if (path.toLowerCase().endsWith('.csv')) {
     editor.innerHTML = renderCSVTableHTML(path, content);
   } else {
@@ -779,7 +788,7 @@ function handleCommit() {
     return;
   }
   // Focus validation on OrderService.java
-  const orderPath = '/customer-portal/src/main/java/com/acme/OrderService.java';
+  const orderPath = '/customer-portal/src/main/java/com/nori/OrderService.java';
   const orderContent = getCurrentContent(orderPath);
   if (orderContent == null) {
     if (statusEl) statusEl.textContent = '找不到 OrderService.java';
@@ -1138,7 +1147,7 @@ function runTerminalCmd(raw) {
   switch (cmd) {
     case 'help':
       appendTerminal('可用指令: ls [path], cat <file>, grep <keyword>, git log, git diff, git blame <file>, clear, echo <text>');
-      appendTerminal('範例: cat /customer-portal/src/main/java/com/acme/OrderService.java');
+      appendTerminal('範例: cat /customer-portal/src/main/java/com/nori/OrderService.java');
       break;
     case 'ls': {
       // Vizual Studio Code 僅顯示公司官網系統（/customer-portal + /file-system），過濾內網資料
