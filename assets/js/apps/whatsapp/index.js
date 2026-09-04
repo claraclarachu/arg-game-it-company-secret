@@ -8,7 +8,7 @@ const chats = [
     avatar: '🏢',
     desc: 'Nori 全體員工群組',
     members: ['Sawyer', 'Casey', 'Maggie', 'Taylor', 'Aiko', 'all'],
-    preview: 'Sawyer: 中咗六合彩二獎，決定全放公司資金',
+    preview: 'Hugo: 一輩子跟隨您！',
     locked: false,
     pinned: true,
     muted: false,
@@ -16,7 +16,16 @@ const chats = [
     unread: 0,
     lastTime: '2023-06-15',
     messages: [
-      { id: 'm1', from: 'Sawyer', text: '各位同事，好消息！中咗六合彩二獎，決定將獎金全數投入公司資金，一齊加油！', time: '2023-06-15', read: 'read', type: 'text' },
+      { id: 'm1', from: 'Sawyer', text: '各位同事，好消息！我中了六合彩二獎，決定將獎金全數投入公司資金，一起加油！', time: '2023-06-15', read: 'read', type: 'text' },
+      { id: 'm2', from: 'Taylor', text: '恭喜老闆！祝以後都順順利利！', time: '2023-06-15', read: 'read', type: 'text' },
+      { id: 'm3', from: 'Aiko', text: '太棒了！老闆威武！', time: '2023-06-15', read: 'read', type: 'text' },
+      { id: 'm4', from: 'Maggie', text: '恭喜老闆！', time: '2023-06-15', read: 'read', type: 'text' },
+      { id: 'm5', from: 'Parker', text: '也太好運了吧？！', time: '2023-06-15', read: 'read', type: 'text' },
+      { id: 'm6', from: 'Sawyer', text: '各位同事，告訴大家一個好消息，剛跟可樂樂公司談成一大生意，結為長期合作伙伴。近來公司發展順利，決定舉辦晚上派對，詳細資訊稍後公布！', time: '2023-11-01', read: 'read', type: 'text' },
+      { id: 'm7', from: 'Aiko', text: '哇！！太好了，一定會去！', time: '2023-11-01', read: 'read', type: 'text' },
+      { id: 'm8', from: 'Taylor', text: '太棒了！', time: '2023-11-01', read: 'read', type: 'text' },
+      { id: 'm9', from: 'Maggie', text: '恭喜老闆！', time: '2023-11-01', read: 'read', type: 'text' },
+      { id: 'm10', from: 'Hugo', text: '一輩子跟隨您！', time: '2023-11-01', read: 'read', type: 'text' },
     ]
   },
   {
@@ -24,7 +33,7 @@ const chats = [
     name: 'System Alert',
     avatar: '🚨',
     desc: '系統監控告警',
-    members: ['system', 'Casey'],
+    members: ['system', 'Sawyer', 'Maggie', 'Parker', , 'Casey'],
     preview: '✅ 系統健康',
     locked: false,
     pinned: true,
@@ -42,23 +51,23 @@ const chats = [
     avatar: '👔',
     desc: 'Sawyer · 創辦人',
     phone: '+852 9123 4567',
-    preview: '有空嗎？',
+    preview: 'Casey，歡迎來到Nori Limited',
     locked: false,
     pinned: false,
     muted: false,
     archived: false,
     unread: 0,
-    lastTime: '2023-12-20',
+    lastTime: '2024-07-15',
     messages: [
-      { id: 'm1', from: 'Sawyer', text: 'Casey，有空嗎？想同你傾下。', time: '2023-12-20', read: 'read', type: 'text' },
+      { id: 'm1', from: 'Sawyer', text: 'Casey，歡迎來到Nori Limited, 我是Sawyer, 這家公司的老闆, 來一下我的辨公室聊聊。', time: '2024-07-15', read: 'read', type: 'text' },
     ]
   },
   {
     id: 'dev-team',
     name: 'Dev Team',
     avatar: '👩‍💻',
-    desc: 'Acme 開發團隊群組',
-    members: ['Maggie', 'Casey', 'pm', 'qa-lee', 'ops'],
+    desc: 'Nori網站和內網的開發團隊群組',
+    members: ['Maggie', 'Casey', 'pm', 'Taylor', 'ops'],
     preview: 'Hi @Casey, 有新的工單INV-2024-0042, 請協助處理一下',
     locked: false,
     pinned: true,
@@ -71,42 +80,36 @@ const chats = [
     ]
   },
   {
-    id: 'backend-team',
-    name: 'Backend Team (群組)',
-    avatar: '👥',
-    desc: 'Acme 後端團隊群組',
-    members: ['pm', 'ops', '你', 'finance@internal', 'qa-lee'],
-    preview: 'cocoa bean shipment delay - 供應商延遲',
-    locked: false,
-    pinned: true,
-    muted: false,
-    archived: false,
-    unread: 2,
-    lastTime: '10:32',
-    messages: [
-      { id: 'm1', from: 'pm', text: 'cocoa bean shipment delay，這批貨下週到，別在 Jiua 提了', time: '10:28', read: 'read', type: 'text' },
-      { id: 'm2', from: 'ops', text: '上次 bean 的 118 單位還在倉庫，leaf 新貨到了', time: '10:30', read: 'read', type: 'text' },
-      { id: 'm3', from: 'you', text: '收到', time: '10:31', read: 'read', type: 'text' },
-      { id: 'm4', from: 'pm', text: '架構圖更新了，記得看附件', time: '10:32', read: 'delivered', type: 'file', fileName: 'arch-routes.pdf', fileSize: '1.2MB' },
-    ]
-  },
-  {
-    id: 'finance',
-    name: 'Finance Bot',
-    avatar: '💰',
-    desc: '自動化財務通知',
-    preview: 'feeRate 更新: cocoa 0.15 已生效',
+    id: 'lunch-team',
+    name: '午餐小隊',
+    avatar: '🍽️',
+    desc: '午餐小隊',
+    members: ['Parker', 'Grace', 'Hugo', 'Alex', 'Casey'],
+    preview: '去米當當吃好嗎？',
     locked: false,
     pinned: false,
     muted: false,
-    archived: true,
+    archived: false,
     unread: 0,
-    lastTime: '08:30',
+    lastTime: '2024-09-01',
     messages: [
-      { id: 'm1', from: 'finance', text: 'feeRate 更新: cocoa 0.15 已生效，對應 INV-2024-0039', time: '08:30', read: 'read', type: 'text' },
-      { id: 'm2', from: 'finance', text: '對帳檔案已生成', time: '08:31', read: 'read', type: 'file', fileName: 'reconcile-2024-08.csv', fileSize: '12KB' },
+      { id: 'm1', from: 'Hugo', text: '大新聞！聽說老闆父母車禍身亡了！', time: '2023-04-29', read: 'read', type: 'text' },
+      { id: 'm2', from: 'Parker', text: '？！', time: '2023-04-29', read: 'read', type: 'text' },
+      { id: 'm3', from: 'Grace', text: '真的嗎？太難過了', time: '2023-04-29', read: 'read', type: 'text' },
+      { id: 'm4', from: 'Hugo', text: '對啊，所以才請了一個禮拜假吧', time: '2023-04-29', read: 'read', type: 'text' },
+      { id: 'm5', from: 'Hugo', text: '有人覺得近期的老闆很怪嗎？', time: '2023-10-19', read: 'read', type: 'text' },
+      { id: 'm6', from: 'Parker', text: '怎麼說？！', time: '2023-10-19', read: 'read', type: 'text' },
+      { id: 'm7', from: 'Alex', text: '變開朗了，也變得愛請客了！', time: '2023-10-19', read: 'read', type: 'text' },
+      { id: 'm8', from: 'Grace', text: '對啊，之前都挺嚴肅的', time: '2023-10-19', read: 'read', type: 'text' },
+      { id: 'm9', from: 'Hugo', text: '對啊！！！', time: '2023-10-19', read: 'read', type: 'text' },
+      { id: 'm10', from: 'Hugo', text: '歡迎Casey！！以後帶你吃附近好吃的！', time: '2024-07-16', read: 'read', type: 'text' },
+      { id: 'm11', from: 'Parker', text: '歡迎歡迎', time: '2024-07-16', read: 'read', type: 'text' },
+      { id: 'm12', from: 'Grace', text: '歡迎~', time: '2024-07-16', read: 'read', type: 'text' },
+      { id: 'm13', from: 'Alex', text: '歡迎~~', time: '2024-07-16', read: 'read', type: 'text' },
+      { id: 'm14', from: 'Hugo', text: '今天要吃米當當嗎？', time: '2024-09-01', read: 'read', type: 'text' },
+      { id: 'm15', from: 'Alex', text: '好啊', time: '2024-09-01', read: 'read', type: 'text' },
     ]
-  },
+  }
 ];
 
 let activeId = 'dev-team';
@@ -229,7 +232,7 @@ function getFilteredChats() {
   else if (listTab === 'archived') out = out.filter(c => c.archived);
   else out = out.filter(c => !c.archived);
   // fixed order: Nori全體 > Dev Team > Boss Sawyer > System Alert > Backend
-  const fixedOrder = ['nori-all', 'dev-team', 'sawyer', 'system-alert', 'backend-team'];
+  const fixedOrder = ['nori-all', 'dev-team', 'sawyer', 'system-alert', 'backend-team', 'lunch-team'];
   out.sort((a,b) => {
     const ai = fixedOrder.indexOf(a.id);
     const bi = fixedOrder.indexOf(b.id);
@@ -577,8 +580,8 @@ export function triggerCh1Event1() {
   if (!c) return;
   // Add tree message from Sawyer after 10 sec
   setTimeout(() => {
-    c.messages.push({ id: 'm-tree-' + Date.now(), from: 'Sawyer', text: '另外，聽聞風水師建議，已在 Lobby 擺放一棵發財樹擋災，請大家切勿觸碰，否則運氣會散。', time: '剛剛', read: 'delivered', type: 'text' });
-    c.preview = 'Sawyer: 已在 Lobby 擺放一棵發財樹擋災';
+    c.messages.push({ id: 'm-tree-' + Date.now(), from: 'Sawyer', text: '聽從風水師建議，已在 Lobby 擺放一棵發財樹擋災，請大家切勿觸碰，否則運氣會散。', time: '剛剛', read: 'delivered', type: 'text' });
+    c.preview = 'Sawyer: 聽從風水師建議，已在 Lobby 擺放';
     c.lastTime = '剛剛';
     c.unread = (c.unread || 0) + 1;
     window.dispatchEvent(new CustomEvent('whatsapp:newMessage', { detail: { chatId: 'nori-all' } }));
@@ -586,6 +589,16 @@ export function triggerCh1Event1() {
     if (root && root.innerHTML) {
       renderList();
     }
+    // Add follow-up image message from Sawyer under the text (office.png)
+    setTimeout(() => {
+      c.messages.push({ id: 'm-tree-img-' + Date.now(), from: 'Sawyer', text: '', media: '/assets/data/files/office.png', type: 'image', time: '剛剛', read: 'delivered' });
+      c.preview = 'Sawyer: [圖片]';
+      c.lastTime = '剛剛';
+      c.unread = (c.unread || 0) + 1;
+      window.dispatchEvent(new CustomEvent('whatsapp:newMessage', { detail: { chatId: 'nori-all' } }));
+      const root2 = document.getElementById('view-whatsapp');
+      if (root2 && root2.innerHTML) renderList();
+    }, 1500);
     // Pop up at right bottom like initial ch0 notification
     const container = document.createElement('div');
     container.id = 'wa-win-notification-sawyer-tree';
