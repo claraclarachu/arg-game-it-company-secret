@@ -117,3 +117,10 @@
   .md5-convert-btn{width:100%;height:42px;border-radius:8px}
   .md5-convert-btn i{transform:rotate(90deg)}
 }
+.sawyer-blog-link:hover{border-color:var(--accent) !important;background:var(--bg-tertiary) !important}
+.sawyer-blog-link{word-break:break-word;overflow-wrap:anywhere;min-width:0}
+.detail__sawyer-grid{min-width:0;max-width:100%;overflow:hidden}
+.detail__sawyer-grid > *{min-width:0;max-width:100%;overflow:hidden}
+@media (max-width: 768px){
+  .detail__sawyer-grid{grid-template-columns:1fr !important}
+}

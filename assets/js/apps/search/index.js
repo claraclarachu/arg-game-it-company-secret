@@ -12,10 +12,18 @@ const webIndex = [
 
   { title: 'reconcile.py 執行日誌', url: 'file:///workspace/scripts/reconcile.py', snippet: '對帳腳本使用 sqlite3 查詢 GROUP BY code，輸出 COCOA/BEAN 總額。', type: 'web', image: null },
   { title: 'OrderService.java — Java 分潤邏輯', url: 'file:///workspace/src/main/java/com/acme/OrderService.java', snippet: 'feeRate switch：cocoa 0.15, bean 0.22, leaf 0.12, crystal 0.30。', type: 'academic', image: null },
-  { title: 'Sawyer Choi — 個人部落格 (Choi Tsz Yeung 蔡梓掦)', url: 'https://sawyer-blog.example/choi-tsz-yeung', snippet: '部落格精選：2001-10-18 與朋友分享食物很開心；2003-04-27 玩同學眼鏡被記過，父母給檸檬茶；2004-11-13 戳到表妹眼睛被誤會；2006-09-01 不想上新學校；2007-01-11 交友成功變幽默；2007-01-12 聽歌被母嫌吵；2010-06-06 母親買檸檬茶；2012-07-07 隨母簽保險受益人；2013-01-01 美麗天空照；2023-12-20 僅寫 "i will do what u want me to"。搜尋 "Sawyer Choi" 或 "Choi Tsz Yeung" 可見。', type: 'web', image: null },
-  { title: '廣志中學作文比賽 二等獎 — Sawyer Choi (Choi Tsz Yeung)', url: 'https://school.example/guangzhi-essay-sawyer', snippet: '廣志中學聖誕假期作文比賽二等獎：Sawyer 寫與家人玩卡牌，第三次玩卻新手運氣大好，發現母親整週手氣差而故意放水讓母親贏以緩和氣氛。', type: 'web', image: null },
+  { title: 'Sawyer Choi — 2001-10-18', url: 'https://sawyer-blog.example/2001-10-18', snippet: '2001-10-18\n\n今天和好多朋友一起玩，大家都玩得很開心。\n\n我把自己的食物分給大家吃，他們吃完都笑得很開心。我覺得只要大家在一起，好像什麼都很好玩。朋友們都說我很好笑，我也喜歡看他們笑。\n\n回家的時候，我把今天和朋友玩的事情告訴爸爸媽媽。他們聽完也很開心，還一直問我今天跟誰一起玩、玩了什麼。\n\n今天真的很好玩，我希望明天也可以和大家一起玩。 — Sawyer Choi / Choi Tsz Yeung 蔡梓掦', type: 'web', image: null },
+  { title: 'Sawyer Choi — 2003-04-27', url: 'https://sawyer-blog.example/2003-04-27', snippet: '2003-04-27\n\n今天上課的時候，我拿同學的眼鏡來玩，圍繞班房一直跑假裝不會再還他，老師看到了，叫住我，問我是不是在欺負同學，還在我的手冊上寫了不好的評語。\n\n我覺得很難過。\n\n更讓我難過的是，那個同學一直什麼都沒有說。我不知道他為什麼不幫我，他不喜歡這樣嗎？但我也沒有傷害到他吧。\n\n晚上吃飯的時候，爸爸媽媽問我老師為什麼會在手冊上這樣寫，我什麼都沒有說。只是眼淚突然掉了一滴在桌上。\n\n他們沒有再問我，只是拿了一包檸檬茶給我。這是我小時候很喜歡喝的東西。\n\n可是現在我覺得它太甜了，已經不太想喝了。\n\n只是爸爸媽媽好像還不知道。他們大概還以為，我一直都很喜歡。 — Sawyer Choi / Choi Tsz Yeung 蔡梓掦', type: 'web', image: null },
+  { title: 'Sawyer Choi — 2004-11-13', url: 'https://sawyer-blog.example/2004-11-13', snippet: '2004-11-13\n\n今天和表妹一起玩的時候，我不小心戳到了她的眼睛。\n\n我馬上去看她有沒有受傷，也一直看看她的眼睛有沒有怎麼樣。可是她還是跑去她爸爸那裏，一直說是我弄到她的眼睛。\n\n這時所有大人都看著我，大家都覺得是我的錯。\n\n可是我不知道要說什麼。\n\n我那一刻腦袋裏一片空白。連爸爸媽媽也沒有站在我這邊，一直在問我為什麼要這樣做，我只好一直站在那裏。\n\n那些大人的眼神，讓我覺得很不舒服。\n\n其實，這已經不是第一次有這種感覺了。\n\n（2020 年的 Sawyer 留言）\n現在回頭看，我想那時候如果我懂得先說一句「對不起」，可能事情就會簡單很多。那時候的我，好像完全沒有想到道歉會有這麼大的作用。 — Sawyer Choi / Choi Tsz Yeung 蔡梓掦', type: 'web', image: null },
+  { title: 'Sawyer Choi — 2006-09-01', url: 'https://sawyer-blog.example/2006-09-01', snippet: '2006-09-01\n\n今天要去新的學校了。\n\n可是我一點都不想去。\n\n我很害怕要認識新的同學，也不知道要怎麼跟他們說話。一直想著，如果沒有人跟我做朋友怎麼辦？\n\n我甚至開始想，為什麼學生一定要去學校？\n\n想了很久，我覺得大概是因為知識對以後的人生還是很重要。至少多學一點東西，將來應該會對自己有幫助。\n\n所以，我還是會努力讀書。\n\n至於朋友……慢慢再說吧。\n\n一個人好像也沒有什麼不好。 — Sawyer Choi / Choi Tsz Yeung 蔡梓掦', type: 'web', image: null },
+  { title: 'Sawyer Choi — 2007-01-11', url: 'https://sawyer-blog.example/2007-01-11', snippet: '2007-01-11\n\n沒想到，我竟然交到了比自己想像中還要多的朋友。\n\n原本以為來到新學校會很孤單，結果大家好像都很喜歡跟我一起玩。甚至連老師都覺得我是個很幽默的人。\n\n我自己也不知道，原來我這麼會逗大家笑。\n\n現在想到要回學校，好像也沒有以前那麼討厭了。\n\n有朋友一起上課、一起聊天、一起笑，學校突然變得有趣很多。\n\n看來，我之前真的想太多了。 — Sawyer Choi / Choi Tsz Yeung 蔡梓掦', type: 'web', image: null },
+  { title: 'Sawyer Choi — 2007-01-12', url: 'https://sawyer-blog.example/2007-01-12', snippet: '2007-01-12\n\n今天朋友跟我分享了一個他很喜歡的歌手和他創作的歌曲。\n\n本來只是想聽聽看，結果越聽越喜歡。回到家之後，我直接把那個歌單放出來，而且越開越大聲。\n\n我聽得太投入了，完全沒有發現爸爸媽媽已經回家。\n\n直到媽媽突然說：\n\n「太難聽了吧？」\n\n我才發現原來他們早就回來了。\n\n可能真的太大聲了。\n\n還是我喜歡的事物一直都很冷門？ — Sawyer Choi / Choi Tsz Yeung 蔡梓掦', type: 'web', image: null },
+  { title: 'Sawyer Choi — 2010-06-06', url: 'https://sawyer-blog.example/2010-06-06', snippet: '2010-06-06\n\n今天媽媽又買了一箱檸檬茶回來。\n\n看到它的時候，我突然想起以前很喜歡喝檸檬茶。\n\n小時候總覺得它很好喝，甜甜的，喝完心情也會很好。\n\n不知道為什麼，現在再看到它，突然有一種很奇怪的感覺。\n\n可能有些東西就是這樣吧。\n\n以前很喜歡的東西，長大以後不一定還會喜歡。 — Sawyer Choi / Choi Tsz Yeung 蔡梓掦', type: 'web', image: null },
+  { title: 'Sawyer Choi — 2012-07-07', url: 'https://sawyer-blog.example/2012-07-07', snippet: '2012-07-07\n\n今天媽媽帶我去一間很大的辦公室，叫我簽一些文件。\n\n原來，她是在幫我辦保險。\n\n一開始我沒有想太多，只覺得大人辦事情真的很麻煩。直到後來看到保單上的資料，我才發現一件事情。\n\n我的保險受益人，是爸爸媽媽。\n\n而爸爸媽媽的保險受益人，也是我。\n\n那一刻突然有點說不出話。\n\n以前總覺得保險就是大人要處理的事情，跟自己沒有什麼關係。\n\n可是看到名字寫在一起，我才第一次很清楚地感覺到，原來我們都在替彼此想著以後。 — Sawyer Choi / Choi Tsz Yeung 蔡梓掦', type: 'web', image: null },
+  { title: 'Sawyer Choi — 2013-01-01', url: 'https://sawyer-blog.example/2013-01-01', snippet: '2013-01-01\n\n美麗的天空 — Sawyer Choi / Choi Tsz Yeung 蔡梓掦', type: 'web', image: '/assets/data/files/sawyer_blog_pic.HEIC' },
+  { title: 'Sawyer Choi — 2023-12-20', url: 'https://sawyer-blog.example/2023-12-20', snippet: '2023-12-20\n\n我只好做你想我做的事了 — Sawyer Choi / Choi Tsz Yeung 蔡梓掦', type: 'web', image: null },
+  { title: '廣志中學作文比賽', url: 'https://school.example/guangzhi-essay-sawyer', snippet: '廣志中學聖誕假期作文比賽二等獎穫奬學生 中五甲班 蔡梓掦', type: 'web', image: '/assets/data/files/sawyer_writing_1.png', images: ['/assets/data/files/sawyer_writing_1.png', '/assets/data/files/sawyer_writing_2.png'] },
   { title: '新聞：Sawyer 父母車禍意外 2023 — Choi Tsz Yeung', url: 'https://news.example/sawyer-parents-accident-2023', snippet: '2023 年 Sawyer Choi 父母因車禍過世，喪事期間結識 FredyArc 主辦人 Fredy，傳聞 Fredy 看中 Nori 運輸潛力。搜尋 "Sawyer Choi" 可見相關報導。', type: 'news', image: null },
-  { title: 'Sawyer Choi — 檸檬茶回憶 (2003/2010)', url: 'https://sawyer-blog.example/lemon-tea', snippet: '2003-04-27 父母給檸檬茶覺得太甜不再喝，2010-06-06 母親又買一箱檸檬茶。小時候最愛檸檬茶。', type: 'web', image: null },
 ];
 
 const trends = ['md5', 'Sawyer Choi', 'Choi Tsz Yeung', '廣志中學'];
@@ -406,20 +414,62 @@ function openDetail(idx) {
   }
 
   const displayContent = fullContent || item.snippet || '無內容';
-
-  detail.innerHTML = `
-    <button id="searchBackBtn" class="btn detail__back">← 上一頁</button>
-    <div class="detail__card">
-      <h2 class="detail__title">${escapeHtml(item.title)}</h2>
-      <div class="detail__url">${escapeHtml(item.url)}</div>
-      ${item.image ? `<div class="detail__image"><img src="${item.image}" alt="preview" /></div>` : ''}
-      <div class="detail__snippet">${highlightSnippet(displayContent, lastBaseQuery)}</div>
-      ${fullContent ? `<pre class="detail__pre">${escapeHtml(fullContent)}</pre>` : ''}
-      <div class="result__meta" style="margin-top:12px">
-        <span class="result__tag">${item.type}</span>
+  const isSawyerBlog = item.url.includes('sawyer-blog.example');
+  if (isSawyerBlog) {
+    const allBlogs = webIndex.filter(r => r.url.includes('sawyer-blog.example')).sort((a,b) => a.url.localeCompare(b.url));
+    const otherBlogs = allBlogs.filter(b => b.url !== item.url);
+    detail.innerHTML = `
+      <button id="searchBackBtn" class="btn detail__back">← 上一頁</button>
+      <div class="detail__sawyer-grid" style="display:grid;grid-template-columns:1fr 260px;gap:16px;align-items:start;min-width:0;max-width:100%;overflow:hidden">
+        <div class="detail__card" style="min-width:0;max-width:100%;overflow:hidden">
+          <h2 class="detail__title" style="word-break:break-word;overflow-wrap:anywhere">${escapeHtml(item.title)}</h2>
+          <div class="detail__url" style="word-break:break-all;overflow-wrap:anywhere">${escapeHtml(item.url)}</div>
+          ${item.image ? `<div class="detail__image"><img src="${escapeHtml(item.image)}" alt="preview" onerror="this.src='https://via.placeholder.com/320x180?text=Sawyer+2013-01-01'" style="max-width:100%" /></div>` : ''}
+          <div class="detail__snippet" style="white-space:pre-wrap;word-break:break-word;overflow-wrap:anywhere">${highlightSnippet(displayContent, lastBaseQuery)}</div>
+          ${fullContent ? `<pre class="detail__pre">${escapeHtml(fullContent)}</pre>` : ''}
+          <div class="result__meta" style="margin-top:12px">
+            <span class="result__tag">${item.type}</span>
+          </div>
+        </div>
+        <div class="card" style="padding:12px;position:sticky;top:12px;min-width:0;max-width:100%;overflow:hidden">
+          <h4 style="margin:0 0 8px;font-size:13px;font-weight:700">其他部落格</h4>
+          <div style="display:grid;gap:6px;min-width:0">
+            ${otherBlogs.map(b => `<div class="sawyer-blog-link" data-url="${escapeHtml(b.url)}" style="padding:8px;border:1px solid var(--border);border-radius:6px;cursor:pointer;background:var(--bg-primary);font-size:12px;line-height:1.4;min-width:0;max-width:100%;overflow:hidden"><div style="font-weight:600;color:var(--fg-primary);word-break:break-word;overflow-wrap:anywhere;white-space:normal">${escapeHtml(b.title)}</div><div class="small muted" style="margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;max-width:100%">${escapeHtml(b.snippet.slice(0,40))}...</div></div>`).join('')}
+          </div>
+        </div>
       </div>
-    </div>
-  `;
+    `;
+    // Bind other blogs clicks - directly open the correct blog page
+    detail.querySelectorAll('.sawyer-blog-link').forEach(el => {
+      el.addEventListener('click', () => {
+        const url = el.dataset.url;
+        const blog = webIndex.find(r => r.url === url);
+        if (blog) {
+          // Set lastResults to single blog and open detail correctly (avoid webIndex vs lastResults index mismatch)
+          lastResults = [blog];
+          // Keep lastBaseQuery as the blog title for highlighting
+          lastBaseQuery = blog.title;
+          openDetail(0);
+        }
+      });
+    });
+  } else {
+    // For Guangzhi essay, show two images vertically if images array exists
+    const imagesHtml = item.images ? item.images.map(src => `<div class="detail__image"><img src="${escapeHtml(src)}" alt="preview" style="width:100%;display:block" onerror="this.src='https://via.placeholder.com/320x480?text=Sawyer+Writing'" /></div>`).join('') : (item.image ? `<div class="detail__image"><img src="${escapeHtml(item.image)}" alt="preview" onerror="this.src='https://via.placeholder.com/320x180?text=Preview'" /></div>` : '');
+    detail.innerHTML = `
+      <button id="searchBackBtn" class="btn detail__back">← 上一頁</button>
+      <div class="detail__card">
+        <h2 class="detail__title">${escapeHtml(item.title)}</h2>
+        <div class="detail__url">${escapeHtml(item.url)}</div>
+        ${imagesHtml}
+        <div class="detail__snippet">${highlightSnippet(displayContent, lastBaseQuery)}</div>
+        ${fullContent ? `<pre class="detail__pre">${escapeHtml(fullContent)}</pre>` : ''}
+        <div class="result__meta" style="margin-top:12px">
+          <span class="result__tag">${item.type}</span>
+        </div>
+      </div>
+    `;
+  }
   detail.querySelector('#searchBackBtn')?.addEventListener('click', () => showResultsView());
   // scroll to top of search
   const searchEl = document.querySelector('.search');
