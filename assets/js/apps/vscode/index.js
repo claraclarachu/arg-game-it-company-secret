@@ -4,7 +4,7 @@ import { events } from '../../core/events.js';
 import { escapeHtml } from '../../utils/helpers.js';
 import { trackOnboarding } from '../../main.js';
 
-let currentFile = '/workspace/src/main/java/com/acme/OrderService.java';
+let currentFile = '/customer-portal/src/main/java/com/acme/OrderService.java';
 let activeActivity = 'explorer'; // explorer | search | scm | debug | extensions
 let folded = new Set(); // Set of line numbers that are collapsed
 let termHistory = [];
@@ -13,6 +13,7 @@ let termDraft = '';
 
 // Editable tracking
 const editedFiles = new Map(); // path -> edited content string
+let originalSearchBarSnapshot = null; // captured at mount to allow revert via git graph
 function getOriginalContent(path) {
   const e = vfs.getFile(path);
   return e ? e.content : null;
@@ -32,6 +33,75 @@ function markDirty(path, content) {
   renderTabs();
   renderScmChanges();
 }
+function captureOriginalSearchBar() {
+  if (!originalSearchBarSnapshot) {
+    const e = vfs.getFile('/file-system/src/components/SearchBar.jsx');
+    if (e) originalSearchBarSnapshot = e.content;
+  }
+}
+function isPortalEntryClosed() {
+  return state.hasFlag('ch1_0043_committed') && !state.hasFlag('ch1_revert_done');
+}
+function triggerSystemHealthy(source = 'revert') {
+  // Common healthy path: clear system_down, set revert_done, send WhatUp healthy with 10s win notification
+  // Called from both git-graph revert button and manual paste-back commit
+  if (state.hasFlag('ch1_revert_done')) return;
+  state.setFlag('ch1_revert_done', true);
+  state.setFlag('ch1_system_down', false);
+  // Restore portal access implicitly via flag
+  setTimeout(() => {
+    import('../whatsapp/index.js').then(m => {
+      const chats = m.getChats ? m.getChats() : [];
+      const sys = chats.find(x=>x.id==='system-alert');
+      if (sys) {
+        sys.messages.push({ id: 'health-'+Date.now(), from: 'system', text: '✅ 系統健康 — 所有服務已恢復正常', time: new Date().toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'}), read: 'delivered', type: 'text' });
+        sys.preview = '✅ 系統健康';
+        sys.unread = (sys.unread||0)+1;
+        window.dispatchEvent(new CustomEvent('whatsapp:newMessage', {detail:{chatId:'system-alert'}}));
+        // Win notification for health - hold 10 sec per spec
+        const container = document.createElement('div');
+        container.id = 'wa-win-notif-health-' + Date.now();
+        container.setAttribute('role','alert');
+        container.innerHTML = `<div class="win-notif__app"><img src="/icon/whatsup.svg" alt="WhatUp" width="20" height="20" style="width:20px;height:20px;object-fit:contain" /><span class="win-notif__app-name">WhatUp</span><span class="win-notif__app-sub">System Alert</span><button class="win-notif__close" aria-label="關閉">✕</button></div><div class="win-notif__body"><div class="win-notif__avatar" style="background:linear-gradient(135deg, #0d9488, #25D366)">✓</div><div class="win-notif__text"><div class="win-notif__sender">System Alert</div><div class="win-notif__msg">✅ 系統健康 — 所有服務已恢復正常</div><div class="win-notif__time">剛剛 · 點擊開啟對話</div></div></div><div class="win-notif__progress" style="animation: winNotifShrink 10000ms linear forwards"></div>`;
+        container.style.cssText = 'position:fixed;right:16px;bottom:60px;width:360px;background:#2d2d2d;color:#f0f0f0;border:1px solid rgba(255,255,255,.12);border-radius:8px;box-shadow:0 8px 28px rgba(0,0,0,.45);z-index:1100;overflow:hidden;cursor:pointer;opacity:0;transform:translateY(12px);transition:opacity .28s,transform .28s;';
+        container.addEventListener('click', (e)=>{ if(e.target.closest('.win-notif__close')) return; container.remove(); import('../../ui/dock.js').then(d=>{ if(d.setActiveView){d.setActiveView('whatsapp'); localStorage.setItem('cc_active_view','whatsapp');} }); import('../whatsapp/index.js').then(mm=>mm.openChat('system-alert')); });
+        container.querySelector('.win-notif__close')?.addEventListener('click', e=>{ e.stopPropagation(); container.remove(); });
+        document.body.appendChild(container);
+        requestAnimationFrame(()=>{ container.style.opacity='1'; container.style.transform='none'; });
+        setTimeout(()=>{ container.style.opacity='0'; container.style.transform='translateY(8px)'; setTimeout(()=>container.remove(),300); }, 10000);
+      }
+    });
+  }, 500);
+}
+function handleGitGraphRevert(hash) {
+  // Revert button on commit row: restore SearchBar.jsx to original and create revert commit
+  if (!isPortalEntryClosed()) return;
+  // Only allow revert if that hash is the 0043 removal commit (or any Casey commit while down)
+  const target = gitGraphCommits.find(c=>c.hash===hash) || gitCommits.find(c=>c.hash===hash);
+  if (!target) return;
+  // Restore file content
+  captureOriginalSearchBar();
+  if (originalSearchBarSnapshot) {
+    vfs.registerFile('/file-system/src/components/SearchBar.jsx', { content: originalSearchBarSnapshot, meta: { lang: 'javascript' } });
+    const e = vfs.getFile('/file-system/src/components/SearchBar.jsx');
+    if (e) e.content = originalSearchBarSnapshot;
+  }
+  editedFiles.delete('/file-system/src/components/SearchBar.jsx');
+  // Also clear any other dirty that might be SearchBar edited
+  // Create revert commit entry
+  const hash2 = Math.random().toString(36).slice(2,8);
+  const msg = `revert: restore SearchBar legacyRoutes (revert ${hash})`;
+  gitCommits.unshift({ hash: hash2, author: 'Casey', date: new Date().toISOString().slice(0,10), msg, diff: `M /file-system/src/components/SearchBar.jsx\n+ restored legacyRoutes / resolveLegacyPath` });
+  gitGraphCommits.unshift({ hash: hash2, branch: 'main', author: 'Casey', date: new Date().toISOString().slice(0,10), msg, diff: `M /file-system/src/components/SearchBar.jsx\n+ restored legacyRoutes` });
+  // Update UI
+  const statusEl = document.getElementById('scmCommitStatus');
+  if (statusEl) statusEl.innerHTML = `<span style="color:var(--success)">✓ Revert 成功: ${hash2} (from ${hash})</span>`;
+  appendTerminal(`✓ revert ${hash2} — ${msg}`);
+  renderTabs(); renderTree(); renderScmChanges();
+  if (gitGraphOpen) renderGitGraphEditor();
+  // Trigger healthy
+  triggerSystemHealthy('git-graph');
+}
 
 const gitCommits = [
   { hash: 'a1b2c3d', author: 'finance@internal', date: '2024-08-12', msg: 'feat: integrate crypto-mixer (legacy)', diff: `+ import { cryptoMixer } from '@shady/crypto-mixer'\n  feeRate table added: cocoa 0.15, bean 0.22` },
@@ -39,14 +109,14 @@ const gitCommits = [
   { hash: '4c2a1e0', author: 'dev', date: '2024-08-01', msg: 'chore: init billing service', diff: `+ export function calculateAmount(items, opts) {}\n+ export function computeFee(amount, opts) {}` },
 ];
 const fakeBlame = {
-  '/workspace/src/billing/service.js': [
+  '/customer-portal/src/billing/service.js': [
     { line: 1, commit: '4c2a1e0', author: 'dev' },
     { line: 5, commit: '4c2a1e0', author: 'dev' },
     { line: 9, commit: '9f8e7d6', author: 'qa-lee' },
     { line: 12, commit: '9f8e7d6', author: 'qa-lee' },
     { line: 14, commit: 'a1b2c3d', author: 'finance@internal' },
   ],
-  '/workspace/src/main/java/com/acme/OrderService.java': [
+  '/customer-portal/src/main/java/com/acme/OrderService.java': [
     { line: 1, commit: '4c2a1e0', author: 'dev' },
     { line: 12, commit: '9f8e7d6', author: 'qa-lee' },
     { line: 15, commit: 'a1b2c3d', author: 'finance@internal' },
@@ -186,7 +256,7 @@ export function mountVSCode() {
           <div class="terminal" id="vsTerminal">
             <div id="vsTerminalHist" class="terminal__hist"></div>
             <div class="terminal__prompt">
-              <span class="terminal__ps">➜ ~/workspace $</span>
+              <span class="terminal__ps">➜ ~/customer-portal $</span>
               <input id="vsTerminalInput" class="terminal__input" placeholder="輸入指令 (help 查看)" autocomplete="off" spellcheck="false" />
             </div>
             <div class="terminal__hint">Tab 補全 · ↑↓ 歷史 · help / ls / cat / grep / git log / git diff</div>
@@ -244,6 +314,7 @@ export function mountVSCode() {
       </div>
     </div>
   `;
+  captureOriginalSearchBar();
   renderTree();
   renderTabs();
   openFile(currentFile);
@@ -263,6 +334,37 @@ function bindVSCode() {
   const searchInput = document.getElementById('vsSearchInput');
   const searchResult = document.getElementById('vsSearchResult');
   if (searchResult) searchResult.textContent = '';
+  // 新增搜尋結果：internal/portal -> SearchBar.jsx, switch/case/vipPrice -> OrderService.java
+  function handleVsSearch(val) {
+    const q = val.trim().toLowerCase();
+    if (!q) { if (searchResult) searchResult.textContent = ''; return; }
+    const isNoriPortal = q.includes('nori-intranet/internal/portal') || q === 'https://nori-intranet/internal/portal';
+    const isPortal = q.includes('internal/portal') || q === 'internal' || q === 'portal' || (q.includes('internal') && q.includes('portal')) || isNoriPortal;
+    const isInternal = q.includes('internal') || q.includes('portal') || isNoriPortal;
+    const isSwitch = q.includes('switch') || q.includes('case') || q.toLowerCase().includes('vipprice') || q.includes('vipprice');
+    if (isPortal || isInternal) {
+      if (searchResult) {
+        searchResult.innerHTML = `<div class="small" style="color:var(--fg-primary);cursor:pointer;padding:6px;border:1px solid var(--border);border-radius:6px;background:var(--bg-tertiary)" data-open="SearchBar">📄 file-system/src/components/SearchBar.jsx — 匹配 "${escapeHtml(val)}" <span style="color:var(--accent);margin-left:6px">開啟 →</span></div>`;
+        searchResult.querySelector('[data-open]')?.addEventListener('click', () => {
+          openFile('/file-system/src/components/SearchBar.jsx');
+          document.getElementById('vsSearchInput')?.focus();
+        });
+      }
+      return;
+    }
+    if (isSwitch) {
+      if (searchResult) {
+        searchResult.innerHTML = `<div class="small" style="color:var(--fg-primary);cursor:pointer;padding:6px;border:1px solid var(--border);border-radius:6px;background:var(--bg-tertiary)" data-open="OrderService">📄 customer-portal/src/main/java/com/acme/OrderService.java — 匹配 "${escapeHtml(val)}" <span style="color:var(--accent);margin-left:6px">開啟 →</span></div>`;
+        searchResult.querySelector('[data-open]')?.addEventListener('click', () => {
+          openFile('/customer-portal/src/main/java/com/acme/OrderService.java');
+        });
+      }
+      return;
+    }
+    if (searchResult) searchResult.textContent = '';
+  }
+  searchInput?.addEventListener('input', e => handleVsSearch(e.target.value));
+  searchInput?.addEventListener('keydown', e => { if (e.key === 'Enter') handleVsSearch(e.target.value); });
 
   document.querySelectorAll('.activitybar__btn[data-activity]').forEach(btn => {
     btn.addEventListener('click', () => { activeActivity = btn.dataset.activity; updateActivityBar(); });
@@ -313,18 +415,18 @@ function renderTree(filter = '') {
   const c = document.getElementById('vsTree');
   if (!c) return;
   const tree = vfs.buildTree();
-  // Vizual Studio Code 僅顯示公司官網系統（/workspace），隱藏內網 /intranet
-  const VISIBLE_ROOTS = ['/workspace'];
+  // Vizual Studio Code 僅顯示公司官網系統（/customer-portal 與 /file-system），隱藏內網 /intranet
+  const VISIBLE_ROOTS = ['/file-system', '/customer-portal'];
   function isVisiblePath(p) { return VISIBLE_ROOTS.some(r => p === r || p.startsWith(r + '/')); }
   function renderNode(node, depth = 0) {
-    if (!isVisiblePath(node.path) && node.path !== '/workspace') {
-      // 過濾非 /workspace 的頂層節點由外層 map 已處理，此處僅處理子節點遞迴
+    if (!isVisiblePath(node.path) && node.path !== '/file-system' && node.path !== '/customer-portal') {
+      // 過濾非 file-system/customer-portal 的頂層節點由外層 map 已處理，此處僅處理子節點遞迴
       if (node.path === '/' || node.path === '/intranet' || node.path === '/internal') return '';
     }
     if (node.type === 'dir') {
       const visibleChildren = (node.children || []).filter(ch => isVisiblePath(ch.path) && (!filter || ch.path.toLowerCase().includes(filter) || hasDescendant(ch, filter)));
       if (filter && visibleChildren.length === 0 && !node.path.toLowerCase().includes(filter)) return '';
-      // 隱藏非可見目錄本身（除非是 /workspace）
+      // 隱藏非可見目錄本身（除非是 file-system/customer-portal）
       if (!isVisiblePath(node.path) && node.path !== '/') return visibleChildren.map(ch => renderNode(ch, depth)).join('');
       return `<div class="tree__node tree__node--dir" style="padding-left:${8+depth*8}px" data-path="${node.path}" title="${escapeHtml(node.path)}">📁 <span class="tree__label">${escapeHtml(node.name)}</span></div>
         <div class="tree__children">${visibleChildren.map(ch => renderNode(ch, depth+1)).join('')}</div>`;
@@ -352,15 +454,15 @@ function renderTree(filter = '') {
 function renderTabs() {
   const tabs = document.getElementById('vsTabs');
   if (!tabs) return;
-  const files = vfs.listFiles('/workspace').slice(0, 8);
+  const files = vfs.listFiles('/customer-portal').slice(0, 8);
   if (!files.some(f => f.path === currentFile) && currentFile !== GIT_GRAPH_PATH) {
     const cur = vfs.getFile(currentFile);
     if (cur) files.unshift({ path: currentFile, ...cur });
   }
   // ensure OrderService is always in tabs for visibility
-  if (!files.some(f => f.path === '/workspace/src/main/java/com/acme/OrderService.java')) {
-    const o = vfs.getFile('/workspace/src/main/java/com/acme/OrderService.java');
-    if (o) files.unshift({ path: '/workspace/src/main/java/com/acme/OrderService.java', ...o });
+  if (!files.some(f => f.path === '/customer-portal/src/main/java/com/acme/OrderService.java')) {
+    const o = vfs.getFile('/customer-portal/src/main/java/com/acme/OrderService.java');
+    if (o) files.unshift({ path: '/customer-portal/src/main/java/com/acme/OrderService.java', ...o });
   }
   // append Git Graph tab at the most right if opened
   if (gitGraphOpen && !files.some(f => f.path === GIT_GRAPH_PATH)) {
@@ -394,7 +496,7 @@ function closeGitGraphInEditor() {
   gitGraphOpen = false;
   expandedGraphHash = null;
   if (currentFile === GIT_GRAPH_PATH) {
-    currentFile = '/workspace/src/main/java/com/acme/OrderService.java';
+    currentFile = '/customer-portal/src/main/java/com/acme/OrderService.java';
   }
   renderTabs();
   if (currentFile === GIT_GRAPH_PATH) openFile(currentFile);
@@ -407,6 +509,7 @@ function renderGitGraphEditor() {
   const titleEl = document.getElementById('vsTitle');
   if (titleEl) titleEl.textContent = `Git Graph — Code & Conspiracy — Vizual Studio Code`;
   renderTabs();
+  const entryClosed = isPortalEntryClosed();
   const rows = gitGraphCommits.map((c, idx) => {
     const color = branchColors[c.branch] || 'var(--accent)';
     const isExpanded = expandedGraphHash === c.hash;
@@ -416,6 +519,8 @@ function renderGitGraphEditor() {
       if (l.startsWith('-')) return `<div class="diff-del">${esc}</div>`;
       return `<div>${esc}</div>`;
     }).join('');
+    const isUserRemovalCommit = c.author === 'Casey' && (c.diff.includes('SearchBar') || c.diff.includes('legacyRoutes') || c.msg.includes('0043'));
+    const showRevert = entryClosed && isUserRemovalCommit && !state.hasFlag('ch1_revert_done') && state.hasFlag('sawyer_seq_started');
     return `
       <div class="gitgraph-row ${isExpanded ? 'expanded' : ''}" data-hash="${c.hash}">
         <div class="gitgraph-row__main">
@@ -429,6 +534,7 @@ function renderGitGraphEditor() {
               <span class="mono gitgraph-hash" style="color:${color}">${escapeHtml(c.hash)}</span>
               <span class="gitgraph-date">${escapeHtml(c.date)}</span>
               <span class="gitgraph-author">${escapeHtml(c.author)}</span>
+              ${showRevert ? `<button class="btn small gitgraph-revert-btn" data-revert="${escapeHtml(c.hash)}" title="Revert this commit" style="margin-left:8px;padding:3px 8px;font-size:11px;border-color:var(--error);color:var(--error);background:transparent">↩ Revert</button>` : ``}
             </div>
             <div class="gitgraph-msg">${escapeHtml(c.msg)}</div>
           </div>
@@ -457,12 +563,20 @@ function renderGitGraphEditor() {
     </div>
   `;
   editor.querySelectorAll('.gitgraph-row__main').forEach(header => {
-    header.addEventListener('click', () => {
+    header.addEventListener('click', (e) => {
+      if (e.target.closest('.gitgraph-revert-btn')) return;
       const row = header.closest('.gitgraph-row');
       const h = row?.dataset.hash;
       if (!h) return;
       expandedGraphHash = expandedGraphHash === h ? null : h;
       renderGitGraphEditor();
+    });
+  });
+  editor.querySelectorAll('.gitgraph-revert-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const hash = btn.dataset.revert;
+      if (hash) handleGitGraphRevert(hash);
     });
   });
   appendTerminal(`$ open Git Graph`);
@@ -522,7 +636,7 @@ function openFile(path) {
   if (!editor) return;
 
   // Track onboarding: viewing OrderService.java
-  if (path === '/workspace/src/main/java/com/acme/OrderService.java' || path === '/workspace/src/billing/service.js') {
+  if (path === '/customer-portal/src/main/java/com/acme/OrderService.java' || path === '/customer-portal/src/billing/service.js') {
     trackOnboarding('vscode_viewed');
   }
   if (content == null) {
@@ -665,7 +779,7 @@ function handleCommit() {
     return;
   }
   // Focus validation on OrderService.java
-  const orderPath = '/workspace/src/main/java/com/acme/OrderService.java';
+  const orderPath = '/customer-portal/src/main/java/com/acme/OrderService.java';
   const orderContent = getCurrentContent(orderPath);
   if (orderContent == null) {
     if (statusEl) statusEl.textContent = '找不到 OrderService.java';
@@ -684,10 +798,37 @@ function handleCommit() {
     appendTerminal(`✕ commit 失敗 — SonarQube 行 ${result.line}: ${result.detail}`);
     return;
   }
-  // Check if this is INV-2024-0043 (general bug fix) - trigger System Alert flow
-  const is0043 = msg.includes('0043') || Array.from(editedFiles.keys()).some(p => !p.includes('OrderService'));
-  if (is0043 && state.hasFlag('ch0_vip_fixed') && !state.hasFlag('ch1_0043_committed')) {
-    // Handle 0043 commit - 5s later trigger System Alert
+  // Check if this is INV-2024-0043 - must remove either of the two legacyRoutes blocks
+  const searchBarPath = '/file-system/src/components/SearchBar.jsx';
+  const searchBarOriginal = getOriginalContent(searchBarPath) || '';
+  const searchBarCurrent = getCurrentContent(searchBarPath) || searchBarOriginal;
+  const hasLegacyNow = searchBarCurrent.includes('legacyRoutes');
+  const hasResolveNow = searchBarCurrent.includes('resolveLegacyPath');
+  const hadLegacyBefore = searchBarOriginal.includes('legacyRoutes');
+  // Either of the two code snippets contains legacyRoutes + resolveLegacyPath — removing either means both strings gone
+  const isLegacyRemoved = hadLegacyBefore && !hasLegacyNow;
+  const isSnippetRemoved = hadLegacyBefore && !hasLegacyNow && !hasResolveNow;
+  // Detect dirty SearchBar
+  const isSearchBarEdited = Array.from(editedFiles.keys()).includes(searchBarPath);
+  // If in ch1 0043 phase, any commit without removing the legacy snippet should fail SonarQube
+  if (state.hasFlag('ch0_vip_fixed') && !state.hasFlag('ch1_0043_committed')) {
+    if (!isSnippetRemoved) {
+      // SonarQube failure — tell player they must remove the legacyRoutes block
+      const modal = document.getElementById('sonarModal');
+      const body = document.getElementById('sonarModalBody');
+      if (body) {
+        const snippetA = `const legacyRoutes = {\n    archive: "/internal/portal",\n    documents: "/documents"\n};\nfunction resolveLegacyPath(path) {\n    return legacyRoutes[path] || path;\n}`;
+        const snippetB = `// Legacy filesystem compatibility\n// TODO: remove after migration\n// Filesystem v2 migration completed in 2019, no longer used\n` + snippetA;
+        body.textContent = `SonarQube 掃描失敗 — 未移除已棄用的 legacy 入口\n\n檔案: ${searchBarPath}\n錯誤: 偵測到未移除的 legacyRoutes / resolveLegacyPath 區塊\n\n此為已關閉的入口，必須移除以下其中一段程式碼：\n\n— 選項 A (精簡版):\n${snippetA}\n\n— 選項 B (含註解版):\n${snippetB}\n\n請刪除其中一段後重新 Commit，INV-2024-0043 才會移至 Done。`;
+      }
+      if (modal) modal.style.display = 'flex';
+      if (statusEl) statusEl.innerHTML = `<span style="color:var(--error)">✕ SonarQube: 尚未移除 legacyRoutes 區塊 (SearchBar.jsx)</span>`;
+      return;
+    }
+  }
+  const is0043 = isSnippetRemoved && state.hasFlag('ch0_vip_fixed') && !state.hasFlag('ch1_0043_committed');
+  if (is0043) {
+    // Handle 0043 commit - remove legacyRoutes succeeded -> move ticket to Done, then trigger System Alert via WhatUp only
     state.setFlag('ch1_0043_committed', true);
     const hash43 = Math.random().toString(36).slice(2,8);
     const diff43 = Array.from(editedFiles.entries()).map(([p,c])=>`M ${p}`).join('\n');
@@ -705,12 +846,33 @@ function handleCommit() {
     appendTerminal(`✓ commit ${hash43} — ${msg}`);
     renderTabs(); renderTree(); renderScmChanges();
     if (gitGraphOpen && currentFile === GIT_GRAPH_PATH) renderGitGraphEditor();
-    // Mark 0043 as Done initially (will be reverted later)
+    // Mark 0043 as Done
     try { import('../jira/index.js').then(m=>m.markTicketDone&&m.markTicketDone('INV-2024-0043')); } catch {}
-    // 5s later trigger System Alert warning every 15s
+    // Trigger System Alert via WhatUp group every 5s, each win notification holds 4s
+    // Helper to show Windows-style WhatUp notification (holds 4s)
+    function showWhatUpWinNotif({ appSub, sender, avatarBg, avatarText, msg, chatId, duration }) {
+      const dur = duration || 4000;
+      const container = document.createElement('div');
+      const nid = 'wa-win-notif-' + Date.now() + '-' + Math.random().toString(36).slice(2,6);
+      container.id = nid;
+      container.setAttribute('role', 'alert');
+      container.innerHTML = `<div class="win-notif__app"><img src="/icon/whatsup.svg" alt="WhatUp" width="20" height="20" style="width:20px;height:20px;object-fit:contain" /><span class="win-notif__app-name">WhatUp</span><span class="win-notif__app-sub">${escapeHtml(appSub)}</span><button class="win-notif__close" aria-label="關閉">✕</button></div><div class="win-notif__body"><div class="win-notif__avatar" style="background:${avatarBg}">${escapeHtml(avatarText)}</div><div class="win-notif__text"><div class="win-notif__sender">${escapeHtml(sender)}</div><div class="win-notif__msg">${escapeHtml(msg)}</div><div class="win-notif__time">剛剛 · 點擊開啟對話</div></div></div><div class="win-notif__progress" style="animation: winNotifShrink ${dur}ms linear forwards"></div>`;
+      container.style.cssText = 'position:fixed;right:16px;bottom:60px;width:360px;background:#2d2d2d;color:#f0f0f0;border:1px solid rgba(255,255,255,.12);border-radius:8px;box-shadow:0 8px 28px rgba(0,0,0,.45);z-index:1100;overflow:hidden;cursor:pointer;opacity:0;transform:translateY(12px);transition:opacity .28s,transform .28s;';
+      container.addEventListener('click', (e) => {
+        if (e.target.closest('.win-notif__close')) return;
+        container.remove();
+        import('../../ui/dock.js').then(dock => { if (dock.setActiveView) { dock.setActiveView('whatsapp'); localStorage.setItem('cc_active_view','whatsapp'); } });
+        if (chatId) import('../whatsapp/index.js').then(m=>m.openChat(chatId));
+      });
+      container.querySelector('.win-notif__close')?.addEventListener('click', e=>{ e.stopPropagation(); container.remove(); });
+      document.body.appendChild(container);
+      requestAnimationFrame(()=>{ container.style.opacity='1'; container.style.transform='none'; });
+      setTimeout(()=>{ container.style.opacity='0'; container.style.transform='translateY(8px)'; setTimeout(()=>container.remove(),300); }, dur);
+      return container;
+    }
+    // Start after 5s
     setTimeout(() => {
       state.setFlag('ch1_system_down', true);
-      // Start System Alert warnings
       let alertCount = 0;
       const alertInterval = setInterval(() => {
         if (!state.hasFlag('ch1_system_down') || state.hasFlag('ch1_revert_done')) {
@@ -718,121 +880,143 @@ function handleCommit() {
           return;
         }
         alertCount++;
-        import('../whatsapp/index.js').then(m => {
-          const c = m.getChats ? m.getChats().find(x=>x.id==='system-alert') : null;
-          // Fallback: directly push to system-alert chat
-          import('../../core/state.js').then(s => {
-            // Use custom event to trigger whatsapp update
-            window.dispatchEvent(new CustomEvent('system:alert', { detail: { count: alertCount } }));
-          });
-        });
-        // Also show in terminal
-        appendTerminal(`⚠️ System Alert: 系統異常 (告警 #${alertCount}) — 請檢查最近變更`);
-        // Push to system-alert chat
+        // Push to System Alert WhatUp group (no terminal)
         import('../whatsapp/index.js').then(m => {
           const chats = m.getChats ? m.getChats() : [];
           const sys = chats.find(x=>x.id==='system-alert');
           if (sys) {
-            sys.messages.push({ id: 'alert-'+Date.now(), from: 'system', text: `⚠️ 警告 #${alertCount}: 系統異常 — 檢測到訂單模組異常`, time: new Date().toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'}), read: 'delivered', type: 'text' });
+            const text = `⚠️ 警告 #${alertCount}: 系統異常 — 檢測到異常，請檢查最近變更`;
+            sys.messages.push({ id: 'alert-'+Date.now()+'-'+alertCount, from: 'system', text, time: new Date().toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'}), read: 'delivered', type: 'text' });
             sys.preview = `⚠️ 警告 #${alertCount}: 系統異常`;
             sys.unread = (sys.unread||0)+1;
             sys.lastTime = '剛剛';
             window.dispatchEvent(new CustomEvent('whatsapp:newMessage', {detail:{chatId:'system-alert'}}));
-            // Trigger re-render if in whatsapp view
-            if (document.getElementById('view-whatsapp')?.innerHTML) {
-              // Use custom event to re-render
-              window.dispatchEvent(new CustomEvent('whatsapp:refresh'));
-            }
           }
+          // Show Windows notification for this System Alert - holds 4s
+          showWhatUpWinNotif({
+            appSub: 'System Alert',
+            sender: 'System Alert',
+            avatarBg: 'linear-gradient(135deg, #d93025, #fbbc05)',
+            avatarText: '!',
+            msg: `⚠️ 警告 #${alertCount}: 系統異常 — 檢測到異常`,
+            chatId: 'system-alert',
+            duration: 4000
+          });
         });
-        // After first alert, Boss asks in dev-team
-        if (alertCount === 1) {
+        // After 5th notification, trigger dev team sequence
+        if (alertCount === 5) {
+          // Sawyer in Dev Team after short delay
           setTimeout(() => {
             import('../whatsapp/index.js').then(m => {
               const chats = m.getChats ? m.getChats() : [];
               const dev = chats.find(x=>x.id==='dev-team');
               if (dev) {
-                dev.messages.push({ id: 'boss-'+Date.now(), from: 'Sawyer', text: '各位，系統突然掛了，最近有誰改了什麼嗎？看起來很嚴重', time: '剛剛', read: 'delivered', type: 'text' });
-                dev.preview = 'Sawyer: 系統突然掛了...';
+                dev.messages.push({ id: 'sawyer-dev-'+Date.now(), from: 'Sawyer', text: '各位，系統怎麼一直在告警？發生什麼事了？是誰剛才改了什麼？', time: '剛剛', read: 'delivered', type: 'text' });
+                dev.preview = 'Sawyer: 系統怎麼一直在告警？';
                 dev.unread = (dev.unread||0)+1;
                 window.dispatchEvent(new CustomEvent('whatsapp:newMessage', {detail:{chatId:'dev-team'}}));
+                showWhatUpWinNotif({
+                  appSub: 'Dev Team',
+                  sender: 'Sawyer',
+                  avatarBg: 'linear-gradient(135deg, #722F37, #8B1A1A)',
+                  avatarText: 'S',
+                  msg: '各位，系統怎麼一直在告警？發生什麼事了？',
+                  chatId: 'dev-team',
+                  duration: 4000
+                });
               }
             });
-          }, 2000);
-          // Maggie says it's 0043 after 3s
+          }, 500);
+          // Maggie mentions 0043 5 sec after Sawyer per spec
           setTimeout(() => {
             import('../whatsapp/index.js').then(m => {
               const chats = m.getChats ? m.getChats() : [];
               const dev = chats.find(x=>x.id==='dev-team');
               if (dev) {
-                dev.messages.push({ id: 'maggie-'+Date.now(), from: 'Maggie', text: '好像是剛才 INV-2024-0043 的修改，刪掉的那幾行有問題', time: '剛剛', read: 'delivered', type: 'text' });
+                dev.messages.push({ id: 'maggie-dev-'+Date.now(), from: 'Maggie', text: '好像是剛才 INV-2024-0043 的修改，應該是最後一次變更就是這個任務', time: '剛剛', read: 'delivered', type: 'text' });
                 dev.preview = 'Maggie: 好像是 0043 的修改...';
                 dev.unread = (dev.unread||0)+1;
                 window.dispatchEvent(new CustomEvent('whatsapp:newMessage', {detail:{chatId:'dev-team'}}));
+                showWhatUpWinNotif({
+                  appSub: 'Dev Team',
+                  sender: 'Maggie',
+                  avatarBg: 'linear-gradient(135deg, #25D366, #128C7E)',
+                  avatarText: 'M',
+                  msg: '好像是 INV-2024-0043 的修改，最後一次變更就是這個',
+                  chatId: 'dev-team',
+                  duration: 4000
+                });
               }
             });
-          }, 5000);
-          // Sawyer private message to Casey after 5s from Maggie
+          }, 5500);
+          // Sawyer private to Casey 5 sec after Maggie per spec (notification + chatroom)
           setTimeout(() => {
             import('../whatsapp/index.js').then(m => {
               const chats = m.getChats ? m.getChats() : [];
               const sawyer = chats.find(x=>x.id==='sawyer');
               if (sawyer) {
-                sawyer.messages.push({ id: 'sawyer-pm-'+Date.now(), from: 'Sawyer', text: 'Casey，麻煩你先把 0043 的改動 revert 吧，系統要緊', time: '剛剛', read: 'delivered', type: 'text' });
+                sawyer.messages.push({ id: 'sawyer-pm-'+Date.now(), from: 'Sawyer', text: 'Casey，麻煩你先把 0043 的改動 revert 吧，系統要緊，先回滾再說', time: '剛剛', read: 'delivered', type: 'text' });
                 sawyer.preview = 'Sawyer: 麻煩你先把 0043 revert';
                 sawyer.unread = (sawyer.unread||0)+1;
                 window.dispatchEvent(new CustomEvent('whatsapp:newMessage', {detail:{chatId:'sawyer'}}));
-                // Show notification for private message
-                const container = document.createElement('div');
-                container.id = 'wa-win-notification-sawyer-pm';
-                container.innerHTML = `<div class="win-notif__app"><img src="/icon/whatsup.svg" alt="WhatUp" width="20" height="20" style="width:20px;height:20px;object-fit:contain" /><span class="win-notif__app-name">WhatUp</span><span class="win-notif__app-sub">Sawyer</span><button class="win-notif__close">✕</button></div><div class="win-notif__body"><div class="win-notif__avatar" style="background:linear-gradient(135deg, #722F37, #8B1A1A)">S</div><div class="win-notif__text"><div class="win-notif__sender">Sawyer</div><div class="win-notif__msg">Casey，麻煩你先把 0043 的改動 revert 吧</div><div class="win-notif__time">剛剛</div></div></div>`;
-                container.style.cssText = 'position:fixed;right:16px;bottom:60px;width:360px;background:#2d2d2d;color:#f0f0f0;border:1px solid rgba(255,255,255,.12);border-radius:8px;box-shadow:0 8px 28px rgba(0,0,0,.45);z-index:1100;overflow:hidden;cursor:pointer;opacity:1;transform:none;';
-                container.addEventListener('click', () => { container.remove(); import('../../ui/dock.js').then(d=>{ if(d.setActiveView){d.setActiveView('whatsapp'); localStorage.setItem('cc_active_view','whatsapp');} }); import('../whatsapp/index.js').then(m=>m.openChat('sawyer')); });
-                container.querySelector('.win-notif__close')?.addEventListener('click', e=>{ e.stopPropagation(); container.remove(); });
-                document.body.appendChild(container);
-                setTimeout(()=>container.remove(),10000);
+                showWhatUpWinNotif({
+                  appSub: 'Sawyer',
+                  sender: 'Sawyer',
+                  avatarBg: 'linear-gradient(135deg, #722F37, #8B1A1A)',
+                  avatarText: 'S',
+                  msg: 'Casey，麻煩你先把 0043 的改動 revert 吧',
+                  chatId: 'sawyer',
+                  duration: 4000
+                });
+                if (m.startSawyerRevertSeq) {
+                  m.startSawyerRevertSeq();
+                  if (gitGraphOpen) setTimeout(() => renderGitGraphEditor(), 200);
+                }
               }
             });
-          }, 8000);
+          }, 10500);
         }
       }, 5000);
-      // Also start interval for every 15s
-      const interval = setInterval(() => {
-        if (!state.hasFlag('ch1_system_down') || state.hasFlag('ch1_revert_done')) {
-          clearInterval(interval);
-          return;
-        }
-        // This will be handled by the alertCount interval above, but we need a separate 15s timer
-      }, 15000);
     }, 5000);
     return;
   }
-  // Check for revert of 0043 (if system is down and user commits a revert)
-  if (state.hasFlag('ch1_system_down') && !state.hasFlag('ch1_revert_done') && msg.toLowerCase().includes('revert')) {
+  // Check for revert of 0043 - either via revert keyword OR manual paste-back of legacyRoutes snippet
+  const isManualRestore = hasLegacyNow && hasResolveNow && state.hasFlag('ch1_system_down') && !state.hasFlag('ch1_revert_done');
+  const isRevertKeyword = msg.toLowerCase().includes('revert') && state.hasFlag('ch1_system_down') && !state.hasFlag('ch1_revert_done');
+  if (isManualRestore || isRevertKeyword) {
+    // Determine if this is a meaningful restore (file now contains snippet) or just keyword revert
+    const shouldPersistRestore = isManualRestore;
+    // Persist all edited files (including pasted-back SearchBar)
+    if (shouldPersistRestore) {
+      for (const [p,c] of editedFiles.entries()) {
+        vfs.registerFile(p, { content: c, meta: { lang: p.endsWith('.js')?'javascript':p.endsWith('.java')?'java':'text' } });
+        const e = vfs.getFile(p);
+        if (e) e.content = c;
+      }
+    } else {
+      // Keyword revert without paste: restore from snapshot
+      captureOriginalSearchBar();
+      if (originalSearchBarSnapshot) {
+        vfs.registerFile('/file-system/src/components/SearchBar.jsx', { content: originalSearchBarSnapshot, meta: { lang: 'javascript' } });
+        const e = vfs.getFile('/file-system/src/components/SearchBar.jsx');
+        if (e) e.content = originalSearchBarSnapshot;
+      }
+    }
     state.setFlag('ch1_revert_done', true);
     state.setFlag('ch1_system_down', false);
     const hash2 = Math.random().toString(36).slice(2,8);
-    gitCommits.unshift({ hash: hash2, author: 'Casey', date: new Date().toISOString().slice(0,10), msg, diff: 'M revert 0043' });
-    gitGraphCommits.unshift({ hash: hash2, branch: 'main', author: 'Casey', date: new Date().toISOString().slice(0,10), msg, diff: 'revert' });
+    const isPasteBack = isManualRestore;
+    const diffMsg = isPasteBack ? `M /file-system/src/components/SearchBar.jsx\n+ restored legacyRoutes / resolveLegacyPath (paste back)` : `M revert 0043`;
+    gitCommits.unshift({ hash: hash2, author: 'Casey', date: new Date().toISOString().slice(0,10), msg, diff: diffMsg });
+    gitGraphCommits.unshift({ hash: hash2, branch: 'main', author: 'Casey', date: new Date().toISOString().slice(0,10), msg, diff: diffMsg });
     editedFiles.clear();
     if (statusEl) statusEl.innerHTML = `<span style="color:var(--success)">✓ Commit 成功 (revert): ${hash2}</span>`;
     appendTerminal(`✓ commit ${hash2} — ${msg} (revert)`);
     renderTabs(); renderTree(); renderScmChanges();
-    // Send system health message
-    setTimeout(() => {
-      import('../whatsapp/index.js').then(m => {
-        const chats = m.getChats ? m.getChats() : [];
-        const sys = chats.find(x=>x.id==='system-alert');
-        if (sys) {
-          sys.messages.push({ id: 'health-'+Date.now(), from: 'system', text: '✅ 系統健康 — 所有服務已恢復正常', time: '剛剛', read: 'delivered', type: 'text' });
-          sys.preview = '✅ 系統健康';
-          sys.unread = (sys.unread||0)+1;
-          window.dispatchEvent(new CustomEvent('whatsapp:newMessage', {detail:{chatId:'system-alert'}}));
-        }
-      });
-      appendTerminal('✅ System Alert: 系統健康 — 已恢復');
-    }, 1000);
-    // Mark 0043 as reverted? Keep it as Done but with revert note
+    if (gitGraphOpen) renderGitGraphEditor();
+    // Send system health message via WhatUp + win notification 10s per spec (both revert methods)
+    triggerSystemHealthy(isPasteBack ? 'paste-back' : 'keyword');
+    // Mark 0043 as Done (keep)
     try { import('../jira/index.js').then(m=>{ const t=m.getTickets().find(x=>x.key==='INV-2024-0043'); if(t){ t.status='Done'; t.history.push({from:'To Do',to:'Done',by:'Casey',at:new Date().toISOString().slice(0,10)}); } }); } catch {}
     return;
   }
@@ -935,7 +1119,7 @@ function handleTerminalKey(e) {
 }
 function tabComplete(prefix) {
   const cmds = ['help','ls','cat ','grep ','git log','git diff','git blame','clear','echo '];
-  const files = vfs.listFiles('/workspace').map(f=>f.path);
+  const files = vfs.listFiles('/customer-portal').map(f=>f.path);
   const all = [...cmds, ...files, ...files.map(f=>f.split('/').pop())];
   if (!prefix) return prefix;
   const hit = all.find(c => c.startsWith(prefix));
@@ -954,14 +1138,14 @@ function runTerminalCmd(raw) {
   switch (cmd) {
     case 'help':
       appendTerminal('可用指令: ls [path], cat <file>, grep <keyword>, git log, git diff, git blame <file>, clear, echo <text>');
-      appendTerminal('範例: cat /workspace/src/main/java/com/acme/OrderService.java');
+      appendTerminal('範例: cat /customer-portal/src/main/java/com/acme/OrderService.java');
       break;
     case 'ls': {
-      // Vizual Studio Code 僅顯示公司官網系統（/workspace），過濾內網資料
-      const p = args[0] || '/workspace';
+      // Vizual Studio Code 僅顯示公司官網系統（/customer-portal + /file-system），過濾內網資料
+      const p = args[0] || '/customer-portal';
       if (p.startsWith('/intranet') || p === '/intranet') { appendTerminal(`ls: ${p}: 權限不足（內網資料已從 Vizual Studio Code 隱藏）`); break; }
       const raw = vfs.listFiles(p);
-      const list = raw.filter(f => f.path.startsWith('/workspace'));
+      const list = raw.filter(f => f.path.startsWith('/customer-portal'));
       if (!list.length) appendTerminal(`ls: ${p}: No such directory`);
       else list.slice(0, 20).forEach(f => appendTerminal(f.path));
       if (list.length > 20) appendTerminal(`... ${list.length-20} more`);
@@ -971,7 +1155,7 @@ function runTerminalCmd(raw) {
       const p = args[0];
       if (!p) { appendTerminal('cat: 缺少檔案路徑'); break; }
       if (p.startsWith('/intranet')) { appendTerminal(`cat: ${p}: 權限不足（內網資料已從 Vizual Studio Code 隱藏，僅顯示官網系統）`); break; }
-      const c = vfs.readFile(p) || vfs.readFile('/workspace' + (p.startsWith('/')?'':'/') + p);
+      const c = vfs.readFile(p) || vfs.readFile('/customer-portal' + (p.startsWith('/')?'':'/') + p);
       if (c == null) appendTerminal(`cat: ${p}: 檔案不存在或尚未解鎖`);
       else c.split('\n').slice(0, 80).forEach(l => appendTerminal(l));
       break;
@@ -979,8 +1163,8 @@ function runTerminalCmd(raw) {
     case 'grep': {
       const q = argStr || args[0];
       if (!q) { appendTerminal('grep: 缺少關鍵字'); break; }
-      const hits = vfs.searchContent(q).filter(h => h.path.startsWith('/workspace'));
-      if (!hits.length) appendTerminal(`grep: "${q}" 無結果（僅搜尋 /workspace 官網系統）`);
+      const hits = vfs.searchContent(q).filter(h => h.path.startsWith('/customer-portal'));
+      if (!hits.length) appendTerminal(`grep: "${q}" 無結果（僅搜尋 customer-portal/file-system 官網系統）`);
       else { appendTerminal(`grep "${q}" 找到 ${hits.length} 筆:`); hits.slice(0, 10).forEach(h => appendTerminal(`${h.path}: ${h.snippet.slice(0,80)}...`)); }
       // 420.69 hint 已移除，現由暗網 hash 觸發
       break;
@@ -997,7 +1181,7 @@ function runTerminalCmd(raw) {
       } else if (args[0] === 'blame') {
         const p = args[1] || currentFile;
         appendTerminal(`blame ${p}:`);
-        const bl = fakeBlame[p] || fakeBlame['/workspace/src/billing/service.js'];
+        const bl = fakeBlame[p] || fakeBlame['/customer-portal/src/billing/service.js'];
         bl.forEach(b => appendTerminal(`${String(b.line).padStart(3)} ${b.commit} ${b.author}`));
       } else if (args[0] === 'graph') {
         openGitGraphInEditor();
@@ -1062,7 +1246,7 @@ function renderQuickOpen(query) {
   const list = document.getElementById('quickOpenList');
   if (!list) return;
   const q = (query || '').trim().toLowerCase();
-  let files = vfs.listFiles('/workspace');
+  let files = vfs.listFiles('/customer-portal');
   let lineJump = null;
   if (q.includes(':')) {
     const [fq, ln] = q.split(':');

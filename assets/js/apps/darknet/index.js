@@ -31,10 +31,11 @@ function getDarkChildren(path) {
 export function mountDarknet() {
   const root = document.getElementById('view-darknet');
   if (!root) return;
-  // Check if already entered via flag
-  if (state.hasFlag('dark_entered')) {
-    darkViewMode = 'files';
-    darkEntered = true;
+  // Always start with SECRET page when triggered via intranet search, even if already entered
+  // The check for dark_entered is only for direct view switch, not for search trigger
+  // For normal mount (via taskbar), show files if already entered, otherwise secret
+  if (state.hasFlag('dark_entered') && darkViewMode !== 'secret') {
+    // Keep files view for direct navigation, but search trigger will force secret
   }
   render();
 }
@@ -43,16 +44,17 @@ function render() {
   const root = document.getElementById('view-darknet');
   if (!root) return;
   if (darkViewMode === 'secret') {
+    const isSimple = darkIsSimplePortal;
     root.innerHTML = `
       <div class="darknet">
+        <button id="darkBackBtn" class="btn" style="position:absolute;top:12px;left:12px;z-index:5">← 返回內網</button>
         <div class="darknet__secret" id="darkSecretView">
-          <div class="darknet__title" id="darkTitle" title="點擊六下進入">SECRET</div>
-          <div class="darknet__subtitle">Nori Intranet · Dark Portal</div>
+          <div class="darknet__title" id="darkTitle" style="cursor:default">SECRET</div>
+          <div class="darknet__subtitle">Keep Quiet · File System</div>
           <div class="darknet__search">
             <span style="color:#722F37">🔍</span>
             <input id="darkSearchInput" placeholder="輸入暗網路徑..." value="" autocomplete="off" readonly />
           </div>
-          <div class="darknet__hint">無點擊不會有反應</div>
         </div>
       </div>
     `;
@@ -92,11 +94,32 @@ function render() {
 function bindSecret() {
   const title = document.getElementById('darkTitle');
   const input = document.getElementById('darkSearchInput');
+  const backBtn = document.getElementById('darkBackBtn');
+  if (backBtn) {
+    backBtn.addEventListener('click', () => {
+      // Return to intranet
+      import('../../ui/dock.js').then(dock => {
+        if (dock.setActiveView) {
+          dock.setActiveView('intranet');
+          localStorage.setItem('cc_active_view', 'intranet');
+        }
+      });
+      darkViewMode = 'secret';
+      darkIsSimplePortal = false;
+      const root = document.getElementById('view-darknet');
+      if (root) root.innerHTML = '';
+    });
+  }
   if (!title) return;
+  title.style.cursor = 'default';
+  // Both simple and true secret look the same (no hover, no shadow, no opacity difference)
+  // Only true secret (with hash) will have click effect (but no visual effect)
+  if (darkIsSimplePortal) {
+    // No click handler for simple portal
+    return;
+  }
   title.addEventListener('click', () => {
     darkClickCount++;
-    title.style.transform = 'scale(0.95)';
-    setTimeout(() => title.style.transform = '', 80);
     if (darkClickTimer) clearTimeout(darkClickTimer);
     darkClickTimer = setTimeout(() => { darkClickCount = 0; }, 2000);
     if (darkClickCount >= 6) {
@@ -283,10 +306,18 @@ function checkCh4(forceExit = false) {
   }
 }
 
-export function triggerDarknetFromIntranet() {
+let darkIsSimplePortal = false;
+export function triggerDarknetFromIntranet(opts = {}) {
+  // Entry closed after 0043 removal — block secret page entirely
+  if (state.hasFlag('ch1_0043_committed') && !state.hasFlag('ch1_revert_done')) return;
   // Called when intranet detects dark web URL
   const root = document.getElementById('view-darknet');
   if (!root) return;
+  // Whether this is simple portal without hash (title should have no effect)
+  darkIsSimplePortal = !!opts.simple;
+  // Always go to SECRET page first, even if already entered (per latest requirement)
+  darkViewMode = 'secret';
+  darkClickCount = 0;
   // Switch to darknet view
   import('../../ui/dock.js').then(dock => {
     if (dock.setActiveView) {
@@ -294,8 +325,6 @@ export function triggerDarknetFromIntranet() {
       localStorage.setItem('cc_active_view', 'darknet');
     }
   });
-  darkViewMode = 'secret';
-  darkClickCount = 0;
   mountDarknet();
 }
 

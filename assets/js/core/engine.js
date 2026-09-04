@@ -30,7 +30,7 @@ const puzzles = [
   {
     id: 'ch1_read_billing_service',
     chapter: 1,
-    check: () => state.get('discoveredFiles')?.includes('/workspace/src/billing/service.js'),
+    check: () => state.get('discoveredFiles')?.includes('/customer-portal/src/billing/service.js'),
     reward: { evidence: { id: 'e001b', title: '計費模組原始碼', chapter: 1, type: 'code' } },
     title: '閱讀計費模組'
   },
@@ -52,7 +52,7 @@ const puzzles = [
   {
     id: 'ch2_read_env_token',
     chapter: 2,
-    check: () => state.get('discoveredFiles')?.includes('/workspace/.env.example'),
+    check: () => state.get('discoveredFiles')?.includes('/customer-portal/.env.example'),
     reward: { evidence: { id: 'e003b', title: '洩漏的 Token (.env.example)', chapter: 2, type: 'secret' } },
     title: '找到 INTERNAL_PORTAL_TOKEN'
   },
@@ -60,21 +60,21 @@ const puzzles = [
   {
     id: 'ch3_find_crypto_mixer',
     chapter: 3,
-    check: () => state.get('discoveredFiles')?.includes('/workspace/src/payment/mixer.js') || state.hasFlag('found_crypto_mixer'),
+    check: () => state.get('discoveredFiles')?.includes('/customer-portal/src/payment/mixer.js') || state.hasFlag('found_crypto_mixer'),
     reward: { evidence: { id: 'e004', title: '加密混淆器 @shady/crypto-mixer', chapter: 3, type: 'crypto' } },
     title: '發現混淆器依賴'
   },
   {
     id: 'ch3_discover_fee_mapping',
     chapter: 3,
-    check: () => state.get('discoveredFiles')?.includes('/workspace/src/payment/gateway.js') || state.hasFlag('found_fee_mapping'),
+    check: () => state.get('discoveredFiles')?.includes('/customer-portal/src/payment/gateway.js') || state.hasFlag('found_fee_mapping'),
     reward: { evidence: { id: 'e005', title: '手續費即分潤 (feeRate)', chapter: 3, type: 'finance' } },
     title: '揭露手續費分潤'
   },
   {
     id: 'ch3_trace_mixer_config',
     chapter: 3,
-    check: () => state.get('discoveredFiles')?.includes('/workspace/src/payment/cryptoConfig.json') || state.hasFlag('found_mixer_config'),
+    check: () => state.get('discoveredFiles')?.includes('/customer-portal/src/payment/cryptoConfig.json') || state.hasFlag('found_mixer_config'),
     reward: { evidence: { id: 'e006', title: '混幣錢包地址', chapter: 3, type: 'wallet' } },
     title: '追蹤錢包配置'
   },
@@ -82,21 +82,21 @@ const puzzles = [
   {
     id: 'ch4_export_ledger',
     chapter: 4,
-    check: () => state.get('discoveredFiles')?.includes('/workspace/ledger.db') || state.hasFlag('ledger_exported'),
+    check: () => state.get('discoveredFiles')?.includes('/customer-portal/ledger.db') || state.hasFlag('ledger_exported'),
     reward: { evidence: { id: 'e007', title: '帳本 ledger.db', chapter: 4, type: 'db' } },
     title: '匯出帳本'
   },
   {
     id: 'ch4_sql_injection',
     chapter: 4,
-    check: () => state.get('discoveredFiles')?.includes('/workspace/docs/arch.pdf') || state.hasFlag('sql_injected'),
+    check: () => state.get('discoveredFiles')?.includes('/customer-portal/docs/arch.pdf') || state.hasFlag('sql_injected'),
     reward: { evidence: { id: 'e008', title: '架構圖即物流圖', chapter: 4, type: 'sqli' } },
     title: '發現物流路線圖'
   },
   {
     id: 'ch4_find_coordinates',
     chapter: 4,
-    check: () => state.get('discoveredFiles')?.includes('/workspace/data/ledger_export.csv') || state.hasFlag('found_coordinates'),
+    check: () => state.get('discoveredFiles')?.includes('/customer-portal/data/ledger_export.csv') || state.hasFlag('found_coordinates'),
     reward: { evidence: { id: 'e009', title: '交易座標與物流單號', chapter: 4, type: 'geo' } },
     title: '發現座標'
   },

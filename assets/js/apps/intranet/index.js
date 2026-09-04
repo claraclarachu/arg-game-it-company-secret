@@ -1,4 +1,5 @@
 import { vfs } from '../../core/vfs.js';
+import { state } from '../../core/state.js';
 import { escapeHtml } from '../../utils/helpers.js';
 import { triggerDarknetFromIntranet } from '../darknet/index.js';
 
@@ -44,6 +45,7 @@ export function mountIntranet() {
         <div class="intranet__search">
           <span aria-hidden="true">🔍</span>
           <input id="intraSearch" class="intranet__search-input" placeholder="搜尋內網檔案名稱或內容" />
+          <button id="intraSearchBtn" class="btn primary" style="padding:6px 12px;flex-shrink:0">搜尋</button>
         </div>
       </div>
 
@@ -76,25 +78,67 @@ export function mountIntranet() {
 }
 
 function bindIntranet() {
-  document.getElementById('intraSearch')?.addEventListener('input', e => {
-    const val = e.target.value.trim();
-    // Dark web entrance: full URL
-    if (val === 'https://nori-intranet.internal/portal?hash=f665a7117959b667b7f283eaebf69cae') {
-      triggerDarknetFromIntranet();
+  // Use legacyRoutes for route reconstruction (internalPathDomain from registry, hash from legacy)
+  const darkDomain = vfs.internalPathDomain || 'https://nori-intranet/internal/portal?';
+  const darkHash = vfs.getLegacyRoute ? (vfs.getLegacyRoute('nori-portal-2023')?._hash || 'f665a7117959b667b7f283eaebf69cae') : 'f665a7117959b667b7f283eaebf69cae';
+  const darkFullUrl = darkDomain + 'hash=' + darkHash;
+  const darkPortalSimple = 'https://nori-intranet/internal/portal';
+  function isDarkUrl(val) {
+    if (!val) return false;
+    const v = val.trim();
+    // Only the full hash URL triggers dark web; simple portal without hash should NOT trigger
+    if (v === darkFullUrl) return true;
+    if (v.includes('hash=' + darkHash) && v.includes('nori-intranet/internal/portal')) {
+      const route = vfs.getLegacyRoute ? vfs.getLegacyRoute('nori-portal-2023') : null;
+      if (route && route.domain === darkDomain) return true;
+      return v === darkFullUrl;
+    }
+    return false;
+  }
+  function handleSearchTrigger() {
+    const input = document.getElementById('intraSearch');
+    const val = input ? input.value.trim() : '';
+    const isSimple = val === darkPortalSimple || val === darkPortalSimple + '/' || (val.includes('nori-intranet/internal/portal') && !val.includes('hash='));
+    const isFull = isDarkUrl(val);
+    const isEntryClosed = state.hasFlag('ch1_0043_committed') && !state.hasFlag('ch1_revert_done');
+    if (isEntryClosed && (isSimple || isFull)) {
+      // Entry closed after 0043 removal — secret page should not be displayed, treat as normal search (no darknet)
+      searchQuery = val.toLowerCase();
+      renderMain();
+      // Optional subtle hint: show that portal is closed (not triggered)
       return;
     }
-    searchQuery = val.toLowerCase();
-    renderMain();
-  });
-  document.getElementById('intraSearch')?.addEventListener('keydown', e => {
-    if (e.key === 'Enter') {
-      const val = e.target.value.trim();
-      if (val === 'https://nori-intranet.internal/portal?hash=f665a7117959b667b7f283eaebf69cae') {
-        e.preventDefault();
-        triggerDarknetFromIntranet();
+    if (isSimple) {
+      // Simple portal without hash: go to SECRET page but title has no effect
+      triggerDarknetFromIntranet({ simple: true });
+      return;
+    }
+    if (isFull) {
+      const hashMatch = val.match(/hash=([a-f0-9]{32})/i);
+      const hash = hashMatch ? hashMatch[1] : darkHash;
+      if (vfs.tryAccessPortal && vfs.tryAccessPortal({ hash })) {
+        triggerDarknetFromIntranet({ simple: false });
+        return;
+      } else if (val === darkFullUrl) {
+        // If entry not closed, fallback still triggers (for legacy support), but blocked above if closed
+        triggerDarknetFromIntranet({ simple: false });
+        return;
       }
     }
+    // Normal search: display files matching search
+    searchQuery = val.toLowerCase();
+    renderMain();
+  }
+  // Only trigger search on button click or Enter, not on input (per latest spec: typing without click should remain unchange)
+  document.getElementById('intraSearchBtn')?.addEventListener('click', handleSearchTrigger);
+  document.getElementById('intraSearch')?.addEventListener('keydown', e => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleSearchTrigger();
+    }
   });
+  // Input without Search click should remain unchange (no file filtering)
+  // So we intentionally do NOT update searchQuery on input
   document.getElementById('intraPreviewClose')?.addEventListener('click', closePreview);
   document.getElementById('intraPreview')?.addEventListener('click', e => {
     if (e.target.id === 'intraPreview') closePreview();
@@ -155,7 +199,7 @@ function renderNav() {
     </div>`;
   }).join('') + `
     <div class="intra-nav__hint small muted" style="padding:10px 12px;border-top:1px solid var(--border);margin-top:8px">
-      點擊資料夾瀏覽<br/>點擊檔案預覽內容<br/>客戶資料夾受保護，僅顯示提示
+      點擊資料夾瀏覽<br/>點擊檔案預覽內容<br/>客戶資料夾受保護，請向管理員申請讀取權限
     </div>
   `;
   el.querySelectorAll('.intra-nav__item').forEach(n => {

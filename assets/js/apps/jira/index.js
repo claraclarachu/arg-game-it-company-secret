@@ -345,15 +345,17 @@ export function addTicket0043() {
   if (tickets.some(t => t.key === 'INV-2024-0043')) return;
   tickets.push({
     key: 'INV-2024-0043',
-    title: '修復訂單模組一般錯誤',
+    title: '移除內網系統異常網頁的入口',
     status: 'To Do',
     assignee: 'Casey',
     priority: 'Medium',
     points: 2,
     epic: 'Billing',
-    desc: `一般 bug fix，修復前人刪減行導致的顯示異常。\n\n此為普通任務，外觀與日常無異。`,
-    comments: ['Maggie: @Casey 麻煩幫忙修一下'],
-    attachments: [],
+    desc: `【問題描述】使用內網系統時進入到異常網頁，移除不明網頁導向\n\n【復現步驟】\n1. 在內網系統 搜尋欄搜尋 'https://nori-intranet/internal/portal'\n2. 跳轉至異常網頁\n3. 需移除入口`,
+    comments: ['Maggie: @Casey 麻煩幫忙修一下，這個搜尋異常有點煩'],
+    attachments: [
+      { name: 'SearchBar.jsx', type: 'jsx', snippet: '// Legacy filesystem compatibility\nconst legacyRoutes = { archive: "/internal/portal" ... } // No longer used' }
+    ],
     history: [
       { from: '—', to: 'To Do', by: 'Maggie', at: new Date().toISOString().slice(0,10) },
     ],

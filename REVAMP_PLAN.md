@@ -46,8 +46,8 @@
 * `company_public/`、`client_info/`（locked）、`business_plans/`（已改為 `營運研發→原物料→業務→配送→IT`，追加「每個公開配送皆可對應一次秘密運送」引子）、`staff/` 50 人（id 遞增，Casey 2024-07-15 初級開發人員）— 內容維持飲品，無移民。
 
 **暗網（唯一謎題，獨立於正常 vfs）**
-* **入口**：`https://nori-intranet.internal/portal?hash=f665a7117959b667b7f283eaebf69cae`  
-  `hash = md5("companyId=134&year=2023&key=70BTa3A1a13ad4212GHdybJmn")`，`internalPathDomain = https://nori-intranet.internal/portal?`（通用域名，不含 134/2023）。
+* **入口**：`https://nori-intranet/internal/portal?hash=f665a7117959b667b7f283eaebf69cae`  
+  `hash = md5("companyId=134&year=2023&key=70BTa3A1a13ad4212GHdybJmn")`，`internalPathDomain = https://nori-intranet/internal/portal?`（通用域名，不含 134/2023）。
 * **觸發**：玩家在 **正常內網**（`/intranet`）搜尋框輸入完整 url（含 `hash=`）後，會跳轉至**全新暗網內網頁面**（全黑風格，點綴酒紅色 `#722F37` / `#8B1A1A`，如 Google 首頁：中央大字 `SECRET`，下方單一 `search input`）。
 * **進入**：無點擊無反應，**僅點擊 `SECRET` 標題六下**才進入暗網檔案系統（界面同內部 VFS，僅 folder 不同）。
 * **暗網檔案系統內容（與正常內網不同 folder）**：
@@ -66,7 +66,7 @@
 | **Ch0 熟悉系統** | 初始 | **維持現狀**：Maggie @Casey `INV-2024-0042`（Vizual → Jira → 修正 `calculateVipPrice` → SCM Commit → Sonar → 自動跳 Jira Done）。WhatUp 固定 `Dev Team` 置頂、`System Alert` 待 Ch1 用。 | `ch0_vip_fixed, onboarding_done` | 無需改動 |
 | **Ch1 關於老闆** | Ch0 完成 | **Event1**：`WhatUp` `Nori all staff` 群 Sawyer 發「Lobby 大樹擋災勿觸」。<br>**Event2**：Maggie 指派 `INV-2024-0043`（**普通 bug fix，內容留空，後續補**，外觀與日常無異），玩家改 code 並 `Commit` **5 秒後**才觸發 `System Alert` 每 15s 警告，Boss 在 `Dev Team` 急問，Maggie 指向 0043，5s 後 Sawyer 私聊 Casey 要求 `revert`，Casey commit 後 `System Alert` 發 `✅ 系統健康` 並停止。 | `ch1_tree_seen, ch1_system_down, ch1_revert_done` | Jira 票 0043 留空，WhatUp 定時器 5s 延遲 + 15s 循環 |
 | **Ch2 自由探索** | Ch1 完成 | 無事件，開放搜尋 `Sawyer Choi` / `Choi Tsz Yeung` 看 Blog/作文/車禍新聞，及 `Nori all staff` 2023 六合彩謊言紀錄。 | — | 僅文案，不經 vfs |
-| **Ch3 深入追查（唯一謎題）** | 自由探索 | **核心謎題**：找回暗網入口。<br>1. **提示僅藏於** `Vizual` 的 `Git Graph / git log -p`（`2023-2024` 間刪除 `generateSecretPath` 的 commit，`diff` 顯示 `md5(companyId+year+key)` 且 `key=70BTa3A1a13ad4212GHdybJmn`、`md5 key` 在 `.env.example`，`companyId/year` 僅 `redis.get` 不暴露 134/2023）與 **`Jira 歷史單`**（某 Done 票描述或註解內記載「點擊 SECRET 標題六下才會進入新的 file system」）。**不藏於搜尋引擎 `visual-studio` 或 `jira` 附件搜尋**。<br>2. 玩家需在 **正常內網** 搜尋框輸入完整暗網 url `https://nori-intranet.internal/portal?hash=f665a7117959b667b7f283eaebf69cae` → 跳轉全黑酒紅 `SECRET` 頁 → 點擊標題六下 → 進入暗網檔案系統。 | `ch3_entered_secret` | 需產生 `internalPathDomain`、`gitGraphCommits` 植入、`jira` 歷史票加註 |
+| **Ch3 深入追查（唯一謎題）** | 自由探索 | **核心謎題**：找回暗網入口。<br>1. **提示僅藏於** `Vizual` 的 `Git Graph / git log -p`（`2023-2024` 間刪除 `generateSecretPath` 的 commit，`diff` 顯示 `md5(companyId+year+key)` 且 `key=70BTa3A1a13ad4212GHdybJmn`、`md5 key` 在 `.env.example`，`companyId/year` 僅 `redis.get` 不暴露 134/2023）與 **`Jira 歷史單`**（某 Done 票描述或註解內記載「點擊 SECRET 標題六下才會進入新的 file system」）。**不藏於搜尋引擎 `visual-studio` 或 `jira` 附件搜尋**。<br>2. 玩家需在 **正常內網** 搜尋框輸入完整暗網 url `https://nori-intranet/internal/portal?hash=f665a7117959b667b7f283eaebf69cae` → 跳轉全黑酒紅 `SECRET` 頁 → 點擊標題六下 → 進入暗網檔案系統。 | `ch3_entered_secret` | 需產生 `internalPathDomain`、`gitGraphCommits` 植入、`jira` 歷史票加註 |
 | **Ch4 秘密曝光** | `ch3_entered_secret`（已在暗網） | 在 **暗網檔案系統內**開啟過所有文件和 folder 才算完成。`engine.js` 輪詢 `discoveredDarkFiles.size >= darkFileRegistry.size` 設 `ch4_all_opened`，隨後自動**退出暗網**（返回正常內網），並觸發 Ch5。 | `ch4_all_opened` | 旗標僅在暗網內計算，不在 Vizual |
 | **Ch5 寄信抉擇** | `ch4_all_opened` 且已退出暗網 | 彈 `Send Mail dialog`（`index.html:dialog#mailDialog`）：下拉 `標題` → `Report/Coperation/Resign`，`To` 自動切 `DEA / Sawyer / Sawyer`，內容 `textarea` 任意，**含「暫時退出」按鈕**（關閉 dialog，不寫 `endings`）。玩家可透過 `app bar 最後一個 app` **Email**（`icon: public/icon/mail.svg`）重新打開。**此 Email app 僅在 `ch5` 觸發後且退出寄信頁面後才顯示於 app bar**（`dock.js` 動態 `isUnlocked` 或 `state.flag('ch5_triggered')` 控制）。按 `Send` 依選擇寫 `endings[]`。 | `endings:['report'|'cooperate'|'resign'], ch5_triggered` | 需新增 `mail.js` + `dock` 條件渲染 |
 | **關機結局** | 隨時（`taskbar__start`） | 點擊 `Windows` 圖示 → `Start Menu`（`關機/登出/重新開機` 同行為 `handleShutdown`）。<br>• **任何時候 logout 且 `endings` 為空** → **Ending 1** `flee`（翌日記錄被清）。<br>• **Ch5 後選擇 logout 且已集齊暗網證據** → **Ending 5 fried**（特殊）。<br>• 若 `endings` 已選 → 對應 **Ending 2 cooperate / 3 report / 4 resign**。<br>• 未集齊 + logout 仍為 Ending 1（Ending 5 僅 Ch5 後）。 | `endings` + `shutdown` | 見 §6 |
@@ -76,7 +76,7 @@
 ## 5. 秘密路徑與入口規格（唯一謎題）
 
 * **公式**：`hash = md5("companyId=134&year=2023&key=70BTa3A1a13ad4212GHdybJmn") = f665a7117959b667b7f283eaebf69cae`（已給定，實作反向驗證）。
-* **域名**：`https://nori-intranet.internal/portal?`（通用，不含 134/2023），完整 `https://nori-intranet.internal/portal?hash=f665a7117959b667b7f283eaebf69cae`。
+* **域名**：`https://nori-intranet/internal/portal?`（通用，不含 134/2023），完整 `https://nori-intranet/internal/portal?hash=f665a7117959b667b7f283eaebf69cae`。
 * **觸發位置**：**僅正常內網**搜尋框（`#intranetSearch` 或暗網跳轉前的內網搜尋），**不從 Vizual Studio Code**（移除原 `vsSearchInput` 的 `420.69` 判定與 `tryAccessPortal({amount})` 分支）。
 * **Git 痕跡**：`vscode/index.js:gitGraphCommits` 新增 `2023-11-20` `author:dev-chen` `msg: refactor: simplify portal auth`，`diff`：
   ```diff

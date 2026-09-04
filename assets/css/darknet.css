@@ -28,17 +28,13 @@
   font-weight:800;
   letter-spacing:12px;
   color:#fff;
-  text-shadow:0 0 20px rgba(114,47,55,0.6);
-  cursor:pointer;
   user-select:none;
-  transition:transform 0.1s, text-shadow 0.2s;
   font-family:var(--font-mono);
+  position:relative;
+  z-index:10;
+  pointer-events:auto;
+  padding:8px 16px;
 }
-.darknet__title:hover{
-  transform:scale(1.02);
-  text-shadow:0 0 30px rgba(114,47,55,0.9);
-}
-.darknet__title:active{ transform:scale(0.98); }
 .darknet__subtitle{
   font-size:13px;
   color:#8b6a6e;

@@ -10,8 +10,8 @@ const webIndex = [
 
 
 
-  { title: 'reconcile.py 執行日誌', url: 'file:///workspace/scripts/reconcile.py', snippet: '對帳腳本使用 sqlite3 查詢 GROUP BY code，輸出 COCOA/BEAN 總額。', type: 'web', image: null },
-  { title: 'OrderService.java — Java 分潤邏輯', url: 'file:///workspace/src/main/java/com/acme/OrderService.java', snippet: 'feeRate switch：cocoa 0.15, bean 0.22, leaf 0.12, crystal 0.30。', type: 'academic', image: null },
+  { title: 'reconcile.py 執行日誌', url: 'file:///customer-portal/scripts/reconcile.py', snippet: '對帳腳本使用 sqlite3 查詢 GROUP BY code，輸出 COCOA/BEAN 總額。', type: 'web', image: null },
+  { title: 'OrderService.java — Java 分潤邏輯', url: 'file:///customer-portal/src/main/java/com/acme/OrderService.java', snippet: 'feeRate switch：cocoa 0.15, bean 0.22, leaf 0.12, crystal 0.30。', type: 'academic', image: null },
   { title: 'Sawyer Choi — 2001-10-18', url: 'https://sawyer-blog.example/2001-10-18', snippet: '2001-10-18\n\n今天和好多朋友一起玩，大家都玩得很開心。\n\n我把自己的食物分給大家吃，他們吃完都笑得很開心。我覺得只要大家在一起，好像什麼都很好玩。朋友們都說我很好笑，我也喜歡看他們笑。\n\n回家的時候，我把今天和朋友玩的事情告訴爸爸媽媽。他們聽完也很開心，還一直問我今天跟誰一起玩、玩了什麼。\n\n今天真的很好玩，我希望明天也可以和大家一起玩。 — Sawyer Choi / Choi Tsz Yeung 蔡梓掦', type: 'web', image: null },
   { title: 'Sawyer Choi — 2003-04-27', url: 'https://sawyer-blog.example/2003-04-27', snippet: '2003-04-27\n\n今天上課的時候，我拿同學的眼鏡來玩，圍繞班房一直跑假裝不會再還他，老師看到了，叫住我，問我是不是在欺負同學，還在我的手冊上寫了不好的評語。\n\n我覺得很難過。\n\n更讓我難過的是，那個同學一直什麼都沒有說。我不知道他為什麼不幫我，他不喜歡這樣嗎？但我也沒有傷害到他吧。\n\n晚上吃飯的時候，爸爸媽媽問我老師為什麼會在手冊上這樣寫，我什麼都沒有說。只是眼淚突然掉了一滴在桌上。\n\n他們沒有再問我，只是拿了一包檸檬茶給我。這是我小時候很喜歡喝的東西。\n\n可是現在我覺得它太甜了，已經不太想喝了。\n\n只是爸爸媽媽好像還不知道。他們大概還以為，我一直都很喜歡。 — Sawyer Choi / Choi Tsz Yeung 蔡梓掦', type: 'web', image: null },
   { title: 'Sawyer Choi — 2004-11-13', url: 'https://sawyer-blog.example/2004-11-13', snippet: '2004-11-13\n\n今天和表妹一起玩的時候，我不小心戳到了她的眼睛。\n\n我馬上去看她有沒有受傷，也一直看看她的眼睛有沒有怎麼樣。可是她還是跑去她爸爸那裏，一直說是我弄到她的眼睛。\n\n這時所有大人都看著我，大家都覺得是我的錯。\n\n可是我不知道要說什麼。\n\n我那一刻腦袋裏一片空白。連爸爸媽媽也沒有站在我這邊，一直在問我為什麼要這樣做，我只好一直站在那裏。\n\n那些大人的眼神，讓我覺得很不舒服。\n\n其實，這已經不是第一次有這種感覺了。\n\n（2020 年的 Sawyer 留言）\n現在回頭看，我想那時候如果我懂得先說一句「對不起」，可能事情就會簡單很多。那時候的我，好像完全沒有想到道歉會有這麼大的作用。 — Sawyer Choi / Choi Tsz Yeung 蔡梓掦', type: 'web', image: null },
@@ -269,6 +269,24 @@ function doSearch(q) {
   const raw = (q || '').trim();
   if (!raw) return;
   lastQuery = raw;
+  // Hash priority over MD5: if query contains dark web hash, handle as portal (but remind to use intranet)
+  if (raw.includes('hash=')) {
+    if (raw.includes('f665a7117959b667b7f283eaebf69cae')) {
+      const c = document.getElementById('searchResults');
+      if (c) {
+        // Show hint that dark web URL should be entered in normal intranet, not browser search
+        showResultsView();
+        c.innerHTML = `<div class="card" style="padding:16px"><div class="small muted">此為暗網路徑的 hash，請至 <b>正常內網</b> 搜尋框輸入完整 URL：<br><code style="word-break:break-all">https://nori-intranet/internal/portal?hash=f665a7117959b667b7f283eaebf69cae</code><br><br>提示：可在 Vizual Studio Code 的 Git Graph 找到 <code>generateSecretPath</code> 歷史與 <code>.env.example</code> 的 key，自行組合 md5。</div></div>`;
+        // Still push to history and hide md5 tool
+        const md5C = document.getElementById('md5Tool');
+        if (md5C) { md5C.style.display = 'none'; md5C.innerHTML = ''; }
+        state.push('searchHistory', { q: raw, at: new Date().toISOString() });
+        renderHistory();
+        return;
+      }
+    }
+    // For other hash queries, treat as normal search (don't trigger md5 tool)
+  }
   // MD5 tool: show when query contains md5 — hide history/trends/portal like entering other pages
   const md5Container = document.getElementById('md5Tool');
   if (isMD5Query(raw)) {
@@ -354,7 +372,7 @@ function doSearch(q) {
     const idx = Number(el.dataset.open);
     const item = lastResults[idx];
     if (!item) return;
-    if (item.url.startsWith('file://') || item.url.startsWith('/workspace')) {
+    if (item.url.startsWith('file://') || item.url.startsWith('/customer-portal')) {
       const p = item.url.replace('file://','');
       if (vfs.exists(p)) { state.setFlag('found_code_map', true); }
       // also dispatch event for VSCode integration
@@ -394,7 +412,7 @@ function openDetail(idx) {
   // try to get full content if it's a VFS file
   let fullContent = '';
   let vfsPath = null;
-  if (item.url.startsWith('/workspace') || item.url.startsWith('file://')) {
+  if (item.url.startsWith('/customer-portal') || item.url.startsWith('file://')) {
     vfsPath = item.url.replace('file://','');
     const file = vfs.getFile(vfsPath);
     if (file && typeof file.content === 'string') {
@@ -408,7 +426,7 @@ function openDetail(idx) {
     if (file && typeof file.content === 'string') fullContent = file.content;
   }
   // if it's a webIndex item that maps to a VFS file via title, try lookup
-  if (!fullContent && item.title.startsWith('/workspace')) {
+  if (!fullContent && item.title.startsWith('/customer-portal')) {
     const file = vfs.getFile(item.title);
     if (file && typeof file.content === 'string') fullContent = file.content;
   }

@@ -116,6 +116,10 @@ let infoOpen = false;
 let msgSearch = '';
 let sidebarTab = 'chat'; // chat | account
 
+// Sawyer revert forced dialogue sequence (ch1)
+let sawyerSeq = 0; // 0 idle, 1 wait first send (long text), 2 typing, 3 wait second send ("但是"), 4 done unlocked
+let sawyerSeqLocked = false;
+
 export function openChat(id) {
   const exists = chats.some(c => c.id === id);
   if (!exists) return;
@@ -224,8 +228,16 @@ function getFilteredChats() {
   if (listTab === 'unread') out = out.filter(c => c.unread > 0 && isUnlocked(c.id));
   else if (listTab === 'archived') out = out.filter(c => c.archived);
   else out = out.filter(c => !c.archived);
-  // pinned first
-  out.sort((a,b) => (b.pinned - a.pinned) || (b.unread - a.unread));
+  // fixed order: Nori全體 > Dev Team > Boss Sawyer > System Alert > Backend
+  const fixedOrder = ['nori-all', 'dev-team', 'sawyer', 'system-alert', 'backend-team'];
+  out.sort((a,b) => {
+    const ai = fixedOrder.indexOf(a.id);
+    const bi = fixedOrder.indexOf(b.id);
+    const aRank = ai === -1 ? 999 : ai;
+    const bRank = bi === -1 ? 999 : bi;
+    if (aRank !== bRank) return aRank - bRank;
+    return 0;
+  });
   return out;
 }
 
@@ -343,17 +355,27 @@ function renderChat(id) {
         <div class="wa__day">${day}</div>
         ${arr.map(m => bubbleHtml(m, c)).join('')}
       `).join('')}
+      ${id==='sawyer' && sawyerSeq===2 ? `<div class="wa__msg-row other" id="sawyerTyping"><div class="wa__msg-avatar" style="background:${getAvatarColor('Sawyer')}">S</div><div class="bubble other"><span class="small muted">輸入中...</span></div></div>` : ''}
     </div>
-    <div class="wa__composer">
+    ${(() => {
+      let composerValue = '';
+      let composerLocked = false;
+      if (id === 'sawyer') {
+        if (sawyerSeq === 1) { composerValue = "但是我查過這段code已經沒在用才對，所以不是這個問題影響的啊"; composerLocked = true; }
+        else if (sawyerSeq === 2) { composerValue = ""; composerLocked = true; }
+        else if (sawyerSeq === 3) { composerValue = "但是"; composerLocked = true; }
+      }
+      return `<div class="wa__composer">
       <button class="wa__iconbtn" title="附件" aria-label="附件">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/></svg>
       </button>
-      <input id="waComposerInput" class="input" placeholder="輸入訊息" style="flex:1" />
+      <input id="waComposerInput" class="input" placeholder="輸入訊息" style="flex:1" value="${escapeHtml(composerValue)}" ${composerLocked ? 'readonly disabled' : ''} />
       <button class="btn primary" id="waSendBtn">送出</button>
       <button class="wa__iconbtn" title="語音" aria-label="語音">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 10a7 7 0 0014 0"/><path d="M12 14v4"/><path d="M8 18h8"/></svg>
       </button>
-    </div>
+    </div>`;
+    })()}
     <div class="wa__info ${infoOpen?'open':''}" id="waInfoPanel">
       <div style="padding:12px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
         <b>聯絡資訊</b><button class="btn" id="waInfoClose">關閉</button>
@@ -450,9 +472,81 @@ function bubbleHtml(m, chat) {
 }
 
 function sendMessage(chat) {
+  // Sawyer forced dialogue sequence - handle locked stages
+  if (chat.id === 'sawyer' && sawyerSeq === 1) {
+    const lockedText = "但是我查過這段code已經沒在用才對，所以不是這個問題影響的啊";
+    chat.messages.push({ id: 'm'+Date.now(), from: 'you', text: lockedText, time: '剛剛', read: 'sent', type: 'text' });
+    chat.preview = lockedText;
+    chat.lastTime = '剛剛';
+    chat.unread = 0;
+    sawyerSeq = 2;
+    renderChat(chat.id);
+    renderList();
+    // show typing for 3 sec
+    setTimeout(() => {
+      // remove typing and add Sawyer reply
+      sawyerSeq = 3;
+      chat.messages.push({ id: 'sawyer-reply2-'+Date.now(), from: 'Sawyer', text: '先別管，肯定是這段的影響，已經在影響我工作了', time: '剛剛', read: 'delivered', type: 'text' });
+      chat.preview = 'Sawyer: 先別管，肯定是這段的影響...';
+      chat.unread = (chat.unread||0)+1;
+      window.dispatchEvent(new CustomEvent('whatsapp:newMessage', {detail:{chatId:'sawyer'}}));
+      renderChat(chat.id);
+      renderList();
+      // also show win notification for this Sawyer message
+      const container = document.createElement('div');
+      container.id = 'wa-win-notif-sawyer-seq2-'+Date.now();
+      container.setAttribute('role','alert');
+      container.innerHTML = `<div class="win-notif__app"><img src="/icon/whatsup.svg" alt="WhatUp" width="20" height="20" style="width:20px;height:20px;object-fit:contain" /><span class="win-notif__app-name">WhatUp</span><span class="win-notif__app-sub">Sawyer</span><button class="win-notif__close" aria-label="關閉">✕</button></div><div class="win-notif__body"><div class="win-notif__avatar" style="background:linear-gradient(135deg, #722F37, #8B1A1A)">S</div><div class="win-notif__text"><div class="win-notif__sender">Sawyer</div><div class="win-notif__msg">先別管，肯定是這段的影響，已經在影響我工作了</div><div class="win-notif__time">剛剛</div></div></div><div class="win-notif__progress" style="animation: winNotifShrink 4000ms linear forwards"></div>`;
+      container.style.cssText = 'position:fixed;right:16px;bottom:60px;width:360px;background:#2d2d2d;color:#f0f0f0;border:1px solid rgba(255,255,255,.12);border-radius:8px;box-shadow:0 8px 28px rgba(0,0,0,.45);z-index:1100;overflow:hidden;cursor:pointer;opacity:1;transform:none;';
+      container.addEventListener('click', (e)=>{ if(e.target.closest('.win-notif__close')) return; container.remove(); import('../../ui/dock.js').then(d=>{ if(d.setActiveView){d.setActiveView('whatsapp'); localStorage.setItem('cc_active_view','whatsapp');} }); openChat('sawyer'); });
+      container.querySelector('.win-notif__close')?.addEventListener('click', e=>{ e.stopPropagation(); container.remove(); });
+      document.body.appendChild(container);
+      setTimeout(()=>container.remove(),4000);
+    }, 3000);
+    // keep win notification for first Sawyer typing? we already show typing via messages
+    return;
+  }
+  if (chat.id === 'sawyer' && sawyerSeq === 2) {
+    // typing in progress, block
+    return;
+  }
+  if (chat.id === 'sawyer' && sawyerSeq === 3) {
+    const lockedText = "但是";
+    chat.messages.push({ id: 'm'+Date.now(), from: 'you', text: lockedText, time: '剛剛', read: 'sent', type: 'text' });
+    chat.preview = lockedText;
+    chat.lastTime = '剛剛';
+    chat.unread = 0;
+    renderChat(chat.id);
+    renderList();
+    // Sawyer immediately sends 趕快revert！
+    setTimeout(() => {
+      chat.messages.push({ id: 'sawyer-reply3-'+Date.now(), from: 'Sawyer', text: '趕快revert！', time: '剛剛', read: 'delivered', type: 'text' });
+      chat.preview = 'Sawyer: 趕快revert！';
+      chat.unread = (chat.unread||0)+1;
+      window.dispatchEvent(new CustomEvent('whatsapp:newMessage', {detail:{chatId:'sawyer'}}));
+      sawyerSeq = 4;
+      sawyerSeqLocked = false;
+      renderChat(chat.id);
+      renderList();
+      const container = document.createElement('div');
+      container.id = 'wa-win-notif-sawyer-seq3-'+Date.now();
+      container.setAttribute('role','alert');
+      container.innerHTML = `<div class="win-notif__app"><img src="/icon/whatsup.svg" alt="WhatUp" width="20" height="20" style="width:20px;height:20px;object-fit:contain" /><span class="win-notif__app-name">WhatUp</span><span class="win-notif__app-sub">Sawyer</span><button class="win-notif__close" aria-label="關閉">✕</button></div><div class="win-notif__body"><div class="wa__msg-avatar" style="background:linear-gradient(135deg, #722F37, #8B1A1A)">S</div><div class="win-notif__text"><div class="win-notif__sender">Sawyer</div><div class="win-notif__msg">趕快revert！</div><div class="win-notif__time">剛剛</div></div></div><div class="win-notif__progress" style="animation: winNotifShrink 4000ms linear forwards"></div>`;
+      // Actually reuse same style as other notifs - correct inner html
+      container.innerHTML = `<div class="win-notif__app"><img src="/icon/whatsup.svg" alt="WhatUp" width="20" height="20" style="width:20px;height:20px;object-fit:contain" /><span class="win-notif__app-name">WhatUp</span><span class="win-notif__app-sub">Sawyer</span><button class="win-notif__close" aria-label="關閉">✕</button></div><div class="win-notif__body"><div class="win-notif__avatar" style="background:linear-gradient(135deg, #722F37, #8B1A1A)">S</div><div class="win-notif__text"><div class="win-notif__sender">Sawyer</div><div class="win-notif__msg">趕快revert！</div><div class="win-notif__time">剛剛</div></div></div><div class="win-notif__progress" style="animation: winNotifShrink 4000ms linear forwards"></div>`;
+      container.style.cssText = 'position:fixed;right:16px;bottom:60px;width:360px;background:#2d2d2d;color:#f0f0f0;border:1px solid rgba(255,255,255,.12);border-radius:8px;box-shadow:0 8px 28px rgba(0,0,0,.45);z-index:1100;overflow:hidden;cursor:pointer;opacity:1;transform:none;';
+      container.addEventListener('click', (e)=>{ if(e.target.closest('.win-notif__close')) return; container.remove(); import('../../ui/dock.js').then(d=>{ if(d.setActiveView){d.setActiveView('whatsapp'); localStorage.setItem('cc_active_view','whatsapp');} }); openChat('sawyer'); });
+      container.querySelector('.win-notif__close')?.addEventListener('click', e=>{ e.stopPropagation(); container.remove(); });
+      document.body.appendChild(container);
+      setTimeout(()=>container.remove(),4000);
+    }, 200);
+    return;
+  }
   const inp = document.getElementById('waComposerInput');
   const val = inp?.value.trim();
   if (!val) return;
+  // Block Sawyer chat after seq 4? allow free send but Sawyer won't answer
+  const isSawyerPostSeq = chat.id === 'sawyer' && sawyerSeq === 4;
   chat.messages.push({ id: 'm'+Date.now(), from: 'you', text: val, time: new Date().toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'}), read: 'sent', type: 'text' });
   chat.preview = val;
   chat.lastTime = '剛剛';
@@ -460,7 +554,8 @@ function sendMessage(chat) {
   inp.value = '';
   renderChat(chat.id);
   renderList();
-  // fake reply after 1s for supplier
+  // fake reply after 1s for supplier - disabled for sawyer after seq 4
+  if (isSawyerPostSeq) return;
   if (chat.id !== 'qa-lee' && Math.random() > 0.5) {
     setTimeout(()=>{
       chat.messages.push({ id: 'r'+Date.now(), from: chat.id === 'backend-team'?'ops':'supplier', text: '收到，後續私聊', time: '剛剛', read: 'delivered', type: 'text' });
@@ -525,6 +620,10 @@ export function triggerCh1Event1() {
     document.body.appendChild(container);
     requestAnimationFrame(() => { container.style.opacity='1'; container.style.transform='none'; });
     setTimeout(() => { container.style.opacity='0'; setTimeout(()=>container.remove(),300); }, 10000);
+    // Auto-trigger Event2 regardless of whether 0042 or nori-all was read
+    setTimeout(() => {
+      if (!ch1Event2Triggered) triggerCh1Event2();
+    }, 10000);
   }, 10000);
 }
 
@@ -607,4 +706,39 @@ function exportChat(chat) {
   a.download = `${chat.id}-chat.txt`;
   a.click();
   URL.revokeObjectURL(url);
+}
+
+export function getChats() { return chats; }
+export function getActiveChatId() { return activeId; }
+export function startSawyerRevertSeq() {
+  if (sawyerSeq !== 0) return;
+  sawyerSeq = 1;
+  // If player is focused on WhatUp (whatsapp view active), show locked input immediately
+  const root = document.getElementById('view-whatsapp');
+  const isWhatsappActive = root && root.classList.contains('active') || localStorage.getItem('cc_active_view') === 'whatsapp';
+  if (root && root.innerHTML) {
+    try { renderChat(activeId); } catch {}
+    try { renderLeftPane(); } catch {}
+  }
+  // Also set flag for tracking
+  try { state.setFlag('sawyer_seq_started', true); } catch {}
+}
+export function getSawyerSeq() { return sawyerSeq; }
+
+// Central listener: when any module pushes a message and dispatches whatsapp:newMessage, re-render list/chat
+if (typeof window !== 'undefined' && !window.__waListenerBound) {
+  window.__waListenerBound = true;
+  window.addEventListener('whatsapp:newMessage', (e) => {
+    const root = document.getElementById('view-whatsapp');
+    if (!root || !root.innerHTML) return;
+    try { renderLeftPane(); } catch {}
+    try { renderChat(activeId); } catch {}
+    // Also ensure unread badge updates if not on active chat
+  });
+  window.addEventListener('whatsapp:refresh', () => {
+    const root = document.getElementById('view-whatsapp');
+    if (!root || !root.innerHTML) return;
+    try { renderLeftPane(); } catch {}
+    try { renderChat(activeId); } catch {}
+  });
 }

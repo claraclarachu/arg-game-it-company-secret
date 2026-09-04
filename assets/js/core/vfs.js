@@ -3,6 +3,28 @@ import { events } from './events.js';
 
 const fileRegistry = new Map();
 const darkFileRegistry = new Map();
+// --- Legacy Routes (歷史 route 資訊，供 Git 歷史與 route reconstruction 使用，獨立於 fileRegistry/darkFileRegistry) ---
+const legacyRoutes = new Map();
+// Correct domain per latest spec: https://nori-intranet/internal/portal?hash=... (slash, not .internal)
+const internalPathDomain = 'https://nori-intranet/internal/portal?';
+function registerLegacyRoute(key, entry) { legacyRoutes.set(key, entry); }
+function getLegacyRoute(key) { return legacyRoutes.get(key) || null; }
+function listLegacyRoutes() { return Array.from(legacyRoutes.entries()).map(([k,v])=>({key:k,...v})); }
+function findLegacyRoute(predicate) { for (const [k,v] of legacyRoutes.entries()) { if (predicate(v,k)) return {key:k,...v}; } return null; }
+// 初始化歷史 route（對應 REVAMP_PLAN.md §3-§6，不暴露 134/2023 明文於 VFS，僅透過 redis.get 取得）
+registerLegacyRoute('nori-portal-2023', {
+  domain: internalPathDomain,
+  historical: true,
+  description: 'Nori 內網舊版 portal 路由（2023 前由 generateSecretPath 動態產生）',
+  generateSecretPath: `function generateSecretPath(domain){ const cid = redis.get('companyId'); const y = redis.get('year'); const k='70BTa3A1a13ad4212GHdybJmn'; return domain + 'hash=' + md5(\`companyId=\${cid}&year=\${y}&key=\${k}\`); }`,
+  key: '70BTa3A1a13ad4212GHdybJmn',
+  // 供重建時參考的上下文（不直接暴露明文，僅註記來源）
+  companyIdSource: "redis.get('companyId')",
+  yearSource: "redis.get('year')",
+  // 完整 hash 僅供內部驗證，不寫入一般 VFS 搜尋
+  _hash: 'f665a7117959b667b7f283eaebf69cae',
+  _fullUrl: 'https://nori-intranet/internal/portal?hash=f665a7117959b667b7f283eaebf69cae'
+});
 function registerDarkFile(path, entry) { darkFileRegistry.set(path, entry); }
 function getDarkFile(path) { return darkFileRegistry.get(path) || null; }
 function listDarkFiles(prefix = '/') { const out = []; for (const [p, entry] of darkFileRegistry.entries()) { if (p.startsWith(prefix)) out.push({ path: p, ...entry }); } return out.sort((a,b)=>a.path.localeCompare(b.path)); }
@@ -99,14 +121,14 @@ function readFile(path) {
   }
   state.discoverFile(path);
   // auto flags for Phase 6 progression
-  if (path === '/workspace/src/payment/mixer.js') state.setFlag('found_crypto_mixer', true);
-  if (path === '/workspace/src/payment/gateway.js') state.setFlag('found_fee_mapping', true);
-  if (path === '/workspace/src/payment/cryptoConfig.json') state.setFlag('found_mixer_config', true);
-  if (path === '/workspace/ledger.db') state.setFlag('ledger_exported', true);
-  if (path === '/workspace/docs/arch.pdf') state.setFlag('sql_injected', true);
-  if (path === '/workspace/data/ledger_export.csv') state.setFlag('found_coordinates', true);
-  if (path === '/workspace/src/main/resources/application.properties') state.setFlag('found_ssh_trace', true);
-  if (path === '/workspace/src/main/java/com/acme/OrderService.java') state.setFlag('found_fee_mapping', true);
+  if (path === '/customer-portal/src/payment/mixer.js') state.setFlag('found_crypto_mixer', true);
+  if (path === '/customer-portal/src/payment/gateway.js') state.setFlag('found_fee_mapping', true);
+  if (path === '/customer-portal/src/payment/cryptoConfig.json') state.setFlag('found_mixer_config', true);
+  if (path === '/customer-portal/ledger.db') state.setFlag('ledger_exported', true);
+  if (path === '/customer-portal/docs/arch.pdf') state.setFlag('sql_injected', true);
+  if (path === '/customer-portal/data/ledger_export.csv') state.setFlag('found_coordinates', true);
+  if (path === '/customer-portal/src/main/resources/application.properties') state.setFlag('found_ssh_trace', true);
+  if (path === '/customer-portal/src/main/java/com/acme/OrderService.java') state.setFlag('found_fee_mapping', true);
   events.emit('vfs:read', path);
   return entry.content;
 }
@@ -134,11 +156,17 @@ function snippet(content, q) {
 }
 
 // ---- Hidden route / portal access helpers ----
+function isPortalEntryClosed() {
+  // After INV-2024-0043 removal, entry is closed until reverted
+  return state.hasFlag('ch1_0043_committed') && !state.hasFlag('ch1_revert_done');
+}
 function canAccessPortal() {
+  if (isPortalEntryClosed()) return false;
   return state.hasFlag('hidden_portal_accessed');
 }
 
 function tryAccessPortal(trigger) {
+  if (isPortalEntryClosed()) return false;
   // 2024 已移除 420.69 判定，現僅保留 hash 驗證（由暗網進入點使用）
   // trigger: { hash, path, headers }
   if (trigger && trigger.hash === 'f665a7117959b667b7f283eaebf69cae') {
@@ -151,6 +179,7 @@ function tryAccessPortal(trigger) {
 }
 
 function bypassPortalAuth(headers) {
+  if (isPortalEntryClosed()) return false;
   // headers must contain X-Internal-Token: cocoa-beans-2024
   const token = headers?.['X-Internal-Token'] || headers?.['x-internal-token'];
   if (token === 'cocoa-beans-2024') {
@@ -170,290 +199,332 @@ function bypassPortalAuth(headers) {
 // 保留 calculateVipPrice 供 INV-2024-0042 單元測試；其餘已重塑為飲品業務
 function seedFiles() {
   // ── 根與說明 ──
-  registerFile('/workspace/package.json', {
+  registerFile('/customer-portal/package.json', {
     content: JSON.stringify({ name: 'nori-drinks-supply', version: '3.5.0', private: true, description: 'Nori 飲品供應 — 招牌冰釀茶酒 / 原物料管理 / 訂單銷售 / 內部系統', scripts: { dev: 'vite', build: 'vite build', test: 'jest', 'db:migrate': 'node scripts/migrate.js' }, dependencies: { vite: '^5.0.0', vue: '^3.4.0' } }, null, 2),
     meta: { lang: 'json' }
   });
-  registerFile('/workspace/README.md', {
+  registerFile('/customer-portal/README.md', {
     content: "# Nori 飲品供應 (Nori Drinks Supply)\n\n> 創辦人 Sawyer · 2019 年創立 · 專注招牌冰釀茶酒 / 葡萄釀造 / 飲品研發\n\n> 內部審核入口: /internal/portal (需 X-Internal-Token) · 原 Acme 計費模組保留作 VIP 價格稽核\n\n## 事業體系\n- 前台官網：飲品一覽、VIP 價格試算、關於 Nori、線上訂購\n- 實驗室研發：營運團隊飲品實驗室（葡萄釀酒、茶葉調配）\n- 原物料管理：茶葉、葡萄等原料庫存與採購\n- 訂單銷售：業務對企業／組織銷售\n- 物流配送：配送團隊直送客戶\n- 內部系統：IT 團隊維運官網與內部管理系統（VIP 價格計算）\n- 支付閘道：gateway.js 統一清算\n\n## 開發\n\n```bash\nnpm install\nnpm run dev   # http://localhost:3000\n```\n環境變數見 `.env.example`\n",
     meta: { lang: 'markdown' }
   });
-  registerFile('/workspace/.env.example', {
+  registerFile('/customer-portal/.env.example', {
     content: `DATABASE_URL=postgres://nori:nori@localhost:5432/nori_drinks\nINTERNAL_PORTAL_TOKEN=cocoa-beans-2024\nABPAY_API_KEY=abpay_test_sk_...\nLALAPAY_MERCHANT_ID=lala_nori_2019\nBANK_ACCOUNT_ESUN=808-123456789012\n# 對應 Acme 時期內部稽核 token，請勿外洩\n`,
     meta: { lang: 'properties' }
   });
-  registerFile('/workspace/.env.nori', {
+  registerFile('/customer-portal/.env.nori', {
     content: `VITE_API_BASE=/api\nVITE_COMPANY_NAME=Nori\nVITE_FOUNDER=Sawyer\nVITE_FOUND_YEAR=2019\n`,
     meta: { lang: 'properties' }
   });
-  registerFile('/workspace/docker-compose.yml', {
+  registerFile('/customer-portal/docker-compose.yml', {
     content: `version: '3.8'\nservices:\n  api:\n    build: ./src/main/java\n    ports: ["8080:8080"]\n    environment:\n      - DATABASE_URL=postgres://nori:nori@db:5432/nori\n  db:\n    image: postgres:15\n    volumes: ["./data:/var/lib/postgresql/data"]\n  web:\n    build: ./src/frontend\n    ports: ["3000:3000"]\n`,
     meta: { lang: 'yaml' }
   });
 
+  // ── 內網檔案系統 UI 建構 (file-system) — 僅建構 UI，資料另存 ──
+  registerFile('/file-system/README.md', {
+    content: `# File System UI (內網檔案系統前端)\n\n此為 Nori 內網檔案系統的前端建構專案，負責「內網」App 的 UI 渲染。\n實際檔案資料存放於後端資料庫，此處僅為前端展示邏輯。`,
+    meta: { lang: 'markdown' }
+  });
+  registerFile('/file-system/package.json', {
+    content: JSON.stringify({ name: 'nori-file-system-ui', version: '1.0.0', private: true, description: 'Nori 內網檔案系統 UI' }, null, 2),
+    meta: { lang: 'json' }
+  });
+  registerFile('/file-system/src/App.jsx', {
+    content: `import SearchBar from './components/SearchBar.jsx';\nimport FileList from './components/FileList.jsx';\nimport Breadcrumb from './components/Breadcrumb.jsx';\nimport Sidebar from './components/Sidebar.jsx';\nimport FilePreview from './components/FilePreview.jsx';\n\nexport default function App(){\n  // File System UI - 模擬內網檔案系統的前端建構\n  // 實際資料存放於後端\n  return (\n    <div className="file-system">\n      <SearchBar />\n      <div className="file-system__body">\n        <Sidebar />\n        <div className="file-system__main">\n          <Breadcrumb />\n          <FileList />\n          <FilePreview />\n        </div>\n      </div>\n    </div>\n  );\n}`,
+    meta: { lang: 'javascript' }
+  });
+  registerFile('/file-system/src/components/SearchBar.jsx', {
+    content: `import { useState } from 'react';\n\n// Legacy filesystem compatibility\n// TODO: remove after migration\n// Filesystem v2 migration completed in 2019, no longer used\nconst legacyRoutes = {\n    archive: "/internal/portal",\n    documents: "/documents"\n};\nfunction resolveLegacyPath(path) {\n    return legacyRoutes[path] || path; // full url = 'https://nori-intranet/internal/portal'\n} \n\nexport default function SearchBar({ onSearch }) {\n  const [query, setQuery] = useState('');\n  // 模擬內網搜尋列邏輯\n  const handleInput = (e) => {\n    const val = e.target.value;\n    setQuery(val);\n    if (onSearch) onSearch(val.toLowerCase());\n  };\n  return (\n    <div className="search-bar">\n      <span>🔍</span>\n      <input value={query} onChange={handleInput} placeholder="搜尋內網檔案名稱或內容" />\n    </div>\n  );\n}`,
+    meta: { lang: 'javascript' }
+  });
+  registerFile('/file-system/src/components/FileList.jsx', {
+    content: `import { useState, useEffect } from 'react';\n\n// 模擬內網檔案列表邏輯\nexport default function FileList({ files, onSelect }) {\n  // 與 Intranet 的 renderFileRows 類似，僅展示 UI\n  return (\n    <div className="file-list">\n      {files.map(f => (\n        <div key={f.path} className="file-row" onClick={() => onSelect(f.path)}>\n          <span>{f.type === 'dir' ? '📁' : '📄'}</span>\n          <span>{f.name}</span>\n        </div>\n      ))}\n    </div>\n  );\n}`,
+    meta: { lang: 'javascript' }
+  });
+  registerFile('/file-system/src/components/Breadcrumb.jsx', {
+    content: `export default function Breadcrumb({ path, onNavigate }) {\n  // 模擬內網麵包屑導覽\n  const parts = path.split('/').filter(Boolean);\n  let acc = '';\n  return (\n    <nav className="breadcrumb">\n      <span onClick={() => onNavigate('/intranet')}>🏠 內網首頁</span>\n      {parts.slice(1).map(p => {\n        acc += '/' + p;\n        return <span key={acc} onClick={() => onNavigate(acc)}>{p}</span>;\n      })}\n    </nav>\n  );\n}`,
+    meta: { lang: 'javascript' }
+  });
+  registerFile('/file-system/src/components/Sidebar.jsx', {
+    content: `export default function Sidebar({ currentPath, onNavigate }) {\n  // 模擬內網側邊導覽\n  const items = [\n    { path: '/intranet', label: '內網首頁', icon: '🏠' },\n    { path: '/intranet/company_public', label: '公司公開資訊', icon: '🏢' },\n    { path: '/intranet/client_info', label: '客戶資料', icon: '🔒' },\n    { path: '/intranet/business_plans', label: '業務計畫', icon: '📊' },\n    { path: '/intranet/staff', label: '員工資料', icon: '👥' },\n  ];\n  return (\n    <nav className="sidebar">\n      {items.map(it => (\n        <div key={it.path} className={currentPath===it.path?'active':''} onClick={() => onNavigate(it.path)}>\n          <span>{it.icon}</span><span>{it.label}</span>\n        </div>\n      ))}\n    </nav>\n  );\n}`,
+    meta: { lang: 'javascript' }
+  });
+  registerFile('/file-system/src/components/FilePreview.jsx', {
+    content: `export default function FilePreview({ file }) {\n  // 模擬內網檔案預覽（支援 CSV 表格、Markdown 等）\n  if (!file) return null;\n  const isCSV = file.path.endsWith('.csv');\n  return (\n    <div className="file-preview">\n      <div className="preview-header">{file.path}</div>\n      {isCSV ? <table><thead><tr>{file.header.map(h => <th>{h}</th>)}</tr></thead></table> : <pre>{file.content.slice(0,8000)}</pre>}\n    </div>\n  );\n}`,
+    meta: { lang: 'javascript' }
+  });
+  registerFile('/file-system/src/utils/helpers.js', {
+    content: `export function escapeHtml(str){ const div=document.createElement('div'); div.textContent=str; return div.innerHTML; }\nexport function formatFileSize(bytes){ return (bytes/1024).toFixed(1)+' KB'; }`,
+    meta: { lang: 'javascript' }
+  });
+  registerFile('/file-system/src/styles/main.css', {
+    content: `/* File System UI - 模擬內網樣式 */\n.file-system{ display:flex; flex-direction:column; flex:1; }\n.file-system__body{ display:flex; flex:1; }\n.sidebar{ width:220px; border-right:1px solid var(--border); }\n.file-list{ flex:1; }`,
+    meta: { lang: 'css' }
+  });
+
   // ── 保留：計費 / 隱藏路由 (ARG 核心) ──
-  registerFile('/workspace/src/billing/service.js', {
+  registerFile('/customer-portal/src/billing/service.js', {
     content: `// billing/service.js - 飲品訂單金額稽核模組 (由 Acme 沿用，現對應 VIP 飲品價格)\nimport { ledger } from './ledger.js';\nimport { cryptoMixer } from '@shady/crypto-mixer'; // 保留：對應 ABPay/LalaPay 混帳路由測試\n\n/**\n * 計算飲品訂單總額 (方案費 + 手續費)\n * BUG-420: 特定金額 rounding 錯誤待修復  INV-2024-0042\n * Nori 備註：此函式同時供前台 VIP 試算與後台對帳使用\n */\nexport function calculateAmount(items, opts = {}) {\n  const subtotal = items.reduce((s, i) => s + i.price * i.qty, 0);\n  const fee = computeFee(subtotal, opts); // 手續費 = 方案分潤 (見 getFeeRate)\n  const total = subtotal + fee;\n  // 隱藏審核入口：QA 回報 420.69 會導向內部 portal (稽核用)\n  if (total === 420.69) {\n    return redirectTo('/internal/portal');\n  }\n  return total;\n}\n\nfunction computeFee(amount, opts) {\n  const feeRate = getFeeRate(opts.vendorId);\n  return Math.round(amount * feeRate * 100) / 100;\n}\n\nfunction getFeeRate(vendorId) {\n  // Nori 對應：飲品系列的隱含服務費率（冰釀茶酒等）\n  // 勿動！聯繫 finance@internal / Sawyer\n  const table = { default: 0.03, cocoa: 0.15, bean: 0.22, leaf: 0.12, crystal: 0.30, planA: 0.08, planB: 0.12, planC: 0.18 };\n  return table[vendorId] || table.default;\n}\n\nfunction redirectTo(path) {\n  return { __redirect: path };\n}\n`,
     meta: { lang: 'javascript' }
   });
-  registerFile('/workspace/src/billing/ledger.js', {
+  registerFile('/customer-portal/src/billing/ledger.js', {
     content: `// ledger.js - 僅內部可見 (Nori 財務稽核 - 飲品對帳)\nexport const ledger = {\n  exportDb: () => '/internal/portal/export?format=sqlite',\n  // 驗證標頭: X-Internal-Token: cocoa-beans-2024\n};\n`,
     meta: { lang: 'javascript' }
   });
-  registerFile('/workspace/src/middleware/auth.js', {
+  registerFile('/customer-portal/src/middleware/auth.js', {
     content: `// middleware/auth.js\nexport function portalAuth(req) {\n  const token = req.headers['X-Internal-Token'];\n  if (token !== process.env.INTERNAL_PORTAL_TOKEN) {\n    return { status: 403, body: 'Forbidden' };\n  }\n  if (!req.headers.referer?.includes('/billing')) {\n    return { status: 403, body: 'Bad referer' };\n  }\n  return { status: 200 };\n}\n`,
     meta: { lang: 'javascript' }
   });
 
   // ── 保留：OrderService + VIP 折扣 (不可刪除) ──
-  registerFile('/workspace/src/main/java/com/acme/OrderService.java', {
+  registerFile('/customer-portal/src/main/java/com/acme/OrderService.java', {
     content: `package com.acme;\npublic class OrderService {\n    // Java: 訂單分潤邏輯與 JS 保持一致 (Nori 飲品費率對應)\n    public double feeRate(String vendorId) {\n        return switch(vendorId) {\n            case "cocoa" -> 0.15;\n            case "bean" -> 0.22;\n            case "leaf" -> 0.12;\n            case "crystal" -> 0.30;\n            case "planA" -> 0.08;\n            case "planB" -> 0.12;\n            case "planC" -> 0.18;\n            default -> 0.03;\n        };\n    }\n\n    /**\n     * VIP 折扣計算 — 目前有 Bug (INV-2024-0042)\n     * 需求: VIP1 90%, VIP2 85%, VIP3 80%, VIP4 75%, VIP5 70%\n     * Nori 會員：VIP 對應客戶等級，忠實客戶折扣\n     */\n    public double calculateVipPrice(double price, int vipLv) {\n        switch(vipLv){\n            case 1: price*=0.95;break;\n            case 2: price*=0.90;break;\n            case 3: price*=0.85;break;\n            case 4: price*=0.80;break;\n            case 5: price*=0.75;break;\n            default:break;\n        }\n        return price;\n    }\n}\n`,
     meta: { lang: 'java' }
   });
 
   // ── Nori 後端 — Spring Boot 主程式 ──
-  registerFile('/workspace/src/main/java/com/nori/NoriApplication.java', {
+  registerFile('/customer-portal/src/main/java/com/nori/NoriApplication.java', {
     content: `package com.nori;\n\nimport org.springframework.boot.SpringApplication;\nimport org.springframework.boot.autoconfigure.SpringBootApplication;\n\n/**\n * Nori 飲品供應 — 啟動類\n * 創辦人 Sawyer 2019 創立\n */\n@SpringBootApplication\npublic class NoriApplication {\n    public static void main(String[] args) {\n        SpringApplication.run(NoriApplication.class, args);\n    }\n}\n`,
     meta: { lang: 'java' }
   });
-  registerFile('/workspace/src/main/java/com/nori/config/SecurityConfig.java', {
+  registerFile('/customer-portal/src/main/java/com/nori/config/SecurityConfig.java', {
     content: `package com.nori.config;\n\nimport org.springframework.context.annotation.Configuration;\nimport org.springframework.security.config.annotation.web.builders.HttpSecurity;\n\n@Configuration\npublic class SecurityConfig {\n    protected void configure(HttpSecurity http) throws Exception {\n        http.authorizeRequests()\n            .antMatchers("/api/drinks/**", "/api/products/**", "/api/about", "/api/price/calc").permitAll()\n            .antMatchers("/api/admin/**").hasRole("STAFF")\n            .and().csrf().disable();\n    }\n}\n`,
     meta: { lang: 'java' }
   });
 
   // ── Drink Product — 飲品產品 ──
-  registerFile('/workspace/src/main/java/com/nori/model/MigrationPlan.java', {
+  registerFile('/customer-portal/src/main/java/com/nori/model/MigrationPlan.java', {
     content: `package com.nori.model;\n\n/** 飲品產品 */\npublic class MigrationPlan {\n    public enum PlanType { PLAN_A, PLAN_B, PLAN_C }\n    private String id;\n    private PlanType type;\n    private String name;\n    private String country; // e.g. 加拿大 / 葡萄牙 / 日本\n    private int durationMonths;\n    private double basePrice; // 未含服務費\n    private String[] benefits;\n    private String[] requirements;\n    // getters/setters ...\n}\n`,
     meta: { lang: 'java' }
   });
-  registerFile('/workspace/src/main/java/com/nori/service/MigrationPlanService.java', {
+  registerFile('/customer-portal/src/main/java/com/nori/service/MigrationPlanService.java', {
     content: `package com.nori.service;\n\nimport com.nori.model.MigrationPlan;\nimport org.springframework.stereotype.Service;\nimport java.util.*;\n\n@Service\npublic class MigrationPlanService {\n    private final Map<String, MigrationPlan> store = new LinkedHashMap<>();\n    public MigrationPlanService() {\n        // 招牌：冰釀茶酒（最暢銷，葡萄＋茶葉）\n        // 葡萄釀造酒：實驗室葡萄釀酒\n        // 水果茶系列：季節水果調配\n        seed();\n    }\n    public List<MigrationPlan> listAll() { return new ArrayList<>(store.values()); }\n    public MigrationPlan get(String id) { return store.get(id); }\n    private void seed() {\n        // 由 data/drinks.json 載入，見 resources/data/drinks.json\n    }\n}\n`,
     meta: { lang: 'java' }
   });
-  registerFile('/workspace/src/main/java/com/nori/controller/MigrationPlanController.java', {
+  registerFile('/customer-portal/src/main/java/com/nori/controller/MigrationPlanController.java', {
     content: `package com.nori.controller;\n\nimport com.nori.model.MigrationPlan;\nimport com.nori.service.MigrationPlanService;\nimport org.springframework.web.bind.annotation.*;\nimport java.util.List;\n\n@RestController\n@RequestMapping("/api/drinks")\npublic class MigrationPlanController {\n    private final MigrationPlanService service;\n    public MigrationPlanController(MigrationPlanService s){ this.service=s; }\n    @GetMapping\n    public List<MigrationPlan> list(){ return service.listAll(); }\n    @GetMapping("/{id}")\n    public MigrationPlan detail(@PathVariable String id){ return service.get(id); }\n}\n`,
     meta: { lang: 'java' }
   });
-  registerFile('/workspace/src/main/resources/data/plans.json', {
+  registerFile('/customer-portal/src/main/resources/data/plans.json', {
     content: JSON.stringify({ drinks: [{ id: 'drink-001', type: 'ICE_TEA_ALCOHOLIC', name: '招牌冰釀茶酒', origin: '台灣高山茶＋葡萄', shelfDays: 180, basePrice: 320, currency: 'TWD', ingredients: ['高山茶葉', '葡萄', '冰糖'], features: ['招牌最暢銷', '冰鎮風味'] }, { id: 'drink-002', type: 'GRAPE_WINE', name: '葡萄釀造酒（實驗室）', origin: '自釀葡萄', shelfDays: 365, basePrice: 850, currency: 'TWD', ingredients: ['葡萄', '酵母'], features: ['實驗室研發', '果香飽滿'] }, { id: 'drink-003', type: 'FRUIT_TEA', name: '季節水果茶', origin: '當季水果', shelfDays: 90, basePrice: 280, currency: 'TWD', ingredients: ['水果', '茶葉'], features: ['清爽', '季節限定'] }] }, null, 2),
     meta: { lang: 'json' }
   });
 
   // ── 價格試算 ──
-  registerFile('/workspace/src/main/java/com/nori/service/PriceCalculatorService.java', {
+  registerFile('/customer-portal/src/main/java/com/nori/service/PriceCalculatorService.java', {
     content: `package com.nori.service;\n\nimport com.acme.OrderService; // 保留 VIP 折扣邏輯\nimport com.nori.model.MigrationPlan;\nimport org.springframework.stereotype.Service;\n\n/**\n * 飲品費用試算：商品費 + 服務費 + VIP 客戶折扣（IT 網頁計算）\n */\n@Service\npublic class PriceCalculatorService {\n    private final OrderService vip = new OrderService();\n    public double calculate(MigrationPlan plan, int vipLevel, int familySize) {\n        double base = plan.getBasePrice();\n        double fee = base * feeRate(plan.getType().name());\n        double subtotal = (base + fee) * familySize;\n        return vip.calculateVipPrice(subtotal, vipLevel); // 沿用 Acme 折扣 (待修 Bug)\n    }\n    private double feeRate(String type){\n        return switch(type){\n            case "PLAN_A" -> 0.08;\n            case "PLAN_B" -> 0.12;\n            case "PLAN_C" -> 0.18;\n            default -> 0.05;\n        };\n    }\n}\n`,
     meta: { lang: 'java' }
   });
-  registerFile('/workspace/src/main/java/com/nori/controller/PriceCalculatorController.java', {
+  registerFile('/customer-portal/src/main/java/com/nori/controller/PriceCalculatorController.java', {
     content: `package com.nori.controller;\n\nimport com.nori.service.PriceCalculatorService;\nimport org.springframework.web.bind.annotation.*;\n\n@RestController\n@RequestMapping("/api/price")\npublic class PriceCalculatorController {\n    private final PriceCalculatorService calc;\n    public PriceCalculatorController(PriceCalculatorService c){ this.calc=c; }\n    @PostMapping("/calc")\n    public java.util.Map<String,Object> calc(@RequestBody java.util.Map<String,Object> body){\n        // body: { planId, vipLevel, familySize }\n        return java.util.Map.of("total", 0); // 由前端試算，後端複核\n    }\n    @GetMapping("/vip-table")\n    public java.util.Map<Integer,String> vipTable(){\n        return java.util.Map.of(1,"90%",2,"85%",3,"80%",4,"75%",5,"70%");\n    }\n}\n`,
     meta: { lang: 'java' }
   });
-  registerFile('/workspace/src/main/java/com/nori/utils/FeeCalculator.java', {
+  registerFile('/customer-portal/src/main/java/com/nori/utils/FeeCalculator.java', {
     content: `package com.nori.utils;\n\n/** 前台共用：與 billing/service.js 一致（飲品 VIP 計算） */\npublic class FeeCalculator {\n    public static double total(double base, String planType, int familySize){\n        double rate = switch(planType){\n            case "planA" -> 0.08; case "planB" -> 0.12; case "planC" -> 0.18; default -> 0.05;\n        };\n        return Math.round((base * (1+rate) * familySize)*100)/100.0;\n    }\n}\n`,
     meta: { lang: 'java' }
   });
 
   // ── 關於 Nori / 創辦人 ──
-  registerFile('/workspace/src/main/java/com/nori/controller/AboutController.java', {
+  registerFile('/customer-portal/src/main/java/com/nori/controller/AboutController.java', {
     content: `package com.nori.controller;\n\nimport org.springframework.web.bind.annotation.GetMapping;\nimport org.springframework.web.bind.annotation.RestController;\nimport java.util.Map;\n\n@RestController\npublic class AboutController {\n    @GetMapping("/api/about")\n    public Map<String,Object> about(){\n        return Map.of(\n            "company","Nori 飲品供應",\n            "founder","Sawyer",\n            "founded",2019,\n            "hq","鴨嘴道135號中央大樓3507室",\n            "mission","用一杯冰釀茶酒，連結人與風味",\n            "team", 50,\n            "products", 12\n        );\n    }\n}\n`,
     meta: { lang: 'java' }
   });
-  registerFile('/workspace/src/main/resources/templates/about.html', {
+  registerFile('/customer-portal/src/main/resources/templates/about.html', {
     content: `<!doctype html>\n<html lang="zh-TW">\n<head><meta charset="utf-8"><title>關於 Nori — Sawyer 2019</title></head>\n<body>\n<h1>關於 Nori</h1>\n<p>創辦人 <strong>Sawyer</strong> 於 2019 年創立 Nori，從實驗室葡萄釀酒起家，現以招牌冰釀茶酒聞名。</p>\n<section>\n<h2>里程碑</h2>\n<ul>\n<li>2019 — 實驗室成立，首釀葡萄釀造酒</li>\n<li>2021 — 招牌冰釀茶酒上市，成為最暢銷商品</li>\n<li>2023 — 擴展至 12 款飲品，團隊達 50 人，服務多家企業客戶</li>\n</ul>\n</section>\n<p>地址：鴨嘴道135號中央大樓3507室 · 統編 12345678</p>\n</body></html>\n`,
     meta: { lang: 'html' }
   });
 
   // ── 訂單 / 客戶 ──
-  registerFile('/workspace/src/main/java/com/nori/model/Customer.java', {
+  registerFile('/customer-portal/src/main/java/com/nori/model/Customer.java', {
     content: `package com.nori.model;\n\npublic class Customer {\n    private String id; // CUS-xxxx\n    private String name;\n    private String passport;\n    private String phone;\n    private String email;\n    private int vipLevel; // 1-5 對應 OrderService.calculateVipPrice\n    private String planId; // plan-a/b/c\n}\n`,
     meta: { lang: 'java' }
   });
-  registerFile('/workspace/src/main/java/com/nori/model/Order.java', {
+  registerFile('/customer-portal/src/main/java/com/nori/model/Order.java', {
     content: `package com.nori.model;\n\nimport java.time.LocalDate;\npublic class Order {\n    private String id; // ORD-2024-xxxx\n    private String customerId;\n    private String planId; // planA/B/C\n    private double basePrice;\n    private double totalPrice; // 含服務費與 VIP 折扣\n    private Payment.PaymentMethod paymentMethod; // BANK_TRANSFER / ABPAY / LALAPAY\n    private String status; // PENDING / PAID / APPROVED / COMPLETED\n    private LocalDate createdAt;\n    private String assignedConsultant; // Sawyer, Maggie...\n}\n`,
     meta: { lang: 'java' }
   });
-  registerFile('/workspace/src/main/java/com/nori/model/Payment.java', {
+  registerFile('/customer-portal/src/main/java/com/nori/model/Payment.java', {
     content: `package com.nori.model;\n\nimport java.time.LocalDateTime;\npublic class Payment {\n    public enum PaymentMethod { BANK_TRANSFER, ABPAY, LALAPAY }\n    private String orderId;\n    private PaymentMethod method;\n    private double amount;\n    private String txId;\n    private String status; // INIT / SUCCESS / FAILED\n    private LocalDateTime paidAt;\n    private String receiptUrl;\n}\n`,
     meta: { lang: 'java' }
   });
-  registerFile('/workspace/src/main/java/com/nori/model/enums/PaymentMethod.java', {
+  registerFile('/customer-portal/src/main/java/com/nori/model/enums/PaymentMethod.java', {
     content: `package com.nori.model.enums;\n\npublic enum PaymentMethod {\n    BANK_TRANSFER("銀行匯款","ESUN 808"),\n    ABPAY("ABPay 電子支付","ABPay"),\n    LALAPAY("LalaPay","LalaPay");\n    private final String label; private final String channel;\n    PaymentMethod(String l,String c){ this.label=l; this.channel=c; }\n}\n`,
     meta: { lang: 'java' }
   });
-  registerFile('/workspace/src/main/java/com/nori/repository/OrderRepository.java', {
+  registerFile('/customer-portal/src/main/java/com/nori/repository/OrderRepository.java', {
     content: `package com.nori.repository;\n\nimport com.nori.model.Order;\nimport org.springframework.data.jpa.repository.JpaRepository;\nimport java.util.List;\npublic interface OrderRepository extends JpaRepository<Order,String> {\n    List<Order> findByCustomerId(String cid);\n    List<Order> findByPlanId(String planId);\n    List<Order> findByStatus(String status);\n    List<Order> findByPaymentMethod(String method);\n}\n`,
     meta: { lang: 'java' }
   });
-  registerFile('/workspace/src/main/java/com/nori/repository/PaymentRepository.java', {
+  registerFile('/customer-portal/src/main/java/com/nori/repository/PaymentRepository.java', {
     content: `package com.nori.repository;\n\nimport com.nori.model.Payment;\nimport org.springframework.data.jpa.repository.JpaRepository;\npublic interface PaymentRepository extends JpaRepository<Payment,String> {}\n`,
     meta: { lang: 'java' }
   });
-  registerFile('/workspace/src/main/java/com/nori/service/NoriOrderService.java', {
+  registerFile('/customer-portal/src/main/java/com/nori/service/NoriOrderService.java', {
     content: `package com.nori.service;\n\nimport com.nori.model.Order;\nimport com.nori.repository.OrderRepository;\nimport org.springframework.stereotype.Service;\nimport java.util.List;\n\n@Service\npublic class NoriOrderService {\n    private final OrderRepository repo;\n    public NoriOrderService(OrderRepository r){ this.repo=r; }\n    public List<Order> query(String status, String planId, String paymentMethod){\n        if(status!=null) return repo.findByStatus(status);\n        if(planId!=null) return repo.findByPlanId(planId);\n        return repo.findAll();\n    }\n    public Order get(String id){ return repo.findById(id).orElse(null); }\n}\n`,
     meta: { lang: 'java' }
   });
-  registerFile('/workspace/src/main/java/com/nori/controller/OrderController.java', {
+  registerFile('/customer-portal/src/main/java/com/nori/controller/OrderController.java', {
     content: `package com.nori.controller;\n\nimport com.nori.model.Order;\nimport com.nori.service.NoriOrderService;\nimport org.springframework.web.bind.annotation.*;\nimport java.util.List;\n\n@RestController\n@RequestMapping("/api/admin/orders")\npublic class OrderController {\n    private final NoriOrderService svc;\n    public OrderController(NoriOrderService s){ this.svc=s; }\n    @GetMapping\n    public List<Order> list(@RequestParam(required=false) String status,\n                            @RequestParam(required=false) String planId,\n                            @RequestParam(required=false) String paymentMethod){\n        return svc.query(status, planId, paymentMethod);\n    }\n    @GetMapping("/{id}")\n    public Order detail(@PathVariable String id){ return svc.get(id); }\n}\n`,
     meta: { lang: 'java' }
   });
 
   // ── 支付 — Bank / ABPay / LalaPay ──
-  registerFile('/workspace/src/main/java/com/nori/service/PaymentService.java', {
+  registerFile('/customer-portal/src/main/java/com/nori/service/PaymentService.java', {
     content: `package com.nori.service;\n\nimport com.nori.model.Payment;\nimport org.springframework.stereotype.Service;\n\n@Service\npublic class PaymentService {\n    public Payment settle(String orderId, Payment.PaymentMethod method, double amount){\n        // 依 method 導向不同閘道：bankTransfer / abPay / lalaPay (見 src/payment/*.js)\n        return new Payment(); // 簡化：實際呼叫 gateway.js\n    }\n    public boolean verifyCallback(String txId, String signature){\n        return true; // 驗簽\n    }\n}\n`,
     meta: { lang: 'java' }
   });
-  registerFile('/workspace/src/main/java/com/nori/controller/PaymentController.java', {
+  registerFile('/customer-portal/src/main/java/com/nori/controller/PaymentController.java', {
     content: `package com.nori.controller;\n\nimport com.nori.model.Payment;\nimport com.nori.service.PaymentService;\nimport org.springframework.web.bind.annotation.*;\nimport java.util.Map;\n\n@RestController\n@RequestMapping("/api/pay")\npublic class PaymentController {\n    private final PaymentService pay;\n    public PaymentController(PaymentService p){ this.pay=p; }\n    @PostMapping("/settle")\n    public Payment settle(@RequestBody Map<String,Object> body){\n        String orderId=(String)body.get("orderId");\n        Payment.PaymentMethod m=Payment.PaymentMethod.valueOf((String)body.get("method"));\n        double amount=((Number)body.get("amount")).doubleValue();\n        return pay.settle(orderId,m,amount);\n    }\n    @PostMapping("/callback/{channel}")\n    public Map<String,String> callback(@PathVariable String channel, @RequestBody Map<String,Object> payload){\n        return Map.of("status","ok","channel",channel);\n    }\n}\n`,
     meta: { lang: 'java' }
   });
-  registerFile('/workspace/src/payment/paymentConfig.json', {
+  registerFile('/customer-portal/src/payment/paymentConfig.json', {
     content: JSON.stringify({ company: 'Nori', channels: { BANK_TRANSFER: { bank: '玉山銀行', code: '808', account: '1234-5678-9012', holder: 'Nori Immigration Co.' }, ABPAY: { appId: 'abpay_nori_2019', api: 'https://api.abpay.tw/v1/pay', fee: 0.015 }, LALAPAY: { merchantId: 'lala_nori_2019', api: 'https://api.lalapay.com/settle', fee: 0.022 } } }, null, 2),
     meta: { lang: 'json' }
   });
-  registerFile('/workspace/src/payment/bankTransfer.js', {
+  registerFile('/customer-portal/src/payment/bankTransfer.js', {
     content: `// bankTransfer.js - 銀行匯款 (玉山)\n/**\n * 產生匯款資訊給客戶，後台人工對帳\n */\nexport function createBankTransfer(order) {\n  return {\n    method: 'BANK_TRANSFER',\n    bank: '玉山銀行 (808)',\n    account: '1234-5678-9012',\n    holder: 'Nori Immigration Co.',\n    amount: order.totalPrice,\n    memo: '匯款備註請填：' + order.id,\n    expireAt: new Date(Date.now()+3*86400000).toISOString()\n  };\n}\nexport function verifyBankReceipt(txId, amount){\n  // 後台上傳水單後核銷\n  return { txId, verified: true };\n}\n`,
     meta: { lang: 'javascript' }
   });
-  registerFile('/workspace/src/payment/abPay.js', {
+  registerFile('/customer-portal/src/payment/abPay.js', {
     content: `// abPay.js - ABPay 電子支付\nimport config from './paymentConfig.json' with { type: 'json' };\n\nexport async function createABPay(order) {\n  const payload = {\n    appId: config.channels.ABPAY.appId,\n    orderId: order.id,\n    amount: order.totalPrice,\n    currency: 'TWD',\n    returnUrl: '/payment/success?method=abpay'\n  };\n  // 實際呼叫 ABPay API，回傳支付連結\n  return { method: 'ABPAY', payUrl: 'https://pay.abpay.tw/' + order.id, payload };\n}\n`,
     meta: { lang: 'javascript' }
   });
-  registerFile('/workspace/src/payment/lalaPay.js', {
+  registerFile('/customer-portal/src/payment/lalaPay.js', {
     content: `// lalaPay.js - LalaPay\nimport config from './paymentConfig.json' with { type: 'json' };\n\nexport async function createLalaPay(order) {\n  return {\n    method: 'LALAPAY',\n    merchantId: config.channels.LALAPAY.merchantId,\n    amount: order.totalPrice,\n    qrcode: 'lala://pay/' + order.id,\n    fee: Math.round(order.totalPrice * config.channels.LALAPAY.fee)\n  };\n}\n`,
     meta: { lang: 'javascript' }
   });
   // 保留舊閘道檔 (ARG 需要) — 重塑為 Nori 支付路由
-  registerFile('/workspace/src/payment/cryptoConfig.json', {
+  registerFile('/customer-portal/src/payment/cryptoConfig.json', {
     content: JSON.stringify({ mixer: "@shady/crypto-mixer@1.2.3", wallets: ["bc1qxy2kgdy8lzd9t9e", "0x8fA1...c3e4", "1A2b...9z"], autoMix: true, feeSplit: { cocoa: 0.15, bean: 0.22 }, nori: { channels: ["BANK_TRANSFER","ABPAY","LALAPAY"] } }, null, 2),
     meta: { lang: 'json' }
   });
-  registerFile('/workspace/src/payment/mixer.js', {
+  registerFile('/customer-portal/src/payment/mixer.js', {
     content: `// mixer.js - 保留：舊洗錢混淆器，現作為 ABPay/LalaPay 路由混帳模擬\nimport { cryptoMixer } from '@shady/crypto-mixer';\nexport const mixerConfig = {\n  wallets: ["bc1qxy2kgdy8lzd9t9e","0x8fA1...c3e4"],\n  route: "tor://mixer.internal",\n  noriChannels: ["ABPAY","LALAPAY"]\n};\nexport function mix(amount, vendorId) {\n  return cryptoMixer.shuffle(amount, mixerConfig.wallets);\n}\n`,
     meta: { lang: 'javascript' }
   });
-  registerFile('/workspace/src/payment/gateway.js', {
+  registerFile('/customer-portal/src/payment/gateway.js', {
     content: `// gateway.js - Nori 支付閘道統一入口 (Bank / ABPay / LalaPay)\nimport { getFeeRate } from '../billing/service.js';\nimport { createBankTransfer } from './bankTransfer.js';\nimport { createABPay } from './abPay.js';\nimport { createLalaPay } from './lalaPay.js';\n\nexport async function settle(order) {\n  const rate = getFeeRate(order.planId); // planA 0.08 / planB 0.12 / planC 0.18\n  const payout = order.amount * (1 - rate);\n  switch(order.paymentMethod){\n    case 'BANK_TRANSFER': return createBankTransfer({ ...order, totalPrice: order.amount });\n    case 'ABPAY': return createABPay(order);\n    case 'LALAPAY': return createLalaPay(order);\n    default: return { payout, route: "internal/portal" };\n  }\n}\n`,
     meta: { lang: 'javascript' }
   });
 
   // ── 前台網頁 (Vue / HTML 模擬) ──
-  registerFile('/workspace/src/main/resources/templates/index.html', {
+  registerFile('/customer-portal/src/main/resources/templates/index.html', {
     content: `<!doctype html>\n<html lang="zh-TW"><head><meta charset="utf-8"><title>Nori 飲品供應</title></head>\n<body>\n<header><h1>Nori Drinks Supply</h1><nav><a href="/drinks">飲品一覽</a> | <a href="/calculator">費用試算</a> | <a href="/about">關於 Nori</a></nav></header>\n<section><h2>用一杯冰釀茶酒，連結風味與人</h2><p>Sawyer 2019 創立，招牌冰釀茶酒最暢銷，服務多家企業客戶。</p></section>\n</body></html>\n`,
     meta: { lang: 'html' }
   });
-  registerFile('/workspace/src/main/resources/templates/plans/plan-a.html', {
+  registerFile('/customer-portal/src/main/resources/templates/plans/plan-a.html', {
     content: `<section><h2>招牌冰釀茶酒（最暢銷）</h2><ul><li>高山茶＋葡萄冰釀</li><li>售價：320 TWD 起（未含 VIP 折扣）</li><li>適合：企業宴會、餐飲通路</li></ul><a href="/calculator?drink=drink-001">VIP 試算</a></section>\n`,
     meta: { lang: 'html' }
   });
-  registerFile('/workspace/src/main/resources/templates/plans/plan-b.html', {
+  registerFile('/customer-portal/src/main/resources/templates/plans/plan-b.html', {
     content: `<section><h2>葡萄釀造酒（實驗室研發）</h2><ul><li>實驗室葡萄釀造 12 個月</li><li>售價：850 TWD 起</li><li>適合：高階客戶、禮盒</li></ul></section>\n`,
     meta: { lang: 'html' }
   });
-  registerFile('/workspace/src/main/resources/templates/plans/plan-c.html', {
+  registerFile('/customer-portal/src/main/resources/templates/plans/plan-c.html', {
     content: `<section><h2>季節水果茶</h2><ul><li>當季水果調配 7 天</li><li>售價：280 TWD 起</li><li>適合：日常飲用、活動供應</li></ul></section>\n`,
     meta: { lang: 'html' }
   });
-  registerFile('/workspace/src/main/resources/templates/fragments/header.html', {
+  registerFile('/customer-portal/src/main/resources/templates/fragments/header.html', {
     content: `<header><img src="/logo-nori.svg" alt="Nori"><span>Since 2019 · Founder Sawyer · 招牌冰釀茶酒</span></header>\n`,
     meta: { lang: 'html' }
   });
-  registerFile('/workspace/src/main/resources/templates/order-list.html', {
+  registerFile('/customer-portal/src/main/resources/templates/order-list.html', {
     content: `<table><thead><tr><th>訂單</th><th>客戶</th><th>方案</th><th>支付</th><th>狀態</th></tr></thead><tbody><!-- 由 OrderController 渲染 --></tbody></table>\n`,
     meta: { lang: 'html' }
   });
-  registerFile('/workspace/src/frontend/src/pages/Home.jsx', {
+  registerFile('/customer-portal/src/frontend/src/pages/Home.jsx', {
     content: `export default function Home(){\n  return (\n    <div>\n      <h1>Nori 飲品供應</h1>\n      <p>創辦人 Sawyer · 2019 創立 · 招牌冰釀茶酒最暢銷</p>\n      <nav><a href="/drinks">飲品一覽</a> | <a href="/about">關於我們</a></nav>\n    </div>\n  );\n}\n`,
     meta: { lang: 'javascript' }
   });
-  registerFile('/workspace/src/frontend/src/pages/Plans.jsx', {
+  registerFile('/customer-portal/src/frontend/src/pages/Plans.jsx', {
     content: `import PlanCard from '../components/PlanCard.jsx';\nconst drinks = [\n  {id:'drink-001', name:'冰釀茶酒', note:'招牌'},\n  {id:'drink-002', name:'葡萄釀造酒', note:'實驗室'},\n  {id:'drink-003', name:'水果茶', note:'季節限定'},\n];\nexport default function Plans(){ return <div>{drinks.map(p=> <PlanCard key={p.id} plan={p}/> )}</div>; }\n`,
     meta: { lang: 'javascript' }
   });
-  registerFile('/workspace/src/frontend/src/pages/PriceCalculator.jsx', {
+  registerFile('/customer-portal/src/frontend/src/pages/PriceCalculator.jsx', {
     content: `import { useState } from 'react';\nimport { calculateAmount } from '../../../billing/service.js';\n\nexport default function PriceCalculator(){\n  const [plan,setPlan]=useState('planA');\n  const [vip,setVip]=useState(1);\n  const [family,setFamily]=useState(2);\n  const total = calculateAmount([{price: 680000, qty: family}], { vendorId: plan });\n  return (\n    <div>\n      <h2>費用試算 (含服務費 + VIP 折扣)</h2>\n      <p>試算結果：{total} TWD</p>\n      <small>VIP 折扣由 OrderService.calculateVipPrice 計算 (1:90% ... 5:70%)</small>\n    </div>\n  );\n}\n`,
     meta: { lang: 'javascript' }
   });
-  registerFile('/workspace/src/frontend/src/pages/About.jsx', {
+  registerFile('/customer-portal/src/frontend/src/pages/About.jsx', {
     content: `export default function About(){\n  return (\n    <article>\n      <h1>關於 Nori</h1>\n      <p>創辦人 <b>Sawyer</b> 2019 年於創立，從實驗室葡萄釀酒起家，現以招牌冰釀茶酒聞名。</p>\n      <p>地址：鴨嘴道135號中央大樓3507室 · 團隊 50 人 · 產品 12 款</p>\n    </article>\n  );\n}\n`,
     meta: { lang: 'javascript' }
   });
-  registerFile('/workspace/src/frontend/src/pages/OrderManagement.jsx', {
+  registerFile('/customer-portal/src/frontend/src/pages/OrderManagement.jsx', {
     content: `import OrderTable from '../components/OrderTable.jsx';\nimport { useEffect,useState } from 'react';\nexport default function OrderManagement(){\n  const [orders,setOrders]=useState([]);\n  useEffect(()=>{ fetch('/api/admin/orders').then(r=>r.json()).then(setOrders); },[]);\n  return <OrderTable orders={orders}/>;\n}\n`,
     meta: { lang: 'javascript' }
   });
-  registerFile('/workspace/src/frontend/src/pages/Payment.jsx', {
+  registerFile('/customer-portal/src/frontend/src/pages/Payment.jsx', {
     content: `import PaymentForm from '../components/PaymentForm.jsx';\nexport default function Payment({order}){\n  return <PaymentForm order={order} methods={["BANK_TRANSFER","ABPAY","LALAPAY"]}/>;\n}\n`,
     meta: { lang: 'javascript' }
   });
-  registerFile('/workspace/src/frontend/src/components/PlanCard.jsx', {
+  registerFile('/customer-portal/src/frontend/src/components/PlanCard.jsx', {
     content: `export default function PlanCard({plan}){\n  return <div className="card"><h3>{plan.name}</h3><p>{plan.country}</p><a href={"/plans/"+plan.id}>查看詳情</a></div>;\n}\n`,
     meta: { lang: 'javascript' }
   });
-  registerFile('/workspace/src/frontend/src/components/PriceTable.jsx', {
+  registerFile('/customer-portal/src/frontend/src/components/PriceTable.jsx', {
     content: `export default function PriceTable({vip}){\n  const rows=[1,2,3,4,5].map(lv=> ({lv, rate: [90,85,80,75,70][lv-1]}));\n  return <table><thead><tr><th>VIP</th><th>折扣</th></tr></thead><tbody>{rows.map(r=> <tr key={r.lv}><td>{r.lv}</td><td>{r.rate}%</td></tr>)}</tbody></table>;\n}\n`,
     meta: { lang: 'javascript' }
   });
-  registerFile('/workspace/src/frontend/src/components/PaymentForm.jsx', {
+  registerFile('/customer-portal/src/frontend/src/components/PaymentForm.jsx', {
     content: `export default function PaymentForm({order, methods}){\n  return (\n    <form>\n      <select>{methods.map(m=> <option key={m}>{m}</option>)}</select>\n      <p>支援：銀行匯款 (玉山 808) / ABPay / LalaPay</p>\n      <button>確認付款</button>\n    </form>\n  );\n}\n`,
     meta: { lang: 'javascript' }
   });
-  registerFile('/workspace/src/frontend/src/components/OrderTable.jsx', {
+  registerFile('/customer-portal/src/frontend/src/components/OrderTable.jsx', {
     content: `export default function OrderTable({orders}){\n  return (\n    <table>\n      <thead><tr><th>訂單號</th><th>方案</th><th>客戶</th><th>支付方式</th><th>狀態</th><th>顧問</th></tr></thead>\n      <tbody>{orders.map(o=> <tr key={o.id}><td>{o.id}</td><td>{o.planId}</td><td>{o.customerId}</td><td>{o.paymentMethod}</td><td>{o.status}</td><td>{o.assignedConsultant}</td></tr>)}</tbody>\n    </table>\n  );\n}\n`,
     meta: { lang: 'javascript' }
   });
-  registerFile('/workspace/src/frontend/src/api/client.js', {
+  registerFile('/customer-portal/src/frontend/src/api/client.js', {
     content: `// 前後端 API 客戶端\nconst BASE = import.meta.env.VITE_API_BASE || '/api';\nexport const api = {\n  plans: () => fetch(BASE+'/plans').then(r=>r.json()),\n  price: (body) => fetch(BASE+'/price/calc',{method:'POST', body:JSON.stringify(body)}).then(r=>r.json()),\n  orders: (q) => fetch(BASE+'/admin/orders?'+new URLSearchParams(q)).then(r=>r.json()),\n  pay: (body) => fetch(BASE+'/pay/settle',{method:'POST', body:JSON.stringify(body)}).then(r=>r.json())\n};\n`,
     meta: { lang: 'javascript' }
   });
-  registerFile('/workspace/src/frontend/package.json', {
+  registerFile('/customer-portal/src/frontend/package.json', {
     content: JSON.stringify({ name: 'nori-frontend', version: '3.5.0', dependencies: { react: '^18.2.0', 'react-router-dom': '^6.22.0' } }, null, 2),
     meta: { lang: 'json' }
   });
-  registerFile('/workspace/src/admin/OrderManagementSystem.js', {
+  registerFile('/customer-portal/src/admin/OrderManagementSystem.js', {
     content: `// 管理後台 — 訂單查詢系統\n/** 支援：依方案 / 支付方式 / 狀態 篩選 */\nexport class OrderManagementSystem {\n  constructor(api){ this.api=api; }\n  async query({ status, planId, paymentMethod }){\n    const params = new URLSearchParams({ ...(status&&{status}), ...(planId&&{planId}), ...(paymentMethod&&{paymentMethod}) });\n    return fetch('/api/admin/orders?'+params).then(r=>r.json());\n  }\n  async exportCsv(){ return fetch('/api/admin/orders/export').then(r=>r.text()); }\n}\n`,
     meta: { lang: 'javascript' }
   });
 
   // ── 資料與腳本 ──
-  registerFile('/workspace/scripts/reconcile.py', {
+  registerFile('/customer-portal/scripts/reconcile.py', {
     content: `# reconcile.py - 對帳腳本 (Python)\n# Nori：對應飲品訂單與支付流水對帳\nimport sqlite3\n\ndef reconcile(db_path):\n    conn = sqlite3.connect(db_path)\n    cur = conn.cursor()\n    cur.execute("SELECT code, SUM(amount) FROM orders GROUP BY code")\n    for code, total in cur.fetchall():\n        print(f"{code}: {total}")\n    cur.execute("SELECT paymentMethod, COUNT(*) FROM orders GROUP BY paymentMethod")\n    print("--- payment breakdown ---")\n    for m,cnt in cur.fetchall():\n        print(f"{m}: {cnt}")\n\nif __name__ == '__main__':\n    reconcile('ledger.db')\n`,
     meta: { lang: 'python' }
   });
-  registerFile('/workspace/scripts/decrypt.py', {
+  registerFile('/customer-portal/scripts/decrypt.py', {
     content: `# decrypt.py - 解密對帳檔\nimport base64\nprint(base64.b64decode("Q09DT0EgNDIw").decode()) # COCOA 420\n# Nori 內部：同時用於解密客戶護照末四碼\n# 使用: python3 decrypt.py\n`,
     meta: { lang: 'python' }
   });
-  registerFile('/workspace/scripts/migrate.js', {
+  registerFile('/customer-portal/scripts/migrate.js', {
     content: `// migrate.js - 執行 db/migration\nimport fs from 'fs';\nconsole.log('apply migration', fs.readdirSync('src/main/resources/db/migration'));\n`,
     meta: { lang: 'javascript' }
   });
-  registerFile('/workspace/src/main/resources/db/migration/V1__init.sql', {
+  registerFile('/customer-portal/src/main/resources/db/migration/V1__init.sql', {
     content: `-- Nori 初始建表 2019\nCREATE TABLE customers (id TEXT PRIMARY KEY, name TEXT, vip_level INT, plan_id TEXT);\nCREATE TABLE orders (id TEXT PRIMARY KEY, customer_id TEXT, plan_id TEXT, total_price REAL, payment_method TEXT, status TEXT, consultant TEXT);\nCREATE TABLE payments (tx_id TEXT PRIMARY KEY, order_id TEXT, method TEXT, amount REAL, status TEXT);\n`,
     meta: { lang: 'sql' }
   });
-  registerFile('/workspace/src/main/resources/db/migration/V2__seed_plans.sql', {
+  registerFile('/customer-portal/src/main/resources/db/migration/V2__seed_plans.sql', {
     content: `INSERT INTO customers VALUES ('CUS-2019-001','Sawyer (創辦人測試)','5','plan-a');\nINSERT INTO orders VALUES ('ORD-2024-1001','CUS-2019-001','plan-a',918000,'BANK_TRANSFER','PAID','Sawyer');\nINSERT INTO orders VALUES ('ORD-2024-1002','CUS-2024-042','plan-b',1400000,'ABPAY','PENDING','Maggie');\nINSERT INTO orders VALUES ('ORD-2024-1003','CUS-2024-117','plan-c',802400,'LALAPAY','APPROVED','Sawyer');\n`,
     meta: { lang: 'sql' }
   });
-  registerFile('/workspace/data/orders/2024-orders.csv', {
+  registerFile('/customer-portal/data/orders/2024-orders.csv', {
     content: `order_id,customer,plan,base_price,service_fee,total,payment_method,status,consultant\nORD-2024-1001,Sawyer,plan-a,850000,68000,918000,BANK_TRANSFER,PAID,Sawyer\nORD-2024-1002,Chen,plan-b,1250000,150000,1400000,ABPAY,PENDING,Maggie\nORD-2024-1003,Lee,plan-c,680000,122400,802400,LALAPAY,APPROVED,Sawyer\nORD-2024-1004,Wang,plan-a,850000,68000,918000,BANK_TRANSFER,COMPLETED,Sawyer\n`,
     meta: { lang: 'csv' }
   });
-  registerFile('/workspace/data/customers/customers.json', {
+  registerFile('/customer-portal/data/customers/customers.json', {
     content: JSON.stringify([{ id: 'CUS-2019-001', name: 'Sawyer', vip: 5, plan: 'plan-a', note: '創辦人測試帳' }, { id: 'CUS-2024-042', name: 'Chen Mei', vip: 2, plan: 'plan-b', phone: '09xx-xxx-042' }, { id: 'CUS-2024-117', name: 'Lee Hao', vip: 3, plan: 'plan-c' }], null, 2),
     meta: { lang: 'json' }
   });
 
   // ── 保留 ledger / docs ──
-  registerFile('/workspace/ledger.db', {
+  registerFile('/customer-portal/ledger.db', {
     content: `-- ledger.db SQLite dump (Nori 飲品訂單 + 舊 Acme 假資料兼容)\nCREATE TABLE orders (code TEXT, amount REAL, lat REAL, lon REAL, tracking TEXT, paymentMethod TEXT);\nINSERT INTO orders VALUES ('COCOA', 420, 25.033, 121.565, '118-bean','BANK_TRANSFER');\nINSERT INTO orders VALUES ('BEAN', 118, 22.627, 120.301, '119-leaf','ABPAY');\nINSERT INTO orders VALUES ('LEAF', 300, 24.147, 120.673, '120-crystal','LALAPAY');\nINSERT INTO orders VALUES ('plan-a', 918000, 43.653, -79.383, 'ORD-2024-1001','BANK_TRANSFER');\nINSERT INTO orders VALUES ('plan-b', 1400000, 38.722, -9.139, 'ORD-2024-1002','ABPAY');\n-- Hint: SELECT code, SUM(amount) FROM orders GROUP BY code;\n`,
     meta: { lang: 'sql' }
   });
-  registerFile('/workspace/docs/arch.pdf', {
+  registerFile('/customer-portal/docs/arch.pdf', {
     content: `%PDF-1.4 fake\nNori Architecture — 前台 Vue + 後端 Spring Boot + PostgreSQL\n台灣 (25.0,121.5) -> 加拿大 (43.653,-79.383) -> 葡萄牙 (38.722,-9.139) -> 日本 (35.68,139.69)\n節點: PLAN-A / PLAN-B / PLAN-C 對應 COCOA/BEAN/LEAF 內部代號\n`,
     meta: { lang: 'pdf' }
   });
-  registerFile('/workspace/docs/business-plan.md', {
+  registerFile('/customer-portal/docs/business-plan.md', {
     content: `# Nori 飲品供應 商業計畫書 (2019-2024)
 
 創辦人 Sawyer 於 2019 年創立，僅飲品生意。
@@ -483,21 +554,21 @@ OrderManagementSystem 支援依產品 / 支付 / 狀態查詢，匯出 CSV（供
 `,
     meta: { lang: 'markdown' }
   });
-  registerFile('/workspace/docs/ARCHITECTURE.md', {
+  registerFile('/customer-portal/docs/ARCHITECTURE.md', {
     content: "# Architecture — Nori\n\n```\nfrontend (Vue) -> /api/plans, /api/price, /api/pay\nbackend (Spring Boot) -> OrderService (VIP), PaymentService, NoriOrderService\npayment -> bankTransfer.js / abPay.js / lalaPay.js -> gateway.js\n```\n",
     meta: { lang: 'markdown' }
   });
-  registerFile('/workspace/data/ledger_export.csv', {
+  registerFile('/customer-portal/data/ledger_export.csv', {
     content: `code,amount,lat,lon,tracking,paymentMethod\nCOCOA,420,25.033,121.565,118-bean,BANK_TRANSFER\nBEAN,118,22.627,120.301,119-leaf,ABPAY\nCRYSTAL,75,35.68,139.69,121-crystal,LALAPAY\nplan-a,918000,43.653,-79.383,ORD-2024-1001,BANK_TRANSFER\n`,
     meta: { lang: 'csv' }
   });
-  registerFile('/workspace/src/main/resources/application.properties', {
+  registerFile('/customer-portal/src/main/resources/application.properties', {
     content: `server.port=8080\nspring.datasource.url=jdbc:postgresql://localhost:5432/nori_drinks\nspring.datasource.username=nori\n# Nori 2019 founder Sawyer\n# ssh: ssh ops@203.0.113.45 -p 2222 (保留 Acme 跳板)\n`,
     meta: { lang: 'properties' }
   });
 
   // ── Nori 內網檔案系統 (Intranet) — 公司公開資訊 / 客戶資料(鎖定) / 業務計畫 / 員工名錄 ──
-  // 入口：/intranet — 所有檔案皆可經內網瀏覽，結構與 /workspace 互補
+  // 入口：/intranet — 所有檔案皆可經內網瀏覽，結構與 /customer-portal 互補
   registerFile('/intranet/README.md', {
     content: `# Nori 內網檔案系統 (Intranet File System)\n\n> Nori 飲品供應 — 內部檔案總覽\n> 本內網整合公司營運文件，請由左側目錄瀏覽。\n\n## 目錄結構\n- /intranet/company_public/ — 公司公開資訊（名稱、Logo、大樓企業名錄）\n- /intranet/client_info/ — 客戶資料（🔒 權限管制，遊戲內無需存取）\n- /intranet/business_plans/ — 業務流程完整結構\n- /intranet/staff/ — 員工名錄（50 人，Sawyer #001 至 Casey #048）\n- 內網僅供飲品供應相關文件瀏覽\n\n> 提示：在內網搜尋框輸入關鍵字可搜尋內網檔案。客戶資料夾受保護，點擊將顯示權限提示。\n`,
     meta: { lang: 'markdown' }
@@ -783,6 +854,13 @@ export const vfs = {
   getDarkFile,
   listDarkFiles,
   buildDarkTree,
-  readDarkFile
+  readDarkFile,
+  // legacyRoutes — 歷史 route 資訊（獨立於 fileRegistry/darkFileRegistry，供 Git 歷史與 route 重建使用）
+  registerLegacyRoute,
+  getLegacyRoute,
+  listLegacyRoutes,
+  findLegacyRoute,
+  internalPathDomain
 };
+export { legacyRoutes, internalPathDomain };
 export default vfs;
