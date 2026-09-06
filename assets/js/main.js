@@ -11,6 +11,7 @@ import { mountJira } from './apps/jira/index.js';
 import { mountWhatsApp, openChat as openWhatsAppChat } from './apps/whatsapp/index.js';
 import { mountSearch } from './apps/search/index.js';
 import { mountIntranet } from './apps/intranet/index.js';
+import '../css/blog.css';
 import { mountDarknet } from './apps/darknet/index.js';
 
 function applyTheme() {

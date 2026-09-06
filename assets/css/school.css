@@ -1,0 +1,355 @@
+/* Guangzhi Secondary — 廣志中學 學生成就檔案 / Students Portfolio 官方樣式
+   與 BlogWorld 暖橙、Blogger 風格完全區隔：走校園官網的「深藍＋紙質＋徽章」體系 */
+.school-platform{
+  --school-bg:#f4f1ea;
+  --school-bg2:#fdfdfb;
+  --school-card:#ffffff;
+  --school-border:#ddd9d0;
+  --school-border2:#ebe8e1;
+  --school-text:#1a2332;
+  --school-muted:#6a7587;
+  --school-subtle:#9aa0b1;
+  --school-navy:#0f2b46;
+  --school-navy2:#1a3f66;
+  --school-gold:#a67c00;
+  --school-gold-bg:#fdf5dc;
+  --school-gold-border:#f0d98a;
+  --school-red:#8b1a1a;
+  --school-shadow:0 2px 14px rgba(15,43,70,.08), 0 1px 4px rgba(15,43,70,.06);
+  --school-shadow-hover:0 8px 28px rgba(15,43,70,.12), 0 2px 8px rgba(15,43,70,.08);
+  --school-radius:14px;
+  --school-radius-sm:10px;
+  background:var(--school-bg);
+  color:var(--school-text);
+  font-family:"Noto Serif TC", "Noto Sans TC", "Microsoft JhengHei", Georgia, serif;
+  border-radius:12px;
+  overflow:hidden;
+  border:1px solid var(--school-border);
+  min-height:100%;
+  display:flex;
+  flex-direction:column;
+  position:relative;
+  z-index:1;
+}
+.school-platform *{box-sizing:border-box}
+.school-platform a{color:var(--school-navy2);text-decoration:none}
+.school-platform a:hover{color:var(--school-navy);text-decoration:underline}
+
+/* Top utility bar — 教育局風格深藍 */
+.school-topline{
+  background:var(--school-navy);
+  color:#cbd5e1;
+  font-size:11px;
+  letter-spacing:.4px;
+  padding:6px 20px;
+  display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+}
+.school-topline b{color:#fff;font-weight:700}
+.school-topline__links{margin-left:auto;display:flex;gap:14px;align-items:center}
+.school-topline__links span{cursor:pointer;opacity:.9}
+.school-topline__links span:hover{opacity:1;text-decoration:underline;color:#fff}
+
+/* Header — 校徽 + 校名 + 導航 */
+.school-header{
+  background:#ffffff;
+  border-bottom:3px solid var(--school-navy);
+  padding:16px 20px 0 20px;
+  display:flex;flex-direction:column;gap:0;
+  position:relative;z-index:1;
+}
+.school-header__row{
+  display:flex;align-items:center;gap:16px;flex-wrap:wrap;
+}
+.school-header__crest{
+  width:52px;height:52px;border-radius:50%;
+  background:linear-gradient(135deg,#0f2b46 0%, #2a5a8a 100%);
+  border:3px solid #fff;
+  box-shadow:0 4px 14px rgba(15,43,70,.25), 0 0 0 1px rgba(15,43,70,.08);
+  display:flex;align-items:center;justify-content:center;
+  color:#fde68a;font-size:22px;font-weight:900;
+  flex-shrink:0;
+}
+.school-header__title{line-height:1.05}
+.school-header__title h1{
+  margin:0;font-size:22px;font-weight:900;letter-spacing:.8px;color:var(--school-navy);
+  font-family:"Noto Serif TC", Georgia, serif;
+}
+.school-header__title h1 span{font-weight:400;font-size:12px;letter-spacing:2px;color:var(--school-muted);margin-left:8px}
+.school-header__title p{
+  margin:2px 0 0;font-size:11px;letter-spacing:3px;color:var(--school-subtle);font-weight:600;
+  text-transform:uppercase;
+}
+.school-header__meta{
+  margin-left:auto;display:flex;gap:16px;align-items:center;
+  font-size:11px;color:var(--school-muted);flex-wrap:wrap;
+}
+.school-header__meta b{color:var(--school-text)}
+.school-header__actions{display:flex;gap:8px;align-items:center}
+.school-btn{
+  padding:7px 14px;border-radius:999px;border:1px solid var(--school-border);background:#fff;
+  font-size:12px;font-weight:700;color:var(--school-text);cursor:pointer;
+}
+.school-btn.primary{background:var(--school-navy);border-color:var(--school-navy);color:#fff}
+.school-btn.primary:hover{background:#0d2440}
+.school-btn.ghost{border-color:var(--school-gold-border);background:var(--school-gold-bg);color:#7a5a00}
+.school-btn.ghost:hover{border-color:var(--school-gold);color:#5a4300}
+
+.school-nav{
+  display:flex;gap:4px;margin-top:14px;flex-wrap:wrap;
+  border-top:1px solid var(--school-border2);padding-top:10px;
+}
+.school-nav a{
+  padding:7px 12px;border-radius:999px;font-size:12px;font-weight:700;color:var(--school-muted);
+  cursor:pointer;transition:all .15s;
+}
+.school-nav a.active{background:var(--school-navy);color:#fff}
+.school-nav a:hover{background:#eef2f7;color:var(--school-navy);text-decoration:none}
+.school-nav a.active:hover{background:var(--school-navy);color:#fff}
+
+/* Breadcrumb under header — 牛皮紙 */
+.school-breadcrumb{
+  background:linear-gradient(180deg,#fdfdfb 0%, #f4f1ea 100%);
+  border-bottom:1px solid var(--school-border);
+  padding:10px 20px;font-size:11px;color:var(--school-subtle);
+  display:flex;gap:6px;align-items:center;flex-wrap:wrap;
+}
+.school-breadcrumb a{color:var(--school-muted);font-weight:600}
+.school-breadcrumb .sep{color:var(--school-border)}
+
+/* Platform body */
+.school-body{flex:none;overflow:visible;background:var(--school-bg);padding:20px 20px 28px;max-width:1180px;margin:0 auto;width:100%}
+
+/* Back button row */
+.school-backrow{display:flex;gap:8px;align-items:center;margin-bottom:14px;flex-wrap:wrap}
+.school-back{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:6px 12px;border-radius:999px;border:1px solid var(--school-border);
+  background:#fff;font-size:12px;font-weight:700;color:var(--school-muted);cursor:pointer;
+}
+.school-back:hover{border-color:var(--school-navy);color:var(--school-navy)}
+.school-back.primary{border-color:var(--school-navy);background:var(--school-navy);color:#fff}
+
+/* Hero title block — 榮譽證書風 */
+.school-hero{
+  background:linear-gradient(135deg,#ffffff 0%, #fdfdfb 100%);
+  border:1px solid var(--school-border);border-radius:var(--school-radius);
+  box-shadow:var(--school-shadow);overflow:hidden;position:relative;
+}
+.school-hero::before{
+  content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:linear-gradient(180deg,var(--school-navy) 0%, #2a5a8a 100%);
+}
+.school-hero__inner{padding:20px 22px 18px 26px;display:flex;gap:18px;align-items:flex-start;flex-wrap:wrap}
+.school-hero__badge{
+  width:64px;height:64px;border-radius:14px;
+  background:linear-gradient(135deg,#fef9e7 0%, #fde68a 100%);
+  border:2px solid #f0d98a;box-shadow:0 4px 14px rgba(166,124,0,.18);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  color:#7a5a00;flex-shrink:0;text-align:center;line-height:1;
+}
+.school-hero__badge i{font-size:20px;margin-bottom:2px}
+.school-hero__badge b{font-size:16px;font-weight:900}
+.school-hero__badge span{font-size:10px;letter-spacing:1px;font-weight:700;margin-top:1px}
+.school-hero__main{flex:1;min-width:260px}
+.school-hero__kicker{
+  font-size:11px;letter-spacing:1.5px;font-weight:800;color:var(--school-gold);text-transform:uppercase;
+  display:flex;gap:8px;align-items:center;flex-wrap:wrap;
+}
+.school-hero__kicker .dot{width:4px;height:4px;border-radius:50%;background:var(--school-gold)}
+.school-hero__title{
+  margin:6px 0 8px;font-size:24px;font-weight:900;line-height:1.25;color:var(--school-navy);
+  font-family:"Noto Serif TC", Georgia, serif;letter-spacing:.3px;
+}
+.school-hero__subtitle{font-size:13px;line-height:1.7;color:var(--school-muted)}
+.school-hero__meta{
+  margin-top:12px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;
+  font-size:11px;color:var(--school-subtle);
+}
+.school-hero__tag{
+  padding:4px 10px;border-radius:999px;background:#eef2f7;border:1px solid #dbe6f3;
+  color:var(--school-navy);font-weight:700;font-size:11px;
+}
+.school-hero__tag.gold{background:var(--school-gold-bg);border-color:var(--school-gold-border);color:#7a5a00}
+.school-hero__actions{margin-left:auto;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+
+/* Main layout — 左文檔 + 右側欄 */
+.school-layout{
+  display:grid;grid-template-columns:1fr 320px;gap:20px;margin-top:18px;align-items:start;
+}
+.school-main{min-width:0;display:flex;flex-direction:column;gap:16px}
+.school-side{min-width:0;display:flex;flex-direction:column;gap:16px;position:static}
+
+/* Student portfolio card — 檔案卡 */
+.school-profile-card{
+  background:var(--school-card);border:1px solid var(--school-border);border-radius:var(--school-radius);
+  box-shadow:var(--school-shadow);overflow:hidden;
+}
+.school-profile-card__head{
+  padding:16px 18px 14px;display:flex;gap:16px;align-items:flex-start;
+  background:linear-gradient(180deg,#0f2b46 0%, #1a3f66 100%);
+  color:#fff;position:relative;
+}
+.school-profile-card__head::after{
+  content:"";position:absolute;inset:0;
+  background:radial-gradient(600px 120px at 80% 0%, rgba(253,230,138,.15), transparent 60%);
+  pointer-events:none;
+}
+.school-profile-card__avatar{
+  width:64px;height:64px;border-radius:12px;overflow:hidden;flex-shrink:0;
+  background:#fff;border:2px solid rgba(255,255,255,.9);box-shadow:0 4px 14px rgba(0,0,0,.2);
+  display:flex;align-items:center;justify-content:center;font-weight:900;color:var(--school-navy);font-size:20px;
+}
+.school-profile-card__info{flex:1;min-width:0;position:relative;z-index:1}
+.school-profile-card__name{font-size:17px;font-weight:900;margin:0;line-height:1.3;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.school-profile-card__name small{font-size:12px;font-weight:700;color:#fde68a;background:rgba(255,255,255,.12);padding:2px 8px;border-radius:999px;border:1px solid rgba(255,255,255,.14)}
+.school-profile-card__class{font-size:12px;color:#cbd5e1;margin-top:2px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.school-profile-card__class b{color:#fff}
+.school-profile-card__stats{display:flex;gap:14px;margin-top:10px;flex-wrap:wrap;font-size:11px;color:#cbd5e1}
+.school-profile-card__stats b{color:#fff;font-size:13px;margin-right:3px}
+.school-profile-card__body{padding:14px 18px;background:var(--school-card)}
+.school-profile-card__quote{
+  border-left:3px solid var(--school-gold);padding:10px 14px;background:var(--school-gold-bg);
+  border-radius:8px;font-size:12.5px;line-height:1.7;color:#5a4300;margin:0;
+}
+.school-profile-card__grid{
+  margin-top:12px;display:grid;grid-template-columns:1fr 1fr;gap:10px;
+}
+.school-stat{padding:10px 12px;background:var(--school-bg2);border:1px solid var(--school-border2);border-radius:10px;text-align:center}
+.school-stat b{display:block;font-size:15px;font-weight:900;color:var(--school-navy)}
+.school-stat span{font-size:11px;color:var(--school-muted);font-weight:600}
+
+/* Document viewer — 作文原稿紙質感 */
+.school-doc{
+  background:var(--school-card);border:1px solid var(--school-border);border-radius:var(--school-radius);
+  box-shadow:var(--school-shadow);overflow:hidden;
+}
+.school-doc__head{
+  padding:14px 18px;border-bottom:1px solid var(--school-border2);
+  display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;
+  background:linear-gradient(180deg,#ffffff 0%, #fdfdfb 100%);
+}
+.school-doc__head h3{margin:0;font-size:13px;font-weight:900;color:var(--school-navy);display:flex;align-items:center;gap:8px}
+.school-doc__head h3 i{color:var(--school-gold)}
+.school-doc__tools{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.school-doc__tool{
+  padding:6px 10px;border-radius:999px;border:1px solid var(--school-border);background:#fff;
+  font-size:11px;font-weight:700;color:var(--school-muted);cursor:pointer;
+}
+.school-doc__tool:hover{border-color:var(--school-navy);color:var(--school-navy)}
+.school-doc__pages{padding:16px;display:flex;flex-direction:column;gap:16px;background:#f4f1ea}
+.school-page{
+  background:#fff;border:1px solid #e8e4d9;border-radius:10px;overflow:hidden;
+  box-shadow:0 4px 20px rgba(15,43,70,.08), 0 1px 3px rgba(15,43,70,.06);
+  position:relative;
+}
+.school-page__bar{
+  height:28px;background:linear-gradient(180deg,#faf8f4 0%, #f0ece3 100%);
+  border-bottom:1px solid #e8e4d9;display:flex;align-items:center;justify-content:space-between;
+  padding:0 10px;font-size:11px;color:var(--school-subtle);font-weight:700;
+}
+.school-page__bar b{color:var(--school-navy)}
+.school-page__img img{width:100%;display:block;transition:transform .25s}
+.school-page:hover .school-page__img img{transform:scale(1.01)}
+.school-page__caption{
+  padding:10px 14px;background:#fff;border-top:1px solid var(--school-border2);
+  font-size:11px;color:var(--school-muted);line-height:1.6;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;
+}
+
+/* Evaluation */
+.school-eval{
+  background:var(--school-card);border:1px solid var(--school-border);border-radius:var(--school-radius);
+  box-shadow:var(--school-shadow);overflow:hidden;
+}
+.school-eval__head{padding:14px 18px;border-bottom:1px solid var(--school-border2)}
+.school-eval__head h4{margin:0;font-size:13px;font-weight:900;color:var(--school-navy);display:flex;align-items:center;gap:8px}
+.school-eval__head h4 i{color:var(--school-gold)}
+.school-eval__body{padding:14px 18px;display:flex;flex-direction:column;gap:10px}
+.school-eval__row{
+  display:flex;gap:12px;padding:10px 12px;background:var(--school-bg2);border:1px solid var(--school-border2);border-radius:10px;
+}
+.school-eval__row b{font-size:13px;color:var(--school-navy)}
+.school-eval__row span{font-size:12.5px;line-height:1.6;color:var(--school-muted);flex:1}
+.school-eval__seal{
+  margin-left:auto;width:72px;height:72px;border-radius:50%;border:2px dashed #c9b48a;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  color:#8b6f2a;font-weight:900;line-height:1;text-align:center;flex-shrink:0;
+  background:radial-gradient(circle at 30% 30%, #fffef0, #fef9e7);transform:rotate(-8deg);
+}
+
+/* Widgets */
+.school-widget{
+  background:var(--school-card);border:1px solid var(--school-border);border-radius:var(--school-radius);
+  box-shadow:var(--school-shadow);padding:14px;
+}
+.school-widget h4{margin:0 0 10px;font-size:12px;font-weight:900;letter-spacing:.3px;color:var(--school-navy);display:flex;align-items:center;gap:8px}
+.school-widget h4 i{color:var(--school-gold)}
+.school-widget p{margin:0;font-size:12.5px;line-height:1.7;color:var(--school-muted)}
+.school-list{display:flex;flex-direction:column;gap:8px}
+.school-list__item{
+  display:flex;gap:10px;padding:10px;border:1px solid var(--school-border2);border-radius:10px;background:var(--school-bg2);
+  cursor:pointer;transition:border-color .15s, background .15s;
+}
+.school-list__item:hover{border-color:#c9d4e6;background:#fff}
+.school-list__item.active{border-color:var(--school-navy);background:#eef2f7;box-shadow:0 2px 10px rgba(15,43,70,.06)}
+.school-list__num{
+  width:28px;height:28px;border-radius:8px;background:var(--school-navy);color:#fff;
+  display:flex;align-items:center;justify-content:center;font-weight:900;font-size:12px;flex-shrink:0;
+}
+.school-list__title{font-size:12.5px;font-weight:800;line-height:1.4;color:var(--school-text)}
+.school-list__meta{font-size:11px;color:var(--school-subtle);margin-top:2px}
+.school-archive{display:flex;flex-wrap:wrap;gap:6px}
+.school-archive__tag{
+  padding:5px 10px;border-radius:999px;background:var(--school-bg2);border:1px solid var(--school-border2);
+  font-size:11px;font-weight:700;color:var(--school-muted);cursor:pointer;
+}
+.school-archive__tag:hover{border-color:var(--school-navy);color:var(--school-navy);background:#eef2f7}
+.school-archive__tag.active{background:var(--school-navy);color:#fff;border-color:var(--school-navy)}
+
+/* Footer */
+.school-footer{
+  margin-top:18px;padding:14px 18px;background:linear-gradient(180deg,#0f2b46 0%, #0b1e33 100%);
+  color:#cbd5e1;border-top:1px solid rgba(255,255,255,.08);border-radius:var(--school-radius);
+  display:flex;gap:16px;flex-wrap:wrap;align-items:center;justify-content:space-between;
+}
+.school-footer b{color:#fff}
+.school-footer__links{display:flex;gap:14px;font-size:11px;flex-wrap:wrap}
+.school-footer__links span{cursor:pointer;color:#93a7c2}
+.school-footer__links span:hover{color:#fff;text-decoration:underline}
+
+/* Lightbox */
+.school-lightbox{
+  position:fixed;inset:0;background:rgba(8,18,32,.78);backdrop-filter:blur(4px);
+  z-index:1250;display:none;align-items:center;justify-content:center;padding:16px;
+}
+.school-lightbox.open{display:flex}
+.school-lightbox__card{
+  background:#fff;border-radius:14px;overflow:hidden;max-width:min(920px, 96vw);max-height:92vh;
+  display:flex;flex-direction:column;box-shadow:0 24px 64px rgba(0,0,0,.5);border:1px solid rgba(255,255,255,.12);
+}
+.school-lightbox__head{
+  padding:10px 12px;display:flex;align-items:center;justify-content:space-between;gap:12px;
+  border-bottom:1px solid var(--school-border2);background:#fdfdfb;font-size:12px;font-weight:700;color:var(--school-navy);
+}
+.school-lightbox__close{width:28px;height:28px;border-radius:8px;border:1px solid var(--school-border);background:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.school-lightbox__img{overflow:auto;flex:1;background:#f4f1ea}
+.school-lightbox__img img{width:100%;display:block}
+
+/* Responsive */
+@media (max-width: 960px){
+  .school-layout{grid-template-columns:1fr}
+  .school-side{order:-1}
+}
+@media (max-width: 768px){
+  .school-header{padding:12px 12px 0 12px}
+  .school-header__row{gap:10px}
+  .school-header__crest{width:44px;height:44px;font-size:18px}
+  .school-header__title h1{font-size:18px}
+  .school-header__meta{display:none}
+  .school-nav{overflow-x:auto;flex-wrap:nowrap;scrollbar-width:none}
+  .school-nav::-webkit-scrollbar{display:none}
+  .school-body{padding:14px}
+  .school-hero__inner{padding:16px 14px 14px 18px}
+  .school-hero__title{font-size:20px}
+  .school-profile-card__grid{grid-template-columns:1fr}
+  .school-doc__pages{padding:10px}
+  .school-footer{flex-direction:column;align-items:flex-start}
+}

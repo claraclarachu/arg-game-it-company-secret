@@ -399,7 +399,7 @@ function seedFiles() {
     meta: { lang: 'json' }
   });
   registerFile('/customer-portal/src/payment/mixer.js', {
-    content: `// mixer.js - 保留：舊洗錢混淆器，現作為 ABPay/LalaPay 路由混帳模擬\nimport { cryptoMixer } from '@shady/crypto-mixer';\nexport const mixerConfig = {\n  wallets: ["bc1qxy2kgdy8lzd9t9e","0x8fA1...c3e4"],\n  route: "tor://mixer.internal",\n  noriChannels: ["ABPAY","LALAPAY"]\n};\nexport function mix(amount, vendorId) {\n  return cryptoMixer.shuffle(amount, mixerConfig.wallets);\n}\n`,
+    content: `// mixer.js \n import { cryptoMixer } from '@shady/crypto-mixer';\nexport const mixerConfig = {\n  wallets: ["bc1qxy2kgdy8lzd9t9e","0x8fA1...c3e4"],\n  route: "tor://mixer.internal",\n  noriChannels: ["ABPAY","LALAPAY"]\n};\nexport function mix(amount, vendorId) {\n  return cryptoMixer.shuffle(amount, mixerConfig.wallets);\n}\n`,
     meta: { lang: 'javascript' }
   });
   registerFile('/customer-portal/src/payment/gateway.js', {
