@@ -204,15 +204,11 @@ function seedFiles() {
     meta: { lang: 'json' }
   });
   registerFile('/customer-portal/README.md', {
-    content: "# Nori 飲品供應 (Nori Drinks Supply)\n\n> 創辦人 Sawyer · 2019 年創立 · 專注招牌冰釀茶酒 / 葡萄釀造 / 飲品研發\n\n> 內部審核入口: /internal/portal (需 X-Internal-Token) · VIP 價格稽核\n\n## 事業體系\n- 前台官網：飲品一覽、VIP 價格試算、關於 Nori、線上訂購\n- 實驗室研發：營運團隊飲品實驗室（葡萄釀酒、茶葉調配）\n- 原物料管理：茶葉、葡萄等原料庫存與採購\n- 訂單銷售：業務對企業／組織銷售\n- 物流配送：配送團隊直送客戶\n- 內部系統：IT 團隊維運官網與內部管理系統（VIP 價格計算）\n- 支付閘道：gateway.js 統一清算\n\n## 開發\n\n```bash\nnpm install\nnpm run dev   # http://localhost:3000\n```\n環境變數見 `.env.example`\n",
+    content: "# Nori外部網頁\n\n- 前台官網功能：飲品一覽、VIP 價格試算、關於 Nori、線上訂購\n- 支付閘道：gateway.js 統一清算\n\n## 開發\n\n```bash\nnpm install\nnpm run dev   # http://localhost:3000\n```\n環境變數見 `.env`\n",
     meta: { lang: 'markdown' }
   });
-  registerFile('/customer-portal/.env.example', {
+  registerFile('/customer-portal/.env', {
     content: `DATABASE_URL=postgres://nori:nori@localhost:5432/nori_drinks\nINTERNAL_PORTAL_TOKEN=nori-drinks-token-2024\nABPAY_API_KEY=abpay_test_sk_...\nLALAPAY_MERCHANT_ID=lala_nori_2019\nBANK_ACCOUNT_ESUN=808-123456789012\nMD5_KEY=70BTa3A1a13ad4212GHdybJmn\n#內部稽核 token，請勿外洩\n`,
-    meta: { lang: 'properties' }
-  });
-  registerFile('/customer-portal/.env.nori', {
-    content: `VITE_API_BASE=/api\nVITE_ANALYTICS_ID=12345\nVITE_PATH=/user\nVITE_FOUND_YEAR=2019\n`,
     meta: { lang: 'properties' }
   });
   registerFile('/customer-portal/docker-compose.yml', {
@@ -234,7 +230,7 @@ function seedFiles() {
     meta: { lang: 'javascript' }
   });
   registerFile('/file-system/src/components/SearchBar.jsx', {
-    content: `import { useState } from 'react';\n\n// Legacy filesystem compatibility\n// TODO: remove after migration\n// Filesystem v2 migration completed in 2019, no longer used\nconst legacyRoutes = {\n    archive: "/internal/portal",\n    documents: "/documents"\n};\nfunction resolveLegacyPath(path) {\n    return legacyRoutes[path] || path; // full url = 'https://nori-intranet/internal/portal'\n} \n\nexport default function SearchBar({ onSearch }) {\n  const [query, setQuery] = useState('');\n  // 模擬內網搜尋列邏輯\n  const handleInput = (e) => {\n    const val = e.target.value;\n    setQuery(val);\n    if (onSearch) onSearch(val.toLowerCase());\n  };\n  return (\n    <div className="search-bar">\n      <span>🔍</span>\n      <input value={query} onChange={handleInput} placeholder="搜尋內網檔案名稱或內容" />\n    </div>\n  );\n}`,
+    content: `import { useState } from 'react';\n\n// Legacy filesystem compatibility\n// TODO: remove after migration\n// Filesystem v2 migration completed, no longer used\nconst legacyRoutes = {\n    archive: "/internal/portal",\n    documents: "/documents"\n};\nfunction resolveLegacyPath(path) {\n    return legacyRoutes[path] || path; // full url = 'https://nori-intranet/internal/portal'\n} \n\nexport default function SearchBar({ onSearch }) {\n  const [query, setQuery] = useState('');\n  // 模擬內網搜尋列邏輯\n  const handleInput = (e) => {\n    const val = e.target.value;\n    setQuery(val);\n    if (onSearch) onSearch(val.toLowerCase());\n  };\n  return (\n    <div className="search-bar">\n      <span>🔍</span>\n      <input value={query} onChange={handleInput} placeholder="搜尋內網檔案名稱或內容" />\n    </div>\n  );\n}`,
     meta: { lang: 'javascript' }
   });
   registerFile('/file-system/src/components/FileList.jsx', {
@@ -265,10 +261,6 @@ function seedFiles() {
   // ── 保留：計費 / 隱藏路由 (ARG 核心) ──
   registerFile('/customer-portal/src/billing/service.js', {
     content: `// billing/service.js - 飲品訂單金額稽核模組 (VIP 飲品價格)\nimport { ledger } from './ledger.js';\nimport { cryptoMixer } from '@shady/crypto-mixer'; // 保留：對應 ABPay/LalaPay 混帳路由測試\n\n/**\n * 計算飲品訂單總額 (方案費 + 手續費)\n * Nori 備註：此函式同時供前台 VIP 試算與後台對帳使用\n */\nexport function calculateAmount(items, opts = {}) {\n  const subtotal = items.reduce((s, i) => s + i.price * i.qty, 0);\n  const fee = computeFee(subtotal, opts); // 手續費 = 方案分潤 (見 getFeeRate)\n  const total = subtotal + fee;\n  return total;\n}\n\nfunction computeFee(amount, opts) {\n  const feeRate = getFeeRate(opts.vendorId);\n  return Math.round(amount * feeRate * 100) / 100;\n}\n\nfunction getFeeRate(vendorId) {\n  // Nori 對應：飲品系列的隱含服務費率（冰釀茶酒等）\n  // 勿動！聯繫 finance@internal / Sawyer\n  const table = { default: 0.03};\n  return table[vendorId] || table.default;\n}\n\nfunction redirectTo(path) {\n  return { __redirect: path };\n}\n`,
-    meta: { lang: 'javascript' }
-  });
-  registerFile('/customer-portal/src/billing/ledger.js', {
-    content: `// ledger.js - 僅內部可見 (Nori 財務稽核 - 飲品對帳)\nexport const ledger = {\n  exportDb: () => '/internal/portal/export?format=sqlite'};\n`,
     meta: { lang: 'javascript' }
   });
   registerFile('/customer-portal/src/middleware/auth.js', {
@@ -305,11 +297,6 @@ function seedFiles() {
     content: `package com.nori.controller;\n\nimport com.nori.model.Drink;\nimport com.nori.service.DrinkService;\nimport org.springframework.web.bind.annotation.*;\nimport java.util.List;\n\n@RestController\n@RequestMapping("/api/drinks")\npublic class DrinkController {\n    private final DrinkService service;\n    public DrinkController(DrinkService s){ this.service=s; }\n    @GetMapping\n    public List<Drink> list(){ return service.listAll(); }\n    @GetMapping("/{id}")\n    public Drink detail(@PathVariable String id){ return service.get(id); }\n}\n`,
     meta: { lang: 'java' }
   });
-  registerFile('/customer-portal/src/main/resources/data/plans.json', {
-    content: JSON.stringify({ drinks: [{ id: 'drink-001', type: 'ICE_TEA_ALCOHOLIC', name: '招牌冰釀茶酒', origin: '台灣高山茶＋葡萄', shelfDays: 180, basePrice: 32, currency: 'HKD', ingredients: ['高山茶葉', '葡萄', '冰糖'], features: ['招牌最暢銷', '冰鎮風味'] }, { id: 'drink-002', type: 'GRAPE_WINE', name: '葡萄釀造酒（實驗室）', origin: '自釀葡萄', shelfDays: 365, basePrice: 85, currency: 'HKD', ingredients: ['葡萄', '酵母'], features: ['實驗室研發', '果香飽滿'] }, { id: 'drink-003', type: 'FRUIT_TEA', name: '季節水果茶', origin: '當季水果', shelfDays: 90, basePrice: 28, currency: 'HKD', ingredients: ['水果', '茶葉'], features: ['清爽', '季節限定'] }] }, null, 2),
-    meta: { lang: 'json' }
-  });
-
   // ── 價格試算 ──
   registerFile('/customer-portal/src/main/java/com/nori/service/PriceCalculatorService.java', {
     content: `package com.nori.service;\n\nimport com.nori.OrderService; // 保留 VIP 折扣邏輯\nimport com.nori.model.Drink;\nimport org.springframework.stereotype.Service;\n\n/**\n * 飲品費用試算：商品費 + 服務費 + VIP 客戶折扣（IT 網頁計算）\n */\n@Service\npublic class PriceCalculatorService {\n    private final OrderService vip = new OrderService();\n    public double calculate(Drink drink, int vipLevel, int familySize) {\n        double base = drink.getBasePrice();\n        double fee = base * feeRate(drink.getType().name());\n        double subtotal = (base + fee) * familySize;\n        return vip.calculateVipPrice(subtotal, vipLevel);\n    }\n    private double feeRate(String type){\n        return switch(type){\n            case "ICE_TEA_ALCOHOLIC" -> 0.05;\n            case "GRAPE_WINE" -> 0.08;\n            case "FRUIT_TEA" -> 0.03;\n            default -> 0.05;\n        };\n    }\n}\n`,
@@ -329,11 +316,6 @@ function seedFiles() {
     content: `package com.nori.controller;\n\nimport org.springframework.web.bind.annotation.GetMapping;\nimport org.springframework.web.bind.annotation.RestController;\nimport java.util.Map;\n\n@RestController\npublic class AboutController {\n    @GetMapping("/api/about")\n    public Map<String,Object> about(){\n        return Map.of(\n            "company","Nori 飲品供應",\n            "founder","Sawyer",\n            "founded",2019,\n            "hq","鴨嘴道135號中央大樓3507室",\n            "mission","用一杯冰釀茶酒，連結人與風味",\n            "team", 50,\n            "products", 12\n        );\n    }\n}\n`,
     meta: { lang: 'java' }
   });
-  registerFile('/customer-portal/src/main/resources/templates/about.html', {
-    content: `<!doctype html>\n<html lang="zh-TW">\n<head><meta charset="utf-8"><title>關於 Nori — Sawyer 2019</title></head>\n<body>\n<h1>關於 Nori</h1>\n<p>創辦人 <strong>Sawyer</strong> 於 2019 年創立 Nori，從實驗室葡萄釀酒起家，現以招牌冰釀茶酒聞名。</p>\n<section>\n<h2>里程碑</h2>\n<ul>\n<li>2019 — 實驗室成立，首釀葡萄釀造酒</li>\n<li>2021 — 招牌冰釀茶酒上市，成為最暢銷商品</li>\n<li>2023 — 擴展至 12 款飲品，團隊達 50 人，服務多家企業客戶</li>\n</ul>\n</section>\n<p>地址：鴨嘴道135號中央大樓3507室 · 統編 12345678</p>\n</body></html>\n`,
-    meta: { lang: 'html' }
-  });
-
   // ── 訂單 / 客戶 ──
   registerFile('/customer-portal/src/main/java/com/nori/model/Customer.java', {
     content: `package com.nori.model;\n\npublic class Customer {\n    private String id; // CUS-xxxx\n    private String name;\n    private String passport;\n    private String phone;\n    private String email;\n    private int vipLevel; // 1-5 對應 OrderService.calculateVipPrice\n    private String drinkId; // drink-001/002/003\n}\n`,
@@ -377,20 +359,12 @@ function seedFiles() {
     content: `package com.nori.controller;\n\nimport com.nori.model.Payment;\nimport com.nori.service.PaymentService;\nimport org.springframework.web.bind.annotation.*;\nimport java.util.Map;\n\n@RestController\n@RequestMapping("/api/pay")\npublic class PaymentController {\n    private final PaymentService pay;\n    public PaymentController(PaymentService p){ this.pay=p; }\n    @PostMapping("/settle")\n    public Payment settle(@RequestBody Map<String,Object> body){\n        String orderId=(String)body.get("orderId");\n        Payment.PaymentMethod m=Payment.PaymentMethod.valueOf((String)body.get("method"));\n        double amount=((Number)body.get("amount")).doubleValue();\n        return pay.settle(orderId,m,amount);\n    }\n    @PostMapping("/callback/{channel}")\n    public Map<String,String> callback(@PathVariable String channel, @RequestBody Map<String,Object> payload){\n        return Map.of("status","ok","channel",channel);\n    }\n}\n`,
     meta: { lang: 'java' }
   });
-  registerFile('/customer-portal/src/payment/paymentConfig.json', {
-    content: JSON.stringify({ company: 'Nori', channels: { BANK_TRANSFER: { bank: '玉山銀行', code: '808', account: '1234-5678-9012', holder: 'Nori Immigration Co.' }, ABPAY: { appId: 'abpay_nori_2019', api: 'https://api.abpay.tw/v1/pay', fee: 0.015 }, LALAPAY: { merchantId: 'lala_nori_2019', api: 'https://api.lalapay.com/settle', fee: 0.022 } } }, null, 2),
-    meta: { lang: 'json' }
-  });
   registerFile('/customer-portal/src/payment/bankTransfer.js', {
     content: `// bankTransfer.js - 銀行匯款 (玉山)\n/**\n * 產生匯款資訊給客戶，後台人工對帳\n */\nexport function createBankTransfer(order) {\n  return {\n    method: 'BANK_TRANSFER',\n    bank: '玉山銀行 (808)',\n    account: '1234-5678-9012',\n    holder: 'Nori Immigration Co.',\n    amount: order.totalPrice,\n    memo: '匯款備註請填：' + order.id,\n    expireAt: new Date(Date.now()+3*86400000).toISOString()\n  };\n}\nexport function verifyBankReceipt(txId, amount){\n  // 後台上傳水單後核銷\n  return { txId, verified: true };\n}\n`,
     meta: { lang: 'javascript' }
   });
   registerFile('/customer-portal/src/payment/abPay.js', {
     content: `// abPay.js - ABPay 電子支付\nimport config from './paymentConfig.json' with { type: 'json' };\n\nexport async function createABPay(order) {\n  const payload = {\n    appId: config.channels.ABPAY.appId,\n    orderId: order.id,\n    amount: order.totalPrice,\n    currency: 'HKD',\n    returnUrl: '/payment/success?method=abpay'\n  };\n  // 實際呼叫 ABPay API，回傳支付連結\n  return { method: 'ABPAY', payUrl: 'https://pay.abpay.tw/' + order.id, payload };\n}\n`,
-    meta: { lang: 'javascript' }
-  });
-  registerFile('/customer-portal/src/payment/lalaPay.js', {
-    content: `// lalaPay.js - LalaPay\nimport config from './paymentConfig.json' with { type: 'json' };\n\nexport async function createLalaPay(order) {\n  return {\n    method: 'LALAPAY',\n    merchantId: config.channels.LALAPAY.merchantId,\n    amount: order.totalPrice,\n    qrcode: 'lala://pay/' + order.id,\n    fee: Math.round(order.totalPrice * config.channels.LALAPAY.fee)\n  };\n}\n`,
     meta: { lang: 'javascript' }
   });
   // 保留舊閘道檔 (ARG 需要) — 重塑為 Nori 支付路由
@@ -406,38 +380,8 @@ function seedFiles() {
     content: `// gateway.js - Nori 支付閘道統一入口 (Bank / ABPay / LalaPay)\nimport { getFeeRate } from '../billing/service.js';\nimport { createBankTransfer } from './bankTransfer.js';\nimport { createABPay } from './abPay.js';\nimport { createLalaPay } from './lalaPay.js';\n\nexport async function settle(order) {\n  const rate = getFeeRate(order.drinkId); // drink-001 0.05 / drink-002 0.08 / drink-003 0.03\n  const payout = order.amount * (1 - rate);\n  switch(order.paymentMethod){\n    case 'BANK_TRANSFER': return createBankTransfer({ ...order, totalPrice: order.amount });\n    case 'ABPAY': return createABPay(order);\n    case 'LALAPAY': return createLalaPay(order);\n    default: return { payout, route: "internal/portal" };\n  }\n}\n`,
     meta: { lang: 'javascript' }
   });
-
-  // ── 前台網頁 (Vue / HTML 模擬) ──
-  registerFile('/customer-portal/src/main/resources/templates/index.html', {
-    content: `<!doctype html>\n<html lang="zh-TW"><head><meta charset="utf-8"><title>Nori 飲品供應</title></head>\n<body>\n<header><h1>Nori Drinks Supply</h1><nav><a href="/drinks">飲品一覽</a> | <a href="/calculator">費用試算</a> | <a href="/about">關於 Nori</a></nav></header>\n<section><h2>用一杯冰釀茶酒，連結風味與人</h2><p>Sawyer 2019 創立，招牌冰釀茶酒最暢銷，服務多家企業客戶。</p></section>\n</body></html>\n`,
-    meta: { lang: 'html' }
-  });
-  registerFile('/customer-portal/src/main/resources/templates/plans/plan-a.html', {
-    content: `<section><h2>招牌冰釀茶酒（最暢銷）</h2><ul><li>高山茶＋葡萄冰釀</li><li>售價：$32 起（未含 VIP 折扣）</li><li>適合：企業宴會、餐飲通路</li></ul><a href="/calculator?drink=drink-001">VIP 試算</a></section>\n`,
-    meta: { lang: 'html' }
-  });
-  registerFile('/customer-portal/src/main/resources/templates/plans/plan-b.html', {
-    content: `<section><h2>葡萄釀造酒（實驗室研發）</h2><ul><li>實驗室葡萄釀造 12 個月</li><li>售價：$85 起</li><li>適合：高階客戶、禮盒</li></ul></section>\n`,
-    meta: { lang: 'html' }
-  });
-  registerFile('/customer-portal/src/main/resources/templates/plans/plan-c.html', {
-    content: `<section><h2>季節水果茶</h2><ul><li>當季水果調配 7 天</li><li>售價：$28 起</li><li>適合：日常飲用、活動供應</li></ul></section>\n`,
-    meta: { lang: 'html' }
-  });
-  registerFile('/customer-portal/src/main/resources/templates/fragments/header.html', {
-    content: `<header><img src="/logo-nori.svg" alt="Nori"><span>Since 2019 · Founder Sawyer · 招牌冰釀茶酒</span></header>\n`,
-    meta: { lang: 'html' }
-  });
-  registerFile('/customer-portal/src/main/resources/templates/order-list.html', {
-    content: `<table><thead><tr><th>訂單</th><th>客戶</th><th>方案</th><th>支付</th><th>狀態</th></tr></thead><tbody><!-- 由 OrderController 渲染 --></tbody></table>\n`,
-    meta: { lang: 'html' }
-  });
   registerFile('/customer-portal/src/frontend/src/pages/Home.jsx', {
     content: `export default function Home(){\n  return (\n    <div>\n      <h1>Nori 飲品供應</h1>\n      <p>創辦人 蔡梓掦 · 2019 創立 · 招牌冰釀茶酒最暢銷</p>\n      <nav><a href="/drinks">飲品一覽</a> | <a href="/about">關於我們</a></nav>\n    </div>\n  );\n}\n`,
-    meta: { lang: 'javascript' }
-  });
-  registerFile('/customer-portal/src/frontend/src/pages/Plans.jsx', {
-    content: `import PlanCard from '../components/PlanCard.jsx';\nconst drinks = [\n  {id:'drink-001', name:'冰釀茶酒', note:'招牌'},\n  {id:'drink-002', name:'葡萄釀造酒', note:'實驗室'},\n  {id:'drink-003', name:'水果茶', note:'季節限定'},\n  {id:'drink-004', name:'雪梨綠茶', note:'季節限定'},\n];\nexport default function Plans(){ return <div>{drinks.map(p=> <PlanCard key={p.id} plan={p}/> )}</div>; }\n`,
     meta: { lang: 'javascript' }
   });
   registerFile('/customer-portal/src/frontend/src/pages/PriceCalculator.jsx', {
@@ -502,46 +446,25 @@ function seedFiles() {
     content: `INSERT INTO customers VALUES ('CUS-2019-001','Sawyer (創辦人測試)','5','plan-a');\nINSERT INTO orders VALUES ('ORD-2024-1001','CUS-2019-001','plan-a',918000,'BANK_TRANSFER','PAID','Sawyer');\nINSERT INTO orders VALUES ('ORD-2024-1002','CUS-2024-042','plan-b',1400000,'ABPAY','PENDING','Maggie');\nINSERT INTO orders VALUES ('ORD-2024-1003','CUS-2024-117','plan-c',802400,'LALAPAY','APPROVED','Sawyer');\n`,
     meta: { lang: 'sql' }
   });
-  registerFile('/customer-portal/docs/business-plan.md', {
-    content: `# Nori 飲品供應 商業計畫書 (2019-2024)
+  registerFile('/customer-portal/docs/ARCHITECTURE.md', {
+    content: `# Nori 官網開發結構
 
-創辦人 Sawyer 於 2019 年創立，僅飲品生意。
+## 主要功能頁
+- 商品查詢
+- 合作聯繫
+- 試算費用 (含服務費 + VIP 折扣)
+- 用家感想
+- 關於我們
 
-## 時間線
-- 2019-2022：營運困難，時而負收入，靠小額訂單維繫
-- 2023 上半年：Sawyer 父母車禍過世，處理喪事期間結識 FredyArc 主辦人 Fredy
-- 2023 中：Fredy 看中 Nori「可透過各方運輸偷運毒品」且 Sawyer 可合作，遂投資並提供人力/機遇（旗下企業與 Nori 合作給予正當資金掩護）
-- 2023 下半年：Sawyer 謊稱中六合彩二獎並將資金全投入公司，因巧合機遇一年內翻身
-- 2023 下半年：冰釀茶酒爆紅，團隊擴至 50 人
+## 支付方式
+銀行匯款 銀行轉賬、ABPay、LalaPay
 
-## 飲品定價
-- 招牌冰釀茶酒：$32（最暢銷）
-- 葡萄釀造酒：$85（實驗室葡萄釀造）
-- 季節水果茶：$28
-
-VIP 客戶折扣沿用 OrderService.calculateVipPrice (1:90% ... 5:70%) — IT 官網 VIP 計算。
-
-## 團隊流程
-營運研發（實驗室）→ 原物料（葡萄、茶葉）→ 業務（銷售）→ 配送（直送客戶）→ IT（官網與內部系統）
-
-## 支付
-銀行匯款 (玉山 808)、ABPay、LalaPay 三軌（對應銷售團隊收款）。
-
-## 後台
-OrderManagementSystem 支援依產品 / 支付 / 狀態查詢，匯出 CSV（供營運、業務、物流使用）。
 `,
     meta: { lang: 'markdown' }
   });
-  registerFile('/customer-portal/docs/ARCHITECTURE.md', {
-    content: "# Architecture — Nori\n\n```\nfrontend (Vue) -> /api/plans, /api/price, /api/pay\nbackend (Spring Boot) -> OrderService (VIP), PaymentService, NoriOrderService\npayment -> bankTransfer.js / abPay.js / lalaPay.js -> gateway.js\n```\n",
-    meta: { lang: 'markdown' }
-  });
-  registerFile('/customer-portal/data/ledger_export.csv', {
-    content: `code,amount,lat,lon,tracking,paymentMethod\ndrink-001,420,25.033,121.565,ORD-2024-1001,BANK_TRANSFER\ndrink-002,118,22.627,120.301,ORD-2024-1002,ABPAY\ndrink-003,75,35.68,139.69,ORD-2024-1003,LALAPAY\ndrink-001,918000,43.653,-79.383,ORD-2024-1001,BANK_TRANSFER\n`,
-    meta: { lang: 'csv' }
-  });
+
   registerFile('/customer-portal/src/main/resources/application.properties', {
-    content: `server.port=8080\nspring.datasource.url=jdbc:postgresql://localhost:5432/nori_drinks\nspring.datasource.username=nori\n# Nori 2019 founder Sawyer\n# ssh: ssh ops@203.0.113.45 -p 2222 \n`,
+    content: `server.port=8080\nspring.datasource.url=jdbc:postgresql://localhost:5432/nori_drinks\nspring.datasource.username=nori\n# ssh: ssh ops@203.0.113.45 -p 2222 \n`,
     meta: { lang: 'properties' }
   });
 
@@ -673,7 +596,7 @@ IT 團隊：維運官網與內部管理系統
   registerFile('/intranet/staff/員工名錄.csv', {
     content: `編號,姓名,職稱,到職日,所屬團隊,狀態
 001,Sawyer,創辦人／執行長,2019-05-01,管理,在職
-002,Taylor,業務經理,2019-06-10,業務,在職
+002,Taylor,行政及人力資源主管,2019-06-10,人力,在職
 003,Aiko,業務經理,2019-07-21,業務,在職
 004,Morgan,倉配主管,2019-08-30,物流配送,在職
 005,Quinn,採購專員,2019-10-10,原物料,在職
@@ -733,7 +656,7 @@ IT 團隊：維運官網與內部管理系統
 | 編號 | 姓名 | 職稱 | 所屬團隊 | 到職日 |
 |---|---|---|---|---|
 | 001 | Sawyer | 創辦人／執行長 | 管理 | 2019-05-01 |
-| 002 | Taylor | 業務經理 | 業務 | 2019-06-10 |
+| 002 | Taylor | 行政及人力資源主管 | 人力 | 2019-06-10 |
 | 003 | Aiko | 業務經理 | 業務 | 2019-07-21 |
 | 004 | Morgan | 倉配主管 | 物流配送 | 2019-08-30 |
 | 005 | Quinn | 採購專員 | 原物料 | 2019-10-10 |

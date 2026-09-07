@@ -11,7 +11,7 @@ const tickets = [
     points: 3,
     epic: 'Billing',
     desc: `【問題描述】\nVIP 用戶訂單金額計算錯誤：目前 VIP 等級折扣比預期少 5%，導致 VIP 用戶實際支付過高。\n\n【復現步驟】\n1. 以 VIP1 身份建立訂單 (金額 1000)\n2. 實際扣款為 950 (95%)，預期應為 900 (90%)\n3. VIP2~VIP5 同樣偏移 5%\n\n【正確對照】\nVIP1 → 90% (0.90)\nVIP2 → 85% (0.85)\nVIP3 → 80% (0.80)\nVIP4 → 75% (0.75)\nVIP5 → 70% (0.70)\n\n`,
-    comments: ['Maggie: @Casey 麻煩幫忙修一下，估計是/customer-portal/src/main/java/com/nori/OrderService.java裡vip折扣計算錯誤了, 看一下switch case, 不知怎樣修可以到瀏覽器查一下相關資料, 修好了記得到"SOURCE CONTROL" commit一下, 然後看 SonarQube 結果, 沒問題的話這張單會自動切到Done, 就完成了。'],
+    comments: ['Maggie: @Casey 麻煩幫忙修一下，估計是/customer-portal/src/main/java/com/nori/OrderService.java裡vip折扣計算錯誤了\n看一下switch case, 不知道怎樣修可以到瀏覽器查一下相關資料。\n在vizual studio code找不到檔案的話，可以到SEARCH搜尋一下"switch","vip"等關鍵字 \n修好了記得到"SOURCE CONTROL" commit一下, 然後看 SonarQube 結果, 沒問題的話這張單會自動切到Done, 就好了。'],
     attachments: [
       { name: 'OrderService.java', type: 'java', snippet: 'switch(vipLv){case 1: price*=0.95; break;... // VIP1 應為 0.90' },
       { name: 'vip-discount-spec.md', type: 'md', snippet: 'VIP1 90% | VIP2 85% | VIP3 80% | VIP4 75% | VIP5 70%' },
@@ -43,7 +43,7 @@ const tickets = [
     priority: 'High',
     points: 3,
     epic: 'HR',
-    desc: '人力資源管理系統位於 /internal/portal，需 X-Internal-Token。庫存已同步, 有權限的員工才能進入此內部系統。',
+    desc: '人力資源管理系統位於 /internal/portal。庫存已同步, 有權限的員工才能進入此內部系統。',
     comments: ['deleted user: 開發完成, 可進行測試', 'Sawyer: 此系統有bug, 單純按下進行按鈕沒有反應, 多次點擊主標題後才能進入頁面, 請進行修正', 'deleted user: 已修正完成, 請再進行測試',  'Sawyer: 測試通過, 可正式啟用'],
     attachments: [
       { name: 'ScreenRecord_20191014.mp4', type: 'mp4', snippet: '測試影片：人力資源系統進入失敗' }
@@ -63,6 +63,20 @@ const tickets = [
     comments: [],
     attachments: [],
     history: [],
+  },
+    {
+    key: 'INV-2020-0003',
+    title: '人力資源系統 — 關閉系統',
+    status: 'Done',
+    assignee: 'deleted user',
+    priority: 'High',
+    points: 3,
+    epic: 'HR',
+    desc: '人力資源管理系統將遷移到Zero System, 此系統將永久關閉。關閉前需確保所有資料已成功備份到新系統',
+    comments: ['deleted user: 已完成關閉'],
+    attachments: [
+    ],
+    history: [{ from: 'To Do', to: 'Done', by: 'deleted user', at: '2020-02-28' }],
   },
 ];
 
@@ -351,7 +365,7 @@ export function addTicket0043() {
     points: 2,
     epic: 'internal system',
     desc: `【問題描述】使用內網系統時進入到異常網頁，移除不明網頁導向\n\n【復現步驟】\n1. 在內網系統 搜尋欄搜尋 'https://nori-intranet/internal/portal'\n2. 跳轉至異常網頁\n3. 需移除入口`,
-    comments: ['Maggie: @Casey 麻煩幫忙修一下，這個搜尋異常有點煩'],
+    comments: ['Maggie: @Casey 麻煩幫忙修一下，這個搜尋異常有點煩。把沒用的code整個移除就好'],
     attachments: [
       { name: 'SearchBar.jsx', type: 'jsx', snippet: '// Legacy filesystem compatibility\nconst legacyRoutes = { archive: "/internal/portal" ... } // No longer used' }
     ],

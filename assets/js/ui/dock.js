@@ -92,10 +92,10 @@ export function renderDock({ onSwitch, onOpenSettings, onOpenNotebook, t }) {
 
       <div class="taskbar__apps" role="toolbar" aria-label="Apps">
         ${appBtn('vscode', '🧩', t('dock.vscode'))}
-        ${appBtn('intranet', '🏢', t('dock.intranet'))}
-        ${appBtn('jira', '📋', t('dock.jira'))}
         ${appBtn('whatsapp', '💬', t('dock.whatsapp'))}
+        ${appBtn('jira', '📋', t('dock.jira'))}
         ${appBtn('search', '🔍', t('dock.search'))}
+        ${appBtn('intranet', '🏢', t('dock.intranet'))}
         ${isUnlocked('email') ? appBtn('email', '✉️', 'Email') : ''}
         <div class="taskbar__sep"></div>
         ${actionBtn('notebook', '📒', t('dock.notebook'))}
@@ -110,7 +110,7 @@ export function renderDock({ onSwitch, onOpenSettings, onOpenNotebook, t }) {
         <span class="taskbar__tray-icon" title="顯示隱藏的圖示">▲</span>
         <span class="taskbar__tray-icon" title="網路">📶</span>
         <span class="taskbar__tray-icon" title="音效">🔊</span>
-        <span class="taskbar__ime" title="輸入法">Eng</span>
+        <span class="taskbar__ime" title="輸入法">ENG</span>
       </div>
       <div class="taskbar__datetime" id="taskbarDatetime" title="日期與時間">
         <span class="taskbar__time" id="taskbarTime">--:-- --</span>

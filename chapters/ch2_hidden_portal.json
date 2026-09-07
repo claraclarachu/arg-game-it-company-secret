@@ -3,7 +3,7 @@
   "title": "The Hidden Portal",
   "title_zh": "隱藏入口",
   "desc": "原材料採購系統偽裝，需 X-Internal-Token:nori-drinks-token-2024 繞過驗證，揭露飲品庫存",
-  "objectives": ["繞過 Portal 驗證", "發現代號對照表", "找到 .env.example token"],
+  "objectives": ["繞過 Portal 驗證", "發現代號對照表", "找到 .env token"],
   "unlock": [],
   "evidence": ["e002","e003","e003b"]
 }

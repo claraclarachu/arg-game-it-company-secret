@@ -4,7 +4,7 @@
 import { execSync } from 'node:child_process';
 import { existsSync } from 'node:fs';
 
-console.log('→ Building Code & Conspiracy...');
+console.log('→ Building 聽日辭職...');
 execSync('npm run build', { stdio: 'inherit' });
 
 if (!existsSync('dist/index.html')) {

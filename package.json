@@ -1,7 +1,7 @@
 {
   "name": "arg-game-it-company-secret",
   "version": "1.0.0",
-  "description": "ARG Game: Code & Conspiracy - A programmer's life simulation uncovering corporate secrets",
+  "description": "ARG Game: 聽日辭職 - A programmer's life simulation uncovering corporate secrets",
   "type": "module",
   "scripts": {
     "dev": "vite",

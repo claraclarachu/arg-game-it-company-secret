@@ -1,7 +1,7 @@
 # AGENTS.md
 
 ## Project
-Vanilla JS + Vite static site. Offline ARG (`Code & Conspiracy`) — no backend, all persistence in `localStorage`. Primary language: **Traditional Chinese (zh-TW)**. Repo root is `arg-game-it-company-secret/` (git `master` → `claraclarachu/arg-game-it-company-secret`).
+Vanilla JS + Vite static site. Offline ARG (`聽日辭職`) — no backend, all persistence in `localStorage`. Primary language: **Traditional Chinese (zh-TW)**. Repo root is `arg-game-it-company-secret/` (git `master` → `claraclarachu/arg-game-it-company-secret`).
 
 ## Commands
 - `npm run dev` — Vite dev server on `:3000` (auto-open)

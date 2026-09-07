@@ -2,7 +2,7 @@ import { state } from './state.js';
 
 const dict = {
   'zh-TW': {
-    'app.title': 'Code & Conspiracy',
+    'app.title': '聽日辭職',
     'app.subtitle': '編程人生模擬 · 離線 ARG',
     'dock.vscode': 'Vizual Studio Code',
     'dock.intranet': '內網',
@@ -21,7 +21,7 @@ const dict = {
     'toast.unlocked': '解鎖新介面'
   },
   'en': {
-    'app.title': 'Code & Conspiracy',
+    'app.title': '聽日辭職',
     'app.subtitle': 'Dev Life Sim · Offline ARG',
     'dock.vscode': 'Vizual Studio Code',
     'dock.intranet': 'Intranet',

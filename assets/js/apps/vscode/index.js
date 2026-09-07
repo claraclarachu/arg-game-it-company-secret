@@ -135,13 +135,13 @@ const branchColors = {
   'develop': '#c586c0',
 };
 let gitGraphCommits = [
-  { hash: 'a1b2c3d', branch: 'feature/crypto-mixer', author: 'finance@internal', date: '2024-08-12', msg: 'feat: integrate crypto-mixer (legacy)', diff: `+ import { cryptoMixer } from '@shady/crypto-mixer'\n+ const table = { "drink-001": 0.05, "drink-002": 0.08, "drink-003": 0.03 }` },
-  { hash: '9f8e7d6', branch: 'feature/billing-fix', author: 'qa-lee', date: '2024-08-10', msg: 'fix: rounding edge case INV-2024-0042 (see 420.69)', diff: `- if (total > 1000) ...\n+ if (total === 420.69) return redirectTo('/internal/portal') // hidden audit` },
-  { hash: '7e2b4a1', branch: 'feature/vip-discount', author: 'dev-zhang', date: '2024-08-08', msg: 'feat: add VIP discount tier (initial)', diff: `+ public double calculateVipPrice(double price, int vipLv) {\n+   switch(vipLv){ case 1: price*=0.95; ... }\n+ }` },
-  { hash: 'b5c8e11', branch: 'develop', author: 'ops-li', date: '2024-08-05', msg: 'chore: update CI pipeline for billing tests', diff: `M .github/workflows/ci.yml\n+ - run: npm test -- billing\n+ - run: sonar-scan` },
-  { hash: '4c2a1e0', branch: 'main', author: 'dev', date: '2024-08-01', msg: 'chore: init billing service', diff: `+ export function calculateAmount(items, opts) {}\n+ export function computeFee(amount, opts) {}` },
-  { hash: 'c8d3e9f', branch: 'develop', author: 'ops-li', date: '2024-07-28', msg: 'chore: scaffold workspace & payment stubs', diff: `+ workspace/src/payment/gateway.js\n+ workspace/src/payment/mixer.js` },
-  { hash: 'd4e5f6a', branch: 'main', author: 'dev-chen', date: '2023-11-20', msg: 'refactor: simplify portal auth (remove dynamic generator)', diff: `- function generateSecretPath(internalPortalDomain){ \n-     const cid = redis.get('companyId'); \n-     const y = redis.get('year'); \n-     const k= import.meta.env.MD5_KEY; \n-     return internalPortalDomain + 'hash=' + md5(\`companyId=\${cid}&year=\${y}&key=\${k}\`); \n-     }\n+ // removed: secret path is now static` },
+  { hash: 'a1b2c3d', branch: 'feature/crypto-mixer', author: 'finance@internal', date: '2024-08-12', msg: '(INV-2024-0040) feat: integrate crypto-mixer (legacy)', diff: `+ import { cryptoMixer } from '@shady/crypto-mixer'\n+ const table = { "drink-001": 0.05, "drink-002": 0.08, "drink-003": 0.03 }` },
+  { hash: '9f8e7d6', branch: 'feature/billing-fix', author: 'parker-lee', date: '2024-08-10', msg: '(INV-2024-0033) fix: rounding edge case', diff: `- if (total > 1000) { \n+ if (total < 1000) {` },
+  { hash: '7e2b4a1', branch: 'feature/vip-discount', author: 'dev-zhang', date: '2024-08-08', msg: '(INV-2024-0030) feat: add VIP discount tier (initial)', diff: `+ public double calculateVipPrice(double price, int vipLv) {\n+   switch(vipLv){ case 1: price*=0.95; ... }\n+ }` },
+  { hash: 'b5c8e11', branch: 'develop', author: 'ops-li', date: '2024-08-05', msg: '(INV-2024-0028) chore: update CI pipeline for billing tests', diff: `M .github/workflows/ci.yml\n+ - run: npm test -- billing\n+ - run: sonar-scan` },
+  { hash: '4c2a1e0', branch: 'main', author: 'dev', date: '2024-08-01', msg: '(INV-2024-0020) chore: init billing service', diff: `+ export function calculateAmount(items, opts) {}\n+ export function computeFee(amount, opts) {}` },
+  { hash: 'c8d3e9f', branch: 'develop', author: 'ops-li', date: '2024-07-28', msg: '(INV-2023-0040) chore: scaffold workspace & payment stubs', diff: `+ workspace/src/payment/gateway.js\n+ workspace/src/payment/mixer.js` },
+  { hash: 'd4e5f6a', branch: 'main', author: 'dev-chen', date: '2023-11-20', msg: '(INV-2023-0039) refactor: simplify portal auth (remove dynamic generator)', diff: `- function generateInternalPortalPath(internalPortalDomain){ \n-     const cid = redis.get('companyId'); \n-     const y = redis.get('year'); \n-     const k = import.meta.env.MD5_KEY; \n-     return internalPortalDomain + 'hash=' + md5(\`companyId=\${cid}&year=\${y}&key=\${k}\`); \n-     }` },
 ];
 
 export function mountVSCode() {
@@ -159,7 +159,7 @@ export function mountVSCode() {
             <span>File</span><span>Edit</span><span>Selection</span><span>View</span><span>Go</span><span>Run</span><span>Terminal</span><span data-help="1" style="cursor:pointer">Help</span>
           </nav>
         </div>
-        <div class="titlebar__center" id="vsTitle" title="OrderService.java — Code & Conspiracy — Vizual Studio Code">OrderService.java — Code &amp; Conspiracy — Vizual Studio Code</div>
+        <div class="titlebar__center" id="vsTitle" title="OrderService.java — nori-system — Vizual Studio Code">OrderService.java — Code &amp; Conspiracy — Vizual Studio Code</div>
         <div class="titlebar__controls" aria-label="Window controls">
           <button class="titlebar__btn" title="Minimize" aria-label="Minimize">—</button>
           <button class="titlebar__btn" title="Maximize" aria-label="Maximize">□</button>
@@ -239,12 +239,12 @@ export function mountVSCode() {
           <div id="vsPanelDebug" style="display:none;flex:1;flex-direction:column;min-height:0;padding:12px">
             <div style="font-size:11px;font-weight:600;letter-spacing:.5px;color:var(--fg-secondary);margin-bottom:8px">RUN AND DEBUG</div>
             <button class="btn primary" style="width:100%">▸ Start Debugging</button>
-            <div class="small muted" style="margin-top:8px">No configuration.</div>
+            <div class="small muted" style="margin-top:8px">沒有設置</div>
           </div>
           <div id="vsPanelExtensions" style="display:none;flex:1;flex-direction:column;min-height:0;padding:12px">
             <div style="font-size:11px;font-weight:600;letter-spacing:.5px;color:var(--fg-secondary);margin-bottom:8px">EXTENSIONS</div>
             <input class="input" placeholder="Search Extensions in Marketplace" />
-            <div class="small muted" style="margin-top:12px">Offline — no marketplace.</div>
+            <div class="small muted" style="margin-top:12px">結果會顯示於此。</div>
           </div>
         </aside>
 
@@ -340,7 +340,7 @@ function bindVSCode() {
     const isNoriPortal = q.includes('nori-intranet/internal/portal') || q === 'https://nori-intranet/internal/portal';
     const isPortal = q.includes('internal/portal') || q === 'internal' || q === 'portal' || (q.includes('internal') && q.includes('portal')) || isNoriPortal;
     const isInternal = q.includes('internal') || q.includes('portal') || isNoriPortal;
-    const isSwitch = q.includes('switch') || q.includes('case') || q.toLowerCase().includes('vipprice') || q.includes('vipprice');
+    const isSwitch = q.includes('switch') || q.includes('case') || q.toLowerCase().includes('vipprice') || q.includes('price') || q.includes('vip');
     const isMd5Key = q.includes('md5_key') || q.includes('md5key') || q.includes('md5') || q.includes('key');
     if (isPortal || isInternal) {
       if (searchResult) {
@@ -363,9 +363,9 @@ function bindVSCode() {
     }
     if (isMd5Key) {
       if (searchResult) {
-        searchResult.innerHTML = `<div class="small" style="color:var(--fg-primary);cursor:pointer;padding:6px;border:1px solid var(--border);border-radius:6px;background:var(--bg-tertiary)" data-open=".env.example">📄 /customer-portal/.env.example — 匹配 "${escapeHtml(val)}" <span style="color:var(--accent);margin-left:6px">開啟 →</span></div>`
+        searchResult.innerHTML = `<div class="small" style="color:var(--fg-primary);cursor:pointer;padding:6px;border:1px solid var(--border);border-radius:6px;background:var(--bg-tertiary)" data-open=".env">📄 /customer-portal/.env — 匹配 "${escapeHtml(val)}" <span style="color:var(--accent);margin-left:6px">開啟 →</span></div>`
         searchResult.querySelector('[data-open]')?.addEventListener('click', () => {
-          openFile('/customer-portal/.env.example');
+          openFile('/customer-portal/.env');
         });
       }
       return;
@@ -516,7 +516,7 @@ function renderGitGraphEditor() {
   const editor = document.getElementById('vsEditor');
   if (!editor) return;
   const titleEl = document.getElementById('vsTitle');
-  if (titleEl) titleEl.textContent = `Git Graph — Code & Conspiracy — Vizual Studio Code`;
+  if (titleEl) titleEl.textContent = `Git Graph — nori-system — Vizual Studio Code`;
   renderTabs();
   const entryClosed = isPortalEntryClosed();
   const rows = gitGraphCommits.map((c, idx) => {
@@ -706,7 +706,7 @@ function openFile(path) {
   const titleEl = document.getElementById('vsTitle');
   if (titleEl) {
     const name = path.split('/').pop();
-    titleEl.textContent = `${name} — ${path} — Code & Conspiracy — Vizual Studio Code`;
+    titleEl.textContent = `${name} — ${path} — nori-system — Vizual Studio Code`;
   }
   renderTree(document.getElementById('vsQuickOpen')?.value.trim().toLowerCase() || '');
   renderTabs();
@@ -719,7 +719,7 @@ function renderScmChanges() {
   if (!el) return;
   const dirty = [...editedFiles.entries()].filter(([p,v])=> v !== getOriginalContent(p));
   if (!dirty.length) {
-    el.innerHTML = '<div class="small muted" style="padding:8px 0">沒有變更 — 編輯 OrderService.java 後會顯示於此</div>';
+    el.innerHTML = '<div class="small muted" style="padding:8px 0">修改完成後在這邊提交\n 目前沒有變更 — 編輯後的改動會顯示於此</div>';
     return;
   }
   el.innerHTML = `
@@ -827,7 +827,7 @@ function handleCommit() {
       const body = document.getElementById('sonarModalBody');
       if (body) {
         const snippetA = `const legacyRoutes = {\n    archive: "/internal/portal",\n    documents: "/documents"\n};\nfunction resolveLegacyPath(path) {\n    return legacyRoutes[path] || path;\n}`;
-        const snippetB = `// Legacy filesystem compatibility\n// TODO: remove after migration\n// Filesystem v2 migration completed in 2019, no longer used\n` + snippetA;
+        const snippetB = `// Legacy filesystem compatibility\n// TODO: remove after migration\n// Filesystem v2 migration completed, no longer used\n` + snippetA;
         body.textContent = `SonarQube 掃描失敗 — 未移除已棄用的 legacy 入口\n\n檔案: ${searchBarPath}\n錯誤: 偵測到未移除的 legacyRoutes / resolveLegacyPath 區塊\n\n此為已關閉的入口，必須移除以下其中一段程式碼：\n\n— 選項 A (精簡版):\n${snippetA}\n\n— 選項 B (含註解版):\n${snippetB}\n\n請刪除其中一段後重新 Commit，INV-2024-0043 才會移至 Done。`;
       }
       if (modal) modal.style.display = 'flex';

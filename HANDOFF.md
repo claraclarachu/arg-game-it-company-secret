@@ -1,4 +1,4 @@
-# Handoff Log — Code & Conspiracy (ARG)
+# Handoff Log — 聽日辭職 (ARG)
 
 > 目的：讓不同電腦（辦公室 MacBook / 家裡 Windows）及不同 Agent 能在 1 分鐘內接手進度。
 > 更新方式：每次完成一個子任務就更新本檔並 `git commit + push`。

@@ -69,7 +69,7 @@ function renderNotebook() {
           `).join('')}
         </div>
         <div class="small muted" style="margin-top:8px">提示：拖拉卡片可模擬關聯（未來關卡編輯器）· 共同關鍵字：Sawyer/420.69</div>
-      ` : '<div class="muted small">尚未發現證據。去 Vizual Studio Code 搜尋 "redirectTo" 或開啟 .env.example</div>'}
+      ` : '<div class="muted small">尚未發現證據。去 Vizual Studio Code 搜尋 "redirectTo" 或開啟 .env</div>'}
     </div>
 
     <div class="card" style="margin-top:12px">

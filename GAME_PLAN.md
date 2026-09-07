@@ -1,8 +1,8 @@
-# ARG Game Plan: "Code & Conspiracy"
+# ARG Game Plan: "聽日辭職"
 
 ## 1. Game Overview
 
-**Title:** Code & Conspiracy (暫定名稱)
+**Title:** 聽日辭職 (暫定名稱)
 **Genre:** ARG (Alternate Reality Game) / Narrative Puzzle / Simulation
 **Platform:** HTML5 + JavaScript (Vanilla, no frameworks)
 **Storage:** LocalStorage only (fully offline playable)

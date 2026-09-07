@@ -8,7 +8,7 @@ const chats = [
     avatar: '🏢',
     desc: 'Nori 全體員工群組',
     members: ['Sawyer', 'Casey', 'Maggie', 'Taylor', 'Aiko', 'all'],
-    preview: 'Hugo: 一輩子跟隨您！',
+    preview: 'Leo:謝謝安排！',
     locked: false,
     pinned: true,
     muted: false,
@@ -20,12 +20,15 @@ const chats = [
       { id: 'm2', from: 'Taylor', text: '恭喜老闆！祝以後都順順利利！', time: '2023-06-15', read: 'read', type: 'text' },
       { id: 'm3', from: 'Aiko', text: '太棒了！老闆威武！', time: '2023-06-15', read: 'read', type: 'text' },
       { id: 'm4', from: 'Maggie', text: '恭喜老闆！', time: '2023-06-15', read: 'read', type: 'text' },
-      { id: 'm5', from: 'Parker', text: '也太好運了吧？！', time: '2023-06-15', read: 'read', type: 'text' },
-      { id: 'm6', from: 'Sawyer', text: '各位同事，告訴大家一個好消息，剛跟可樂樂公司談成一大生意，結為長期合作伙伴。近來公司發展順利，決定舉辦晚上派對，詳細資訊稍後公布！', time: '2023-11-01', read: 'read', type: 'text' },
+      { id: 'm5', from: 'Parker', text: '運也太好了吧？！', time: '2023-06-15', read: 'read', type: 'text' },
+      { id: 'm6', from: 'Sawyer', text: '各位同事，告訴大家一個好消息，剛跟可樂樂公司談成一大生意，結為長期合作伙伴。為慶祝近來公司發展順利，決定舉辦晚上派對，詳細資訊稍後公布！', time: '2023-11-01', read: 'read', type: 'text' },
       { id: 'm7', from: 'Aiko', text: '哇！！太好了，一定會去！', time: '2023-11-01', read: 'read', type: 'text' },
       { id: 'm8', from: 'Taylor', text: '太棒了！', time: '2023-11-01', read: 'read', type: 'text' },
       { id: 'm9', from: 'Maggie', text: '恭喜老闆！', time: '2023-11-01', read: 'read', type: 'text' },
       { id: 'm10', from: 'Hugo', text: '一輩子跟隨您！', time: '2023-11-01', read: 'read', type: 'text' },
+      { id: 'm11', from: 'Taylor', text: '各位同事，慶祝公司發展順利, 將於11月22日下班後舉辦派對，以下為詳細資訊：\n日期時間：11月22日（五） 19:00-23:00\n地點：辨公室旁邊的利利大樓18樓004室\n\n可自由組隊前行', time: '2023-11-04', read: 'read', type: 'text' },
+      { id: 'm12', from: 'Sawyer', text: '謝謝Taylor的安排，請各位盡情享受！', time: '2023-11-04', read: 'read', type: 'text' },
+      { id: 'm13', from: 'Leo', text: '謝謝安排！', time: '2023-11-04', read: 'read', type: 'text' },
     ]
   },
   {
@@ -59,7 +62,7 @@ const chats = [
     unread: 0,
     lastTime: '2024-07-15',
     messages: [
-      { id: 'm1', from: 'Sawyer', text: 'Casey，歡迎來到Nori Limited, 我是Sawyer, 這家公司的老闆, 來一下我的辨公室聊聊。', time: '2024-07-15', read: 'read', type: 'text' },
+      { id: 'm1', from: 'Sawyer', text: 'Casey，歡迎來到Nori Limited！ 我是Sawyer, Nori的老闆, 來一下我的辨公室聊聊吧～', time: '2024-07-15', read: 'read', type: 'text' },
     ]
   },
   {
@@ -68,7 +71,7 @@ const chats = [
     avatar: '👩‍💻',
     desc: 'Nori網站和內網的開發團隊群組',
     members: ['Maggie', 'Casey', 'pm', 'Taylor', 'ops'],
-    preview: 'Hi @Casey, 有新的工單INV-2024-0042, 請協助處理一下',
+    preview: 'Hi @Casey, 有新的工單INV-2024-0042, 請協助處理一下。詳細資訊在Jiua可以找到, 有問題再找我。',
     locked: false,
     pinned: true,
     muted: false,
@@ -76,7 +79,7 @@ const chats = [
     unread: 1,
     lastTime: '剛剛',
     messages: [
-      { id: 'm1', from: 'Maggie', text: 'Hi @Casey, 有新的工單INV-2024-0042, 請協助處理一下', time: '剛剛', read: 'delivered', type: 'text' },
+      { id: 'm1', from: 'Maggie', text: 'Hi @Casey, 有新的工單INV-2024-0042, 請協助處理一下。詳細資訊在Jiua可以找到, 有問題再找我。', time: '剛剛', read: 'delivered', type: 'text' },
     ]
   },
   {

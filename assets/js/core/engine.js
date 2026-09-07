@@ -52,8 +52,8 @@ const puzzles = [
   {
     id: 'ch2_read_env_token',
     chapter: 2,
-    check: () => state.get('discoveredFiles')?.includes('/customer-portal/.env.example'),
-    reward: { evidence: { id: 'e003b', title: '洩漏的 Token (.env.example)', chapter: 2, type: 'secret' } },
+    check: () => state.get('discoveredFiles')?.includes('/customer-portal/.env'),
+    reward: { evidence: { id: 'e003b', title: '洩漏的 Token (.env)', chapter: 2, type: 'secret' } },
     title: '找到 INTERNAL_PORTAL_TOKEN'
   },
   // Chapter 3 — Following the Money
