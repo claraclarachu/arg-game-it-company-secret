@@ -93,7 +93,7 @@ export function mountJira() {
         <div class="jira__title">
           <h2 style="margin:0">Jiua · Nori Board</h2>
           <span class="badge">Sprint 24</span>
-          <span class="badge" style="background:var(--accent);color:#fff;border-color:var(--accent)">4 tickets</span>
+          <span class="badge badge--count">5 tickets</span>
         </div>
         <div class="jira__filters">
           <input id="jiraSearch" class="input" placeholder="搜尋 / JQL: status = &quot;To Do&quot; AND text ~ &quot;420&quot;  |  assignee = 你" style="min-width:280px" />
@@ -265,7 +265,7 @@ function openTicket(key) {
   d.innerHTML = `
     <div style="display:flex;justify-content:space-between;align-items:start;gap:12px">
       <h3 style="margin:0">${t.key} · ${t.title}</h3>
-      <span class="badge" style="background:${t.status==='Done'?'var(--success)':t.status==='In Progress'?'var(--warning)':'var(--border)'};color:${t.status==='Done'?'#fff':'var(--fg-primary)'}">${t.status}</span>
+      <span class="badge ${t.status==='Done'?'badge--done':t.status==='In Progress'?'badge--inprogress':'badge--todo'}">${t.status}</span>
     </div>
     <div class="small muted" style="margin:6px 0">經辦人: ${t.assignee} · Epic: ${t.epic} · 優先度: ${t.priority} · 點數: ${t.points}</div>
     <pre class="mono" style="white-space:pre-wrap;background:var(--bg-primary);padding:10px;border-radius:6px;border:1px solid var(--border)">${t.desc}</pre>

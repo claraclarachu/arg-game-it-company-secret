@@ -121,9 +121,9 @@ function bindMail() {
   function updateTo() {
     if (!title || !to) return;
     const v = title.value;
-    if (v === 'Report') to.value = 'DEA <dea@nori.example>';
-    else if (v === 'Coperation') to.value = 'Sawyer <sawyer@nori.example>';
-    else if (v === 'Resign') to.value = 'Sawyer <sawyer@nori.example>';
+    if (v === 'Report') to.value = 'Drug Enforcement Administration <dea@email.us>';
+    else if (v === 'Coperation') to.value = 'Sawyer <sawyer@nori.com>';
+    else if (v === 'Resign') to.value = 'Sawyer <sawyer@nori.com>';
   }
   title?.addEventListener('change', updateTo);
   updateTo();
@@ -160,20 +160,35 @@ function bindMail() {
 }
 
 function bindStartMenu() {
-  const startBtn = document.querySelector('.taskbar__start');
   const menu = document.getElementById('startMenu');
-  if (!startBtn || !menu) return;
-  startBtn.addEventListener('click', (e) => {
-    e.stopPropagation();
-    menu.style.display = menu.style.display === 'none' || !menu.style.display ? 'block' : 'none';
-  });
+  if (!menu) return;
+  // Use delegated handler so re-render of #dock (which recreates .taskbar__start) does not lose the listener
   document.addEventListener('click', (e) => {
-    if (!menu.contains(e.target) && !startBtn.contains(e.target)) {
+    const startBtn = e.target.closest && e.target.closest('.taskbar__start');
+    const shutdownBtn = e.target.closest && e.target.closest('#startShutdown');
+    const logoutBtn = e.target.closest && e.target.closest('#startLogout');
+    if (startBtn) {
+      e.stopPropagation();
+      const isHidden = menu.style.display === 'none' || !menu.style.display || menu.style.display === '';
+      menu.style.display = isHidden ? 'block' : 'none';
+      return;
+    }
+    if (shutdownBtn) {
+      e.stopPropagation();
+      menu.style.display = 'none';
+      handleShutdown('shutdown');
+      return;
+    }
+    if (logoutBtn) {
+      e.stopPropagation();
+      menu.style.display = 'none';
+      handleShutdown('logout');
+      return;
+    }
+    if (!menu.contains(e.target)) {
       menu.style.display = 'none';
     }
   });
-  document.getElementById('startShutdown')?.addEventListener('click', () => { menu.style.display='none'; handleShutdown('shutdown'); });
-  document.getElementById('startLogout')?.addEventListener('click', () => { menu.style.display='none'; handleShutdown('logout'); });
 }
 
 function handleShutdown(action) {
@@ -206,10 +221,10 @@ function showEnding(ending) {
   const map = {
     flee: { title: '平凡的日常', desc: 
       '你已完成了工作，登出了電腦，走出辨公室，回到家中安心睡一覺。\n第二天回到辨公室，重新開啟電腦，像平常一樣進入辨公模式，但你感覺有點不對勁，昨天看到的一些文件不見了，有部分git history好像有被人改動過的痕跡，你認為你記錯了。\n接下來繼續日復日的重複性工作，漸漸對此工作感到沉悶，但也只能接受不變的人生。' },
-    cooperate: { title: '共犯', desc: '你認為老闆是對的。\n你向老闆自告奮勇，參與運毒的工作。不出一天，已分潤到可觀的額外收入，你的生活質素大幅上升，不用再為了是否升級麥當當套餐而煩惱，但可能要為隨時被人闖入家中爆頭感到恐懼。\n你踏出新的這一步，為生活帶來了多一分選擇，不再是一成不變的勞動人生，你更喜歡這充滿刺激的生活。' },
-    report: { title: '舉報', desc: '你認為老闆是不對的。\n你選擇報告輯毒處，把證據從內網下載下來，一次交給警方。\n不一會兒，警方到達辨公室，帶住拘捕令走進老闆辨公室，你看着本來充滿笑容的老闆變得呆滯，在眾多員工的眼前被警方押走。\n這件事被傳媒大幅報導，公司也跟著倒閉，市面上出產過的飲品通通下架。\n風波後過了幾個禮拜，人們都忘記了，不再是閒餘茶飯時會提及的話題，你也回到了正常生活，找了一份新的工作，又回到日復日的勞動中。' },
-    resign: { title: '辭職', desc: '你發現了公司的秘密。\n你知道對於社會倫理和規範來說是不對的，但你選擇遠離，不參與事端，你希望少一事是一事，因此向老闆提出離職，以不適合這份工作為理由矇混過去。\n老闆了解這年代的年輕人都很有主見，必定是深思熟慮過後的決定，因此沒強留着你，只是拉着你聊了一會兒。\n你對這愉快的工作環境感到不捨，但過了幾個月，你找到了新工作，開始淡忘這兩個月的記憶，也不再在意。' },
-    fried: { title: '做對了嗎？', desc: '你發現了公司的秘密。\n但你沒有做出任何行動，你默默關掉電腦，下班回到家裡，打算好好的休息明天再到辨公室繼續上班。\n突然，放在櫃子上的手機震動了一下，收到了公司辭退你的消息。\n其實\n公司也發現了你。' },
+    cooperate: { title: '共犯', desc: '你認為老闆是對的。\n你向老闆自告奮勇，參與運毒的工作。不到一日，已分潤到可觀的額外收入，你的生活質素大幅上升，不用再為了是否升級麥當當套餐而煩惱，但可能要為隨時被人闖入家中爆頭感到恐懼。\n你踏出新的這一步，為生活帶來了多一分選擇，不再是一成不變的勞動人生，你更喜歡這充滿刺激的生活。' },
+    report: { title: '舉報', desc: '你認為老闆是不對的。\n你選擇向輯毒處舉報，你把證據從內網下載下來，郵寄至警方。\n不一會兒，警方到達辨公室，帶住拘捕令走進老闆辨公室，你看着本來充滿笑容的老闆變得呆滯，在眾多員工的眼前被警方押走。\n這件事被傳媒大幅報導，公司也跟著倒閉，市面上出產過的飲品通通下架。\n風波後過了幾個禮拜，人們都忘記了，不再是閒餘茶飯時會提及的話題，你也回到了正常生活，找了一份新的工作，又回到日復日的勞動中。' },
+    resign: { title: '辭職', desc: '你發現了公司的秘密。\n你知道對於社會倫理和規範來說是不對的，但你選擇遠離，不參與事端，你希望少一事是一事，因此向老闆提出離職，以不適合這份工作為理由矇混過去。\n老闆了解這年代的年輕人都很有主見，必定是深思熟慮過後的決定，因此沒強留着你，只是拉着你聊了一會兒。\n你對這愉快的工作環境感到不捨，過了幾個月，你找到了新工作，開始淡忘這兩個月的記憶，也不再在意。' },
+    fried: { title: '做對了嗎？', desc: '你發現了公司的秘密。\n但你沒有做出任何行動，你默默的關掉電腦，下班回到家裡，打算好好的休息明天再到辨公室繼續上班。\n突然，放在櫃子上的手機震動了一下，收到了公司辭退你的消息。\n其實\n公司也發現了你。' },
   };
 
   const info = map[ending] || map.flee;
@@ -265,6 +280,10 @@ function showEnding(ending) {
       }
       // If word is just whitespace/newline, don't add extra 1000, just 200
       if (/^\s+$/.test(w)) delay = 100;
+      // fried ending: slow down final two lines for dramatic effect
+      if (ending === 'fried' && (w === '其' || w === '實' || displayed.includes('其實'))) {
+        delay = 420;
+      }
       setTimeout(typeNextWord, delay);
     }
     typeNextWord();

@@ -26,7 +26,7 @@ const chats = [
       { id: 'm8', from: 'Taylor', text: '太棒了！', time: '2023-11-01', read: 'read', type: 'text' },
       { id: 'm9', from: 'Maggie', text: '恭喜老闆！', time: '2023-11-01', read: 'read', type: 'text' },
       { id: 'm10', from: 'Hugo', text: '一輩子跟隨您！', time: '2023-11-01', read: 'read', type: 'text' },
-      { id: 'm11', from: 'Taylor', text: '各位同事，慶祝公司發展順利, 將於11月22日下班後舉辦派對，以下為詳細資訊：\n日期時間：11月22日（五） 19:00-23:00\n地點：辨公室旁邊的利利大樓18樓004室\n\n可自由組隊前行', time: '2023-11-04', read: 'read', type: 'text' },
+      { id: 'm11', from: 'Taylor', text: '各位同事，慶祝公司發展順利, 將於11月22日下班後舉辦派對\n以下為詳細資訊：\n日期：11月22日（五） \n時間：19:00-23:00\n地點：辨公室旁邊的利利大樓18樓004室\n\n可自由組隊前行', time: '2023-11-04', read: 'read', type: 'text' },
       { id: 'm12', from: 'Sawyer', text: '謝謝Taylor的安排，請各位盡情享受！', time: '2023-11-04', read: 'read', type: 'text' },
       { id: 'm13', from: 'Leo', text: '謝謝安排！', time: '2023-11-04', read: 'read', type: 'text' },
     ]
@@ -54,7 +54,7 @@ const chats = [
     avatar: '👔',
     desc: 'Sawyer · 創辦人',
     phone: '+852 9123 4567',
-    preview: 'Casey，歡迎來到Nori Limited',
+    preview: 'Sawyer: Casey，歡迎來到Nori Limited',
     locked: false,
     pinned: false,
     muted: false,
@@ -65,13 +65,44 @@ const chats = [
       { id: 'm1', from: 'Sawyer', text: 'Casey，歡迎來到Nori Limited！ 我是Sawyer, Nori的老闆, 來一下我的辨公室聊聊吧～', time: '2024-07-15', read: 'read', type: 'text' },
     ]
   },
+    {
+    id: 'maggie',
+    name: '主管 - Maggie',
+    avatar: '🥑',
+    desc: 'Maggie · IT主管',
+    phone: '+852 6111 4220',
+    preview: '',
+    locked: false,
+    pinned: false,
+    muted: false,
+    archived: false,
+    unread: 0,
+    lastTime: '2024-07-15',
+    messages: [
+      { id: 'm1', from: 'Maggie', text: 'Hi Casey, 歡迎來到Nori, 我是你的直屬主管, 接下來會由我來指派工作給你。但首先我知道這是你的第一份工作，我會先跟你講解一下我們的工作流程，還有常用工具。', time: '2024-07-15', read: 'read', type: 'text' },
+      { id: 'm2', from: 'Maggie', text: '當有新的工作時，我會在Dev Team通知你，然後會附上工單資訊', time: '2024-07-15', read: 'read', type: 'text' },
+      { id: 'm3', from: 'Maggie', text: '然後請根據工單號，到Jiua系統查看詳細資訊', time: '2024-07-15', read: 'read', type: 'text' },
+      { id: 'm4', from: 'Maggie', text: '', media: '/assets/data/files/jiuaPage.png', time: '2024-07-15', read: 'read', type: 'image' },
+      { id: 'm5', from: 'Maggie', text: '通常Jiua都會詳細的告訴你要處理的事情是什麼', time: '2024-07-15', read: 'read', type: 'text' },
+      { id: 'm6', from: 'Maggie', text: '然後到Vizual Studio Code找到有問題的檔案', time: '2024-07-15', read: 'read', type: 'text' },
+      { id: 'm7', from: 'Maggie', text: '', media: '/assets/data/files/explorerPage.png', time: '2024-07-15', read: 'read', type: 'image' },
+      { id: 'm8', from: 'Maggie', text: '你可以在SEARCH功能中搜索關鍵詞，找到相關的檔案', time: '2024-07-15', read: 'read', type: 'text' },
+      { id: 'm9', from: 'Maggie', text: '', media: '/assets/data/files/searchFunctionPage.png', time: '2024-07-15', read: 'read', type: 'image' },
+      { id: 'm10', from: 'Maggie', text: '如果有不懂的，也可以到瀏覽器搜索相關資料和功能的寫法', time: '2024-07-15', read: 'read', type: 'text' },
+      { id: 'm11', from: 'Maggie', text: '', media: '/assets/data/files/searchEnginePage.png', time: '2024-07-15', read: 'read', type: 'image' },
+      { id: 'm12', from: 'Maggie', text: '修改完成之後，就可以到SOURCE CONTROL提交變更。\nGit是一個可以儲存code, 變更記錄, 控制版本的工具，常用功能有：\ncommit => 提交變更\nrevert => 撤銷變更\n查看Git Graph => 列表形式展示所有變更記錄', time: '2024-07-15', read: 'read', type: 'text' },
+      { id: 'm13', from: 'Maggie', text: '', media: '/assets/data/files/sourceControlPage.png', time: '2024-07-15', read: 'read', type: 'image' },
+      { id: 'm14', from: 'Maggie', text: '', media: '/assets/data/files/sourceControlPage-revert.png', time: '2024-07-15', read: 'read', type: 'image' },
+      { id: 'm15', from: 'Maggie', text: '如果修改有誤的話，提交時SonarQube會經過檢查，然後報錯，這時候就要重新修改', time: '2024-07-15', read: 'read', type: 'text' },
+    ]
+  },
   {
     id: 'dev-team',
     name: 'Dev Team',
     avatar: '👩‍💻',
     desc: 'Nori網站和內網的開發團隊群組',
     members: ['Maggie', 'Casey', 'pm', 'Taylor', 'ops'],
-    preview: 'Hi @Casey, 有新的工單INV-2024-0042, 請協助處理一下。詳細資訊在Jiua可以找到, 有問題再找我。',
+    preview: 'Maggie: Hi @Casey, 有新的工單INV-2024-0042, 請協助處理一下。詳細資訊在Jiua可以找到, 有問題再找我。',
     locked: false,
     pinned: true,
     muted: false,
@@ -88,7 +119,7 @@ const chats = [
     avatar: '🍽️',
     desc: '午餐小隊',
     members: ['Parker', 'Grace', 'Hugo', 'Alex', 'Casey'],
-    preview: '去米當當吃好嗎？',
+    preview: 'Alex: 好啊！',
     locked: false,
     pinned: false,
     muted: false,
@@ -234,8 +265,8 @@ function getFilteredChats() {
   if (listTab === 'unread') out = out.filter(c => c.unread > 0 && isUnlocked(c.id));
   else if (listTab === 'archived') out = out.filter(c => c.archived);
   else out = out.filter(c => !c.archived);
-  // fixed order: Nori全體 > Dev Team > Boss Sawyer > System Alert > Backend
-  const fixedOrder = ['nori-all', 'dev-team', 'sawyer', 'system-alert', 'backend-team', 'lunch-team'];
+  // fixed order:
+  const fixedOrder = ['nori-all', 'dev-team', 'sawyer', 'maggie', 'system-alert', 'lunch-team'];
   out.sort((a,b) => {
     const ai = fixedOrder.indexOf(a.id);
     const bi = fixedOrder.indexOf(b.id);
@@ -460,7 +491,7 @@ function bubbleHtml(m, chat) {
   } else if (m.type === 'file') {
     media = `<div class="wa__file"><div class="wa__file-icon">📄</div><div style="flex:1;min-width:0"><div style="font-weight:600;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escapeHtml(m.fileName)}</div><div class="small muted">${escapeHtml(m.fileSize)}</div></div><button class="btn" style="padding:4px 8px">下載</button></div>`;
   }
-  const textHtml = m.text ? `<div>${escapeHtml(m.text)}</div>` : '';
+  const textHtml = m.text ? `<div class="bubble__text">${escapeHtml(m.text).replace(/\n/g, '<br>')}</div>` : '';
   const timeHtml = `<div class="bubble__time">${escapeHtml(m.time)} ${check}</div>`;
   if (isMe) {
     return `<div class="wa__msg-row me">
