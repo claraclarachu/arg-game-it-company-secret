@@ -124,3 +124,72 @@
 @media (max-width: 768px){
   .detail__sawyer-grid{grid-template-columns:1fr !important}
 }
+
+/* ── StackOverflow 仿真頁面 ── */
+.so-platform{max-width:1100px;margin:0 auto;width:100%;display:flex;flex-direction:column;gap:12px}
+.so-topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 12px;background:var(--bg-secondary);border:1px solid var(--border);border-radius:8px;flex-wrap:wrap}
+.so-logo{font-size:15px;font-weight:700;color:var(--fg-primary);display:flex;align-items:center;gap:6px}
+.so-logo i{font-size:18px}
+.so-topbar__left{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.so-topbar__nav{font-size:12px;color:var(--fg-muted)}
+.so-topbar__right{display:flex;align-items:center;gap:8px}
+.so-search-hint{font-size:12px;color:var(--fg-muted);border:1px solid var(--border);padding:4px 8px;border-radius:999px;background:var(--bg-primary)}
+.so-btn{padding:6px 12px;border-radius:999px;border:1px solid var(--border);background:var(--bg-primary);color:var(--fg-secondary);cursor:pointer;font-size:12px}
+.so-btn:hover{border-color:var(--accent);color:var(--accent)}
+.so-body{display:grid;grid-template-columns:1fr 300px;gap:16px;align-items:start}
+.so-main{display:flex;flex-direction:column;gap:12px;min-width:0}
+.so-side{display:flex;flex-direction:column;gap:12px}
+.so-widget{background:var(--bg-secondary);border:1px solid var(--border);border-radius:8px;padding:12px}
+.so-widget h4{margin:0 0 8px;font-size:12px;font-weight:700;color:var(--fg-primary);display:flex;align-items:center;gap:6px}
+.so-question-header{padding:12px;background:var(--bg-secondary);border:1px solid var(--border);border-radius:8px}
+.so-title{font-size:18px;font-weight:700;color:#0074cc;margin:0;line-height:1.4;word-break:break-word}
+:root[data-theme="dark"] .so-title{color:#8cb3d9}
+:root[data-theme="dark"] .so-widget[style*="background:#f8f9f9"]{background:var(--bg-secondary) !important}
+:root[data-theme="dark"] .so-widget h4[style*="background:#fdf7e2"]{background:var(--bg-secondary) !important;border-color:var(--border) !important}
+.so-qmeta{margin-top:6px;font-size:12px;color:var(--fg-muted);display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.so-qmeta__tags{display:flex;gap:6px;flex-wrap:wrap}
+.so-tag{font-size:11px;padding:2px 6px;border-radius:4px;background:#e1ecf4;border:1px solid #cce3f3;color:#39739d}
+:root[data-theme="dark"] .so-tag{background:#2d3a4a;border-color:#3a4f66;color:#8cb3d9}
+.so-post{display:grid;grid-template-columns:44px 1fr;gap:12px;padding:12px;background:var(--bg-secondary);border:1px solid var(--border);border-radius:8px}
+.so-post.so-accepted{border-color:#3ca076;box-shadow:0 0 0 1px rgba(60,160,118,.15)}
+.so-votes{display:flex;flex-direction:column;align-items:center;gap:4px}
+.so-vote{width:32px;height:28px;border:1px solid var(--border);background:var(--bg-primary);border-radius:6px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--fg-muted)}
+.so-vote:hover{color:var(--accent);border-color:var(--accent)}
+.so-vote-count{font-size:18px;font-weight:700;color:var(--fg-primary)}
+.so-vote__fav{font-size:11px;color:var(--fg-muted);display:flex;align-items:center;gap:4px}
+.so-check{width:32px;height:32px;border-radius:50%;background:#3ca076;color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px;margin-top:4px}
+.so-content{min-width:0;display:flex;flex-direction:column;gap:10px}
+.so-md{font-size:14px;line-height:1.7;color:var(--fg-secondary);word-break:break-word}
+.so-md p{margin:8px 0}
+.so-md h3{margin:14px 0 6px;font-size:14px;font-weight:700;color:var(--fg-primary)}
+.so-md pre{background:var(--bg-primary);border:1px solid var(--border);border-radius:6px;padding:10px;overflow:auto;font-family:var(--font-mono);font-size:12.5px;line-height:1.6;white-space:pre-wrap;word-break:break-all}
+.so-md code{font-family:var(--font-mono);font-size:12.5px;background:var(--bg-tertiary);border:1px solid var(--border);padding:1px 4px;border-radius:4px;word-break:break-all}
+.so-md pre code{background:none;border:none;padding:0}
+.so-md ul{margin:6px 0 6px 18px}
+.so-md li{margin:4px 0}
+.so-table{width:100%;border-collapse:collapse;font-size:12.5px;margin:8px 0}
+.so-table th{ text-align:left;background:var(--bg-tertiary);padding:6px 8px;border:1px solid var(--border);font-weight:700;color:var(--fg-primary)}
+.so-table td{padding:6px 8px;border:1px solid var(--border);color:var(--fg-secondary)}
+.so-table code{font-size:11.5px}
+.so-tags{display:flex;gap:6px;flex-wrap:wrap}
+.so-author-box{margin-top:6px;padding:8px 10px;background:var(--bg-primary);border:1px solid var(--border);border-radius:8px;align-self:flex-end;min-width:200px;max-width:260px}
+.so-author-box.so-author--accepted{background:#e6f4ea;border-color:#b8dcc8}
+.so-author__label{font-size:11px;color:var(--fg-muted);margin-bottom:6px}
+.so-author{display:flex;gap:8px;align-items:center}
+.so-author img{width:32px;height:32px;border-radius:4px;border:1px solid var(--border)}
+.so-author b{font-size:13px;color:var(--accent)}
+.so-rep{font-size:11px;color:var(--fg-muted)}
+.so-comments{margin-top:8px;border-top:1px solid var(--border);padding-top:8px;display:flex;flex-direction:column;gap:6px}
+.so-comment{font-size:12px;color:var(--fg-secondary);padding:6px 8px;border-left:2px solid var(--border);background:var(--bg-primary);border-radius:0 6px 6px 0}
+.so-comment b{color:var(--fg-primary)}
+.so-comment__time{color:var(--fg-muted);margin-left:6px}
+.so-answers-head{padding:8px 12px;background:var(--bg-secondary);border:1px solid var(--border);border-radius:8px;font-size:13px;display:flex;justify-content:space-between;align-items:center}
+.so-related{padding:12px;background:var(--bg-secondary);border:1px solid var(--border);border-radius:8px}
+.so-related h4{margin:0 0 8px;font-size:12px;font-weight:700;color:var(--fg-primary)}
+.so-related a{color:var(--accent);text-decoration:none}
+.so-related a:hover{text-decoration:underline}
+@media (max-width: 768px){
+  .so-body{grid-template-columns:1fr}
+  .so-post{grid-template-columns:36px 1fr}
+  .so-author-box{max-width:100%;width:100%}
+}

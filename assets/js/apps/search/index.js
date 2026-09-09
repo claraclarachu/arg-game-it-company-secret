@@ -7,6 +7,8 @@ import '../../../css/school.css';
 const webIndex = [
   { title: 'Java switch-case 語法詳解 — 基礎教學 (繁中)', url: 'https://java-tutorial.example/switch-case', snippet: '【switch 用法】switch 會依變數值跳到對應 case，需搭配 break 避免貫穿。範例：switch(vipLv){ case 1: price *= 0.90; break; case 2: price *= 0.85; break; case 3: price *= 0.80; break; case 4: price *= 0.75; break; case 5: price *= 0.70; break; default: break; } 注意：若缺少 break 會繼續執行下一個 case。常與 if-else 比較，適用於枚舉分級如 VIP 折扣。', type: 'web', image: null },
   { title: '【StackOverflow】VIP 等級折扣用 switch 寫，VIP1 被算成 60% 而不是 50% 該怎麼修？', url: 'https://stackoverflow.com/questions/789421/vip-discount-switch-case-wrong-percentage', snippet: '發問：我的 switch(vipLv) 中 case 1 寫成 price*=0.95，但需求是 VIP1 60%、VIP2 65%。已嘗試修改但 Sonar 仍報錯... \n回答：請將 case 1 改為 0.50、case 2 改為 0.45，並確認每個 case 都有 break。另建議抽成 Map 或 enum 避免魔法數字。 \n\n(瀏覽 2.3k, 已解決)', type: 'web', image: null },
+  { title: '【StackOverflow】HTML 的 <h1> 到 <h6> 是什麼？什麼時候該用 h1？跟 <p> 有什麼差別？', url: 'https://stackoverflow.com/questions/10460126/html-heading-h1-h6-what-is-difference', snippet: '發問：請問 HTML 的 <h1> 到 <h6> 是什麼意思？跟 <p>、<div> 差在哪？為什麼一個頁面只能有一個 <h1>？SEO 有影響嗎？\n回答（已採納，423 讚）：<h1> 是最高層級的標題，代表頁面主標題，<h2>～<h6> 依重要性遞減。跟 <p>（段落）不同，標題有語意與 SEO 權重。一個頁面建議只放一個 <h1>，其他用 <h2>/<h3> 建立大綱...（瀏覽 18.4k, 已解決）', type: 'web', image: null },
+  { title: '【StackOverflow】HTML 語意化標籤是什麼？<header> <nav> <main> <section> <article> <footer> 該怎麼用？', url: 'https://stackoverflow.com/questions/21051176/html-semantic-tags-header-nav-main-section-article', snippet: '發問：常看到 <header> <nav> <main> <section> <article> <footer> 這些標籤，跟 <div> 有什麼不同？一定要用嗎？\n回答（已採納，298 讚）：這些是 HTML5 語意化標籤，讓瀏覽器與搜尋引擎看懂結構。<header> 是頁首、<nav> 導覽、<main> 主內容、<section> 章節、<article> 獨立文章、<footer> 頁尾。用對語意對無障礙與 SEO 都有幫助...（瀏覽 12.7k, 已解決）', type: 'web', image: null },
   { title: '【StackOverflow】import.meta.env 是什麼？Vite 專案的環境變數怎麼讀取？', url: 'https://stackoverflow.com/questions/5920914/import-meta-env-meaning', snippet: '發問：請問 import.meta.env 是什麼意思？在 Vite 專案常看到 import.meta.env.VITE_API_BASE，有人可以解釋一下嗎？\n\n回答（已採納，4.1k 讚）：import.meta.env 就是讀取 .env 檔案裡的參數，Vite 會在建置時把以 VITE_ 開頭的變數注入到前端。\n\n例子：\n// .env\nVITE_API_BASE=/api\nVITE_ANALYTICS_ID=12345\nVITE_PATH=/user\n\n// src/api/client.js\nconst BASE = import.meta.env.VITE_API_BASE // → "/api"\nconst NAME = import.meta.env.VITE_ANALYTICS_ID // → "12345"\n\n注意：只有 VITE_ 開頭的才會暴露到瀏覽器，沒有前綴的（如 DATABASE_URL）只在後端生效。 (瀏覽 5.7k, 已解決)', type: 'web', image: null },
   { title: 'Sawyer Choi — 2001-10-18', url: 'https://sawyer-blog.example/2001-10-18', snippet: '2001-10-18\n\n今天和好多朋友一起玩，大家都玩得很開心。\n\n我把自己的食物分給大家吃，他們吃完都笑得很開心。我覺得只要大家在一起，好像什麼都很好玩。朋友們都說我很好笑，我也喜歡看他們笑。\n\n回家的時候，我把今天和朋友玩的事情告訴爸爸媽媽。他們聽完也很開心，還一直問我今天跟誰一起玩、玩了什麼。\n\n今天真的很好玩，我希望明天也可以和大家一起玩。 — Sawyer Choi / Choi Tsz Yeung 蔡梓掦', type: 'web', image: null },
   { title: 'Sawyer Choi — 2003-04-27', url: 'https://sawyer-blog.example/2003-04-27', snippet: '2003-04-27\n\n今天上課的時候，我拿同學的眼鏡來玩，圍繞班房一直跑假裝不會再還他，老師看到了，叫住我，問我是不是在欺負同學，還在我的手冊上寫了不好的評語。\n\n我覺得很難過。\n\n更讓我難過的是，那個同學一直什麼都沒有說。我不知道他為什麼不幫我，他不喜歡這樣嗎？但我也沒有傷害到他吧。\n\n晚上吃飯的時候，爸爸媽媽問我老師為什麼會在手冊上這樣寫，我什麼都沒有說。只是眼淚突然掉了一滴在桌上。\n\n他們沒有再問我，只是拿了一包檸檬茶給我。這是我小時候很喜歡喝的東西。\n\n可是現在我覺得它太甜了，已經不太想喝了。\n\n只是爸爸媽媽好像還不知道。他們大概還以為，我一直都很喜歡。 — Sawyer Choi / Choi Tsz Yeung 蔡梓掦', type: 'web', image: null },
@@ -133,11 +135,223 @@ const blogComments = {
   ],
 };
 
-const trends = ['switch'];
+const trends = ['switch', 'h1', 'HTML 標籤'];
 let activeTab = 'all'; // all | image | news | academic
 let lastQuery = '';
 let lastResults = [];
 let lastBaseQuery = '';
+
+// ── StackOverflow 詳細資料（h1 / HTML 語意化標籤） ──
+const stackOverflowData = {
+  'https://stackoverflow.com/questions/10460126/html-heading-h1-h6-what-is-difference': {
+    id: '10460126',
+    title: 'HTML 的 <h1> 到 <h6> 是什麼？什麼時候該用 h1？跟 <p> 有什麼差別？',
+    url: 'https://stackoverflow.com/questions/10460126/html-heading-h1-h6-what-is-difference',
+    asked: '2024-02-10',
+    viewed: '18.4k',
+    votesQ: 42,
+    votesA: 423,
+    tags: ['html', 'semantic-html', 'heading', 'seo'],
+    fav: 87,
+    question: {
+      author: 'html新手',
+      rep: '1,234',
+      avatar: 'https://i.pravatar.cc/150?u=htmlnewbie',
+      time: '2024-02-10 14:22',
+      content: `請問 HTML 的 <code>&lt;h1&gt;</code> 到 <code>&lt;h6&gt;</code> 是什麼意思？\n\n我在看一個範例網站的原始碼時看到：\n<pre><code>&lt;h1&gt;歡迎來到 Example 烘焙坊&lt;/h1&gt;\n&lt;p&gt;每日手工現做，溫暖你的味蕾&lt;/p&gt;</code></pre>\n跟 <code>&lt;p&gt;</code>、<code>&lt;div&gt;</code>、<code>&lt;span&gt;</code> 差在哪？為什麼大家都說一個頁面只能有一個 <code>&lt;h1&gt;</code>？對 SEO 有影響嗎？`,
+    },
+    answers: [
+      {
+        accepted: true,
+        author: '前端老吳',
+        rep: '24.5k',
+        avatar: 'https://i.pravatar.cc/150?u=laowu',
+        time: '2024-02-10 15:03 · 已採納',
+        votes: 423,
+        content: `<p><b>一句話總結：</b><code>&lt;h1&gt;～&lt;h6&gt;</code> 是「標題」標籤，有語意與層級；<code>&lt;p&gt;</code> 是「段落」，<code>&lt;div&gt;</code> 是無語意的區塊容器，<code>&lt;span&gt;</code> 是無語意的行內容器。</p>
+<h3>1. &lt;h1&gt;～&lt;h6&gt; 是什麼？</h3>
+<table class="so-table"><thead><tr><th>標籤</th><th>含義</th><th>預設樣式</th><th>SEO 權重</th></tr></thead><tbody>
+<tr><td><code>&lt;h1&gt;</code></td><td>頁面主標題</td><td>最大、粗體</td><td>最高</td></tr>
+<tr><td><code>&lt;h2&gt;</code></td><td>章節標題</td><td>次大</td><td>高</td></tr>
+<tr><td><code>&lt;h3&gt;</code></td><td>小節標題</td><td>中</td><td>中</td></tr>
+<tr><td><code>&lt;h4&gt;～&lt;h6&gt;</code></td><td>更細層級</td><td>遞減</td><td>低</td></tr>
+</tbody></table>
+ <pre><code>&lt;h1&gt;歡迎來到 Example 烘焙坊&lt;/h1&gt;        &lt;!-- 一個頁面一個，代表整頁主題 --&gt;\n&lt;h2&gt;熱門商品&lt;/h2&gt;               &lt;!-- 章節 --&gt;\n  &lt;h3&gt;可頌&lt;/h3&gt;           &lt;!-- 小節 --&gt;\n  &lt;h3&gt;長棍麵包&lt;/h3&gt;\n&lt;h2&gt;關於我們&lt;/h2&gt;\n  &lt;p&gt;我們是一家在地手工烘焙坊，成立於 2019 年...&lt;/p&gt;</code></pre>
+<h3>2. 跟 &lt;p&gt; / &lt;div&gt; / &lt;span&gt; 差在哪？</h3>
+<ul>
+<li><code>&lt;p&gt;</code>：段落，語意是「一段文字」，瀏覽器會加上下 margin，SEO 權重低於標題</li>
+<li><code>&lt;div&gt;</code>：區塊容器，無語意，純排版用（例如包一個 card）</li>
+<li><code>&lt;span&gt;</code>：行內容器，無語意，純樣式用（例如一句話中標紅一個詞）</li>
+<li><code>&lt;h1&gt;</code>：標題，有語意，搜尋引擎會認為這是頁面主題</li>
+</ul>
+<pre><code>&lt;!-- 錯誤：用 div 假裝標題，搜尋引擎看不懂 --&gt;\n&lt;div style="font-size:32px;font-weight:bold"&gt;歡迎來到 Example 烘焙坊&lt;/div&gt;\n\n&lt;!-- 正確：用 h1，語意正確 --&gt;\n&lt;h1&gt;歡迎來到 Example 烘焙坊&lt;/h1&gt;</code></pre>
+<h3>3. 為什麼一個頁面最好只放一個 &lt;h1&gt;？</h3>
+<p>HTML5 規範沒強制，但業界與 SEO 共識是：<code>&lt;h1&gt;</code> = 頁面大綱的根。放兩個以上會讓搜尋引擎與螢幕閱讀器分不清主標題。Google 的 John Mueller 也說過：用一個 <code>&lt;h1&gt;</code> 最清晰。</p>
+<h3>4. 其他常用 HTML 標籤對照</h3>
+<table class="so-table"><thead><tr><th>標籤</th><th>用途</th><th>是否語意</th><th>範例</th></tr></thead><tbody>
+<tr><td><code>&lt;a&gt;</code></td><td>超連結</td><td>是</td><td><code>&lt;a href="/products"&gt;產品總覽&lt;/a&gt;</code></td></tr>
+<tr><td><code>&lt;ul&gt;/&lt;ol&gt;/&lt;li&gt;</code></td><td>清單</td><td>是</td><td><code>&lt;ul&gt;&lt;li&gt;可頌&lt;/li&gt;&lt;/ul&gt;</code></td></tr>
+<tr><td><code>&lt;img&gt;</code></td><td>圖片，需 <code>alt</code></td><td>是</td><td><code>&lt;img src="logo.png" alt="Example Logo"&gt;</code></td></tr>
+<tr><td><code>&lt;header&gt;/&lt;nav&gt;/&lt;main&gt;/&lt;footer&gt;</code></td><td>語意化版面</td><td>是 (HTML5)</td><td>見下篇回答</td></tr>
+</tbody></table>
+<p style="color:#6a737c;font-size:13px">小技巧：在 DevTools 用 <code>document.querySelectorAll('h1')</code> 檢查頁面有幾個 h1。</p>`,
+      },
+      {
+        accepted: false,
+        author: 'a11y小幫手',
+        rep: '8,920',
+        avatar: 'https://i.pravatar.cc/150?u=a11y',
+        time: '2024-02-11 09:18',
+        votes: 89,
+        content: `<p>補充無障礙觀點：</p><ul><li>螢幕閱讀器會把 <code>&lt;h1&gt;～&lt;h6&gt;</code> 當作導覽地標，視障用戶可按 <code>H</code> 鍵在標題間跳轉。如果全用 <code>&lt;div&gt;</code>，他們會迷路。</li><li>不要跳級：<code>&lt;h1&gt;</code> 後面應接 <code>&lt;h2&gt;</code>，不要直接 <code>&lt;h1&gt; → &lt;h4&gt;</code></li><li>標題內只放文字，不要塞 <code>&lt;div&gt;</code>，例如 <code>&lt;h1&gt;&lt;div&gt;標題&lt;/div&gt;&lt;/h1&gt;</code> 是無效 HTML</li></ul><pre><code>&lt;!-- 無障礙檢查清單 --&gt;\n✓ 一頁一 h1\n✓ h2→h3 依序，不跳級\n✓ 標題文字簡潔，能當大綱讀</code></pre>`,
+      },
+    ],
+    commentsQ: [
+      { user: '發問者', text: '原來 h1 是給搜尋引擎看的，不只是變大字！感謝！', time: '2024-02-10 16:40' },
+      { user: 'SEO小明', text: '推，上次把 logo 用 div 寫，被主管唸到爆', time: '2024-02-11 10:02' },
+    ],
+  },
+  'https://stackoverflow.com/questions/21051176/html-semantic-tags-header-nav-main-section-article': {
+    id: '21051176',
+    title: 'HTML 語意化標籤是什麼？<header> <nav> <main> <section> <article> <footer> 該怎麼用？',
+    url: 'https://stackoverflow.com/questions/21051176/html-semantic-tags-header-nav-main-section-article',
+    asked: '2024-03-02',
+    viewed: '12.7k',
+    votesQ: 31,
+    votesA: 298,
+    tags: ['html5', 'semantic-html', 'accessibility'],
+    fav: 54,
+    question: {
+      author: '切版新手',
+      rep: '892',
+      avatar: 'https://i.pravatar.cc/150?u=qieban',
+      time: '2024-03-02 11:14',
+      content: `常看到 <code>&lt;header&gt; &lt;nav&gt; &lt;main&gt; &lt;section&gt; &lt;article&gt; &lt;footer&gt;</code> 這些標籤，跟 <code>&lt;div&gt;</code> 有什麼不同？\n\n是不是把所有 <code>&lt;div&gt;</code> 換成這些就比較厲害？一定要用嗎？`,
+    },
+    answers: [
+      {
+        accepted: true,
+        author: 'W3C翻譯官',
+        rep: '18.3k',
+        avatar: 'https://i.pravatar.cc/150?u=w3c',
+        time: '2024-03-02 13:45 · 已採納',
+        votes: 298,
+        content: `<p><code>&lt;div&gt;</code> 是無語意的盒子，語意化標籤是「有名字的盒子」，讓機器看懂你的版面。</p>
+<table class="so-table"><thead><tr><th>標籤</th><th>語意</th><th>一個頁面通常幾個</th><th>範例</th></tr></thead><tbody>
+<tr><td><code>&lt;header&gt;</code></td><td>頁首 / 區塊首</td><td>1～多個</td><td>頁面頂的 logo + 導覽</td></tr>
+<tr><td><code>&lt;nav&gt;</code></td><td>主要導覽</td><td>1～2 個</td><td><code>&lt;nav&gt;&lt;a&gt;飲品一覽&lt;/a&gt;&lt;/nav&gt;</code></td></tr>
+<tr><td><code>&lt;main&gt;</code></td><td>主內容（唯一）</td><td>1 個</td><td>包住頁面主要內容，不含 header/footer</td></tr>
+<tr><td><code>&lt;section&gt;</code></td><td>章節，需有標題</td><td>多個</td><td><code>&lt;section&gt;&lt;h2&gt;招牌飲品&lt;/h2&gt;...&lt;/section&gt;</code></td></tr>
+<tr><td><code>&lt;article&gt;</code></td><td>獨立可轉載的文章</td><td>多個</td><td>一篇部落格文章、一個商品卡</td></tr>
+<tr><td><code>&lt;footer&gt;</code></td><td>頁尾 / 區塊尾</td><td>1～多個</td><td>版權、聯絡資訊</td></tr>
+<tr><td><code>&lt;aside&gt;</code></td><td>側邊相關資訊</td><td>多個</td><td>側邊欄推薦</td></tr>
+</tbody></table>
+<pre><code>&lt;!-- 語意化結構範例 --&gt;\n&lt;header&gt;\n  &lt;h1&gt;Nori 飲品供應&lt;/h1&gt;\n  &lt;nav&gt;&lt;a href="/drinks"&gt;飲品一覽&lt;/a&gt; | &lt;a href="/about"&gt;關於&lt;/a&gt;&lt;/nav&gt;\n&lt;/header&gt;\n&lt;main&gt;\n  &lt;section&gt;\n    &lt;h2&gt;招牌冰釀茶酒&lt;/h2&gt;\n    &lt;p&gt;...&lt;/p&gt;\n  &lt;/section&gt;\n  &lt;article&gt;客戶案例...&lt;/article&gt;\n&lt;/main&gt;\n&lt;footer&gt;© 2019 Nori Limited&lt;/footer&gt;</code></pre>
+<p>對 SEO / 無障礙的好處：搜尋引擎與螢幕閱讀器能直接跳到 <code>&lt;main&gt;</code> 或 <code>&lt;nav&gt;</code>，不用在茫茫 <code>&lt;div&gt;</code> 海中猜。</p>
+<p>小結：能用語意就用語意，真的沒對應語意再用 <code>&lt;div&gt;/&lt;span&gt;</code>。</p>`,
+      },
+    ],
+     commentsQ: [
+      { user: '切版新手', text: '所以 main 只能有一個，筆記！', time: '2024-03-02 14:00' },
+    ],
+  },
+  'https://stackoverflow.com/questions/789421/vip-discount-switch-case-wrong-percentage': {
+    id: '789421',
+    title: 'VIP 等級折扣用 switch 寫，VIP1 被算成 60% 而不是 50% 該怎麼修？',
+    url: 'https://stackoverflow.com/questions/789421/vip-discount-switch-case-wrong-percentage',
+    asked: '2024-08-10',
+    viewed: '2.3k',
+    votesQ: 18,
+    votesA: 67,
+    tags: ['java', 'switch', 'discount', 'sonarqube'],
+    fav: 23,
+    question: {
+      author: '菜鳥工程師',
+      rep: '342',
+      avatar: 'https://i.pravatar.cc/150?u=newbie',
+      time: '2024-08-10 11:22',
+      content: `我在 <code>OrderService.java</code> 用 <code>switch</code> 寫 VIP 折扣，但測出來 VIP1 是 95% 而不是 90%，被 SonarQube 擋了：\n<pre><code>public double calculateVipPrice(double price, int vipLv) {\n    switch(vipLv){\n        case 1: price*=0.95; break;  // 應該是 0.90？\n        case 2: price*=0.90; break;\n        case 3: price*=0.85; break;\n        case 4: price*=0.80; break;\n        case 5: price*=0.75; break;\n        default: break;\n    }\n    return price;\n}</code></pre>\n需求是 VIP1 90%、VIP2 85%、VIP3 80%、VIP4 75%、VIP5 70%，為什麼會少 5%？是不是 <code>break</code> 少了？`,
+    },
+    answers: [
+      {
+        accepted: true,
+        author: '重構大師',
+        rep: '15.2k',
+        avatar: 'https://i.pravatar.cc/150?u=refactor',
+        time: '2024-08-10 12:05 · 已採納',
+        votes: 67,
+        content: `<p>不是 <code>break</code> 的問題，是「魔法數字」偏移 5%：你寫 <code>0.95</code> 但規格是 <code>0.90</code>，每級都多 0.05。</p>
+<table class="so-table"><thead><tr><th>VIP</th><th>錯誤</th><th>正確</th><th>說明</th></tr></thead><tbody>
+<tr><td>VIP1</td><td><code>0.95</code> (95%)</td><td><code>0.90</code> (90%)</td><td>少 5%</td></tr>
+<tr><td>VIP2</td><td><code>0.90</code></td><td><code>0.85</code></td><td>少 5%</td></tr>
+<tr><td>VIP3</td><td><code>0.85</code></td><td><code>0.80</code></td><td>少 5%</td></tr>
+<tr><td>VIP4</td><td><code>0.80</code></td><td><code>0.75</code></td><td>少 5%</td></tr>
+<tr><td>VIP5</td><td><code>0.75</code></td><td><code>0.70</code></td><td>少 5%</td></tr>
+</tbody></table>
+<pre><code>// 修正後\npublic double calculateVipPrice(double price, int vipLv) {\n    switch(vipLv){\n        case 1: price*=0.90; break;\n        case 2: price*=0.85; break;\n        case 3: price*=0.80; break;\n        case 4: price*=0.75; break;\n        case 5: price*=0.70; break;\n        default: break;\n    }\n    return price;\n}</code></pre>
+<p>小技巧：用 <code>Map</code> 或 <code>enum</code> 避免手寫 switch，SonarQube 就不會再誤判：</p>
+<pre><code>private static final Map&lt;Integer, Double&gt; RATE = Map.of(1,0.90,2,0.85,3,0.80,4,0.75,5,0.70);</code></pre>
+<p>改完記得跑 <code>npm run build</code> + SonarQube，<code>case</code> 每行都要有 <code>break</code>。</p>`,
+      },
+      {
+        accepted: false,
+        author: 'SonarQube小幫手',
+        rep: '6.1k',
+        avatar: 'https://i.pravatar.cc/150?u=sonar',
+        time: '2024-08-10 13:22',
+        votes: 21,
+        content: `<p>補充：SonarQube 規則 <code>vip-discount-spec.md</code> 寫得很清楚：</p><pre><code>VIP1 90% | VIP2 85% | VIP3 80% | VIP4 75% | VIP5 70%</code></pre><p>你的 <code>0.95</code> 會讓 VIP1 多付 5%，客戶會客訴。建議把規格抽成常數，別寫死在 switch。</p>`,
+      },
+    ],
+    commentsQ: [
+      { user: '發問者', text: '原來是 0.95 寫錯，改 0.90 就過了！感謝', time: '2024-08-10 14:10' },
+      { user: '路人', text: '這種 5% 偏移最難抓，建議寫單元測試', time: '2024-08-11 09:03' },
+    ],
+  },
+  'https://stackoverflow.com/questions/5920914/import-meta-env-meaning': {
+    id: '5920914',
+    title: 'import.meta.env 是什麼？Vite 專案的環境變數怎麼讀取？',
+    url: 'https://stackoverflow.com/questions/5920914/import-meta-env-meaning',
+    asked: '2024-08-12',
+    viewed: '5.7k',
+    votesQ: 27,
+    votesA: 142,
+    tags: ['vite', 'javascript', 'env', 'import-meta'],
+    fav: 41,
+    question: {
+      author: 'Vite新手',
+      rep: '567',
+      avatar: 'https://i.pravatar.cc/150?u=vitenewbie',
+      time: '2024-08-12 09:30',
+      content: `請問 <code>import.meta.env</code> 是什麼意思？在 Vite 專案常看到：\n<pre><code>const BASE = import.meta.env.VITE_API_BASE\nconst ID = import.meta.env.VITE_ANALYTICS_ID</code></pre>\n跟 Node 的 <code>process.env</code> 差在哪？為什麼 <code>.env</code> 裡的 <code>DATABASE_URL</code> 讀不到？`,
+    },
+    answers: [
+      {
+        accepted: true,
+        author: 'Vite核心貢獻者',
+        rep: '32.4k',
+        avatar: 'https://i.pravatar.cc/150?u=vitecore',
+        time: '2024-08-12 10:12 · 已採納',
+        votes: 142,
+        content: `<p><code>import.meta.env</code> 就是 Vite 在「建置時」把 <code>.env</code> 注入到前端的物件，只有 <code>VITE_</code> 開頭的才會暴露到瀏覽器。</p>
+<table class="so-table"><thead><tr><th>變數</th><th>是否暴露到前端</th><th>讀取方式</th></tr></thead><tbody>
+<tr><td><code>VITE_API_BASE</code></td><td>是</td><td><code>import.meta.env.VITE_API_BASE</code> → "/api"</td></tr>
+<tr><td><code>VITE_ANALYTICS_ID</code></td><td>是</td><td><code>import.meta.env.VITE_ANALYTICS_ID</code> → "12345"</td></tr>
+<tr><td><code>DATABASE_URL</code></td><td>否（後端專用）</td><td>前端讀不到，屬安全設計</td></tr>
+</tbody></table>
+<pre><code># .env\nVITE_API_BASE=/api\nVITE_ANALYTICS_ID=12345\nDATABASE_URL=postgres://nori:nori@localhost:5432/nori_drinks  # 後端專用，前端拿不到\n\n// src/api/client.js\nconst BASE = import.meta.env.VITE_API_BASE  // "/api"\nconst NAME = import.meta.env.VITE_ANALYTICS_ID // "12345"\nconsole.log(import.meta.env.DATABASE_URL) // undefined</code></pre>
+<p>與 <code>process.env</code> 差異：<code>process.env</code> 是 Node 執行時，<code>import.meta.env</code> 是 Vite 建置時靜態替換，瀏覽器沒有 <code>process</code>。</p>
+<p>除錯技巧：在 <code>vite.config.js</code> 設 <code>publicDir</code> 或用 <code>console.log(import.meta.env)</code> 印出所有 <code>VITE_</code> 變數。</p>`,
+      }
+    ],
+    commentsQ: [
+      { user: '發問者', text: '原來只有 VITE_ 才會到前端，難怪 DATABASE_URL 一直 undefined', time: '2024-08-12 12:30' },
+      { user: '路人', text: '推，之前把 MD5_KEY 放 VITE_ 被老師罵', time: '2024-08-13 08:20' },
+    ],
+  },
+};
+function isStackOverflowUrl(url){ return url && (url.includes('stackoverflow.com') && stackOverflowData[url]); }
+function getStackOverflow(url){ return stackOverflowData[url] || null; }
 
 // --- MD5 (correct, verified) ---
 function md5(string) {
@@ -277,13 +491,16 @@ export function mountSearch() {
       <div class="search__header">
         <div class="search__logo">Sear<span>ch</span></div>
         <div class="search__bar">
-          <input id="searchInput" class="input" placeholder="輸入關鍵詞，如 switch" autocomplete="off" />
+          <input id="searchInput" class="input" placeholder="輸入關鍵詞，如 switch / h1 / HTML" autocomplete="off" />
           <button id="searchBtn" class="btn primary">搜尋</button>
           <div id="suggestBox" class="suggest-box"></div>
         </div>
       </div>
       <div class="search__suggest">
         <span class="chip" data-q="switch">switch</span>
+        <span class="chip" data-q="h1">h1</span>
+        <span class="chip" data-q="<h1>">&lt;h1&gt;</span>
+        <span class="chip" data-q="HTML 標籤">HTML 標籤</span>
       </div>
       <div class="search__tabs" role="tablist">
         <button class="search__tab active" data-tab="all">全部</button>
@@ -1215,11 +1432,129 @@ function openSchoolPortfolio(targetItem){
   detail.scrollIntoView({behavior:'auto', block:'start'});
 }
 
+function openStackOverflow(url){
+  const so = getStackOverflow(url);
+  if (!so) return;
+  const detail = document.getElementById('searchDetail');
+  const layout = document.getElementById('searchLayout');
+  if (!detail || !layout) return;
+  layout.style.display='none';
+  detail.style.display='block';
+  detail.classList.add('open');
+  const md5C = document.getElementById('md5Tool');
+  if (md5C){ md5C.style.display='none'; md5C.innerHTML=''; }
+  detail.innerHTML = `
+    <div class="so-platform">
+      <div class="so-topbar">
+        <div class="so-topbar__left">
+          <span class="so-logo"><i class="fa-brands fa-stack-overflow" style="color:#f48024"></i> stack<span style="font-weight:800">overflow</span></span>
+          <span class="so-topbar__nav">問題 · 標籤 · 用戶 · 團隊</span>
+        </div>
+        <div class="so-topbar__right">
+          <span class="so-search-hint"><i class="fa-solid fa-magnifying-glass"></i> 搜尋...</span>
+          <button class="so-btn" data-so-back-search><i class="fa-solid fa-arrow-left"></i> 回到搜尋</button>
+        </div>
+      </div>
+      <div class="so-body">
+        <div class="so-main">
+          <div class="so-question-header">
+            <h1 class="so-title">${so.title.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</h1>
+            <div class="so-qmeta">
+              <span>發問於 ${so.asked}</span><span>·</span><span>已瀏覽 ${so.viewed} 次</span>
+              <span class="so-qmeta__tags">${so.tags.map(t=>`<span class="so-tag">${escapeHtml(t)}</span>`).join('')}</span>
+            </div>
+          </div>
+          <div class="so-post so-question">
+            <div class="so-votes">
+              <button class="so-vote"><i class="fa-solid fa-caret-up"></i></button>
+              <span class="so-vote-count">${so.votesQ}</span>
+              <button class="so-vote"><i class="fa-solid fa-caret-down"></i></button>
+              <span class="so-vote__fav"><i class="fa-solid fa-bookmark"></i> ${so.fav}</span>
+            </div>
+            <div class="so-content">
+              <div class="so-md">${so.question.content}</div>
+              <div class="so-tags">${so.tags.map(t=>`<span class="so-tag">${escapeHtml(t)}</span>`).join('')}</div>
+              <div class="so-author-box">
+                <div class="so-author__label">發問者</div>
+                <div class="so-author">
+                  <img src="${escapeHtml(so.question.avatar)}" alt="" onerror="this.style.display='none'" />
+                  <div><b>${escapeHtml(so.question.author)}</b><div class="so-rep">${escapeHtml(so.question.rep)} · ${escapeHtml(so.question.time)}</div></div>
+                </div>
+              </div>
+              ${so.commentsQ.length ? `<div class="so-comments">${so.commentsQ.map(c=>`<div class="so-comment"><b>${escapeHtml(c.user)}</b> ${escapeHtml(c.text)} <span class="so-comment__time">— ${escapeHtml(c.time)}</span></div>`).join('')}</div>` : ''}
+            </div>
+          </div>
+          <div class="so-answers-head"><b>${so.answers.length} 個回答</b> <span style="color:#6a737c">· 已採納在最前</span></div>
+          ${so.answers.map(ans=>`
+            <div class="so-post so-answer ${ans.accepted?'so-accepted':''}">
+              <div class="so-votes">
+                <button class="so-vote"><i class="fa-solid fa-caret-up"></i></button>
+                <span class="so-vote-count" style="${ans.accepted?'color:#3ca076':''}">${ans.votes}</span>
+                <button class="so-vote"><i class="fa-solid fa-caret-down"></i></button>
+                ${ans.accepted?`<div class="so-check" title="已採納"><i class="fa-solid fa-check"></i></div>`:''}
+              </div>
+              <div class="so-content">
+                <div class="so-md">${ans.content}</div>
+                <div class="so-author-box ${ans.accepted?'so-author--accepted':''}">
+                  <div class="so-author__label">${ans.accepted?'已採納 · 回答者':'回答者'}</div>
+                  <div class="so-author">
+                    <img src="${escapeHtml(ans.avatar)}" alt="" onerror="this.style.display='none'" />
+                    <div><b>${escapeHtml(ans.author)}</b><div class="so-rep">${escapeHtml(ans.rep)} · ${escapeHtml(ans.time)}</div></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          `).join('')}
+          <div class="so-related">
+            <h4>相關問題</h4>
+            <div style="display:flex;flex-direction:column;gap:6px;font-size:13px">
+              <a>HTML 的 &lt;div&gt; 和 &lt;section&gt; 差在哪？</a>
+              <a>一個頁面可以放多個 &lt;h1&gt; 嗎？對 SEO 的影響</a>
+              <a>什麼時候該用 &lt;span&gt; 而不是 &lt;div&gt;？</a>
+            </div>
+          </div>
+        </div>
+        <div class="so-side">
+          <div class="so-widget">
+            <h4 style="background:#fdf7e2;border-bottom:1px solid #f1e5bc;padding:8px 10px;margin:-12px -12px 10px;border-radius:8px 8px 0 0"><i class="fa-solid fa-bars"></i> 相關標籤</h4>
+            <div style="display:flex;flex-wrap:wrap;gap:6px">
+              ${so.tags.map(t=>`<span class="so-tag">${escapeHtml(t)}</span>`).join('')}
+              <span class="so-tag">css</span><span class="so-tag">accessibility</span>
+            </div>
+          </div>
+          <div class="so-widget">
+            <h4><i class="fa-solid fa-chart-simple"></i> 問題數據</h4>
+            <div style="font-size:12px;line-height:1.8;color:#6a737c">
+              <div>瀏覽：${so.viewed}</div>
+              <div>收藏：${so.fav}</div>
+              <div>回答：${so.answers.length}</div>
+              <div>標籤：${so.tags.join(', ')}</div>
+            </div>
+          </div>
+          <div class="so-widget" style="background:#f8f9f9">
+            <h4><i class="fa-solid fa-lightbulb"></i> 小知識</h4>
+            <p style="font-size:12.5px;line-height:1.7;color:#5b6572;margin:0"><code>&lt;h1&gt;</code> 是頁面主標題，<code>&lt;h2&gt;～&lt;h6&gt;</code> 依層級遞減；<code>&lt;p&gt;</code> 是段落，<code>&lt;div&gt;</code> 無語意，語意化標籤 <code>&lt;header&gt;/&lt;nav&gt;/&lt;main&gt;/&lt;footer&gt;</code> 能提升 SEO 與無障礙。</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+  detail.querySelector('[data-so-back-search]')?.addEventListener('click', ()=> showResultsView());
+  const viewSearch = document.getElementById('view-search');
+  if (viewSearch) viewSearch.scrollTop = 0;
+  detail.scrollIntoView({behavior:'auto', block:'start'});
+}
+
 function openDetail(idx) {
   const item = lastResults[idx];
   if (!item) return;
   const md5C = document.getElementById('md5Tool');
   if (md5C) { md5C.style.display = 'none'; md5C.innerHTML = ''; }
+  // StackOverflow 詳細頁優先
+  if (isStackOverflowUrl(item.url)){
+    openStackOverflow(item.url);
+    return;
+  }
   // 若為部落格文章，進入 BlogWorld 文章頁 (全新風格頁面)
   const blogUrl = item.url;
   const isBlogWorld = blogArticles.some(a=>a.url===blogUrl) || blogUrl.includes('sawyer-blog.example') || blogUrl.includes('mary-blog.example') || blogUrl.includes('peter-blog.example') || blogUrl.includes('paul-blog.example') || blogUrl.includes('emma-blog.example') || blogUrl.includes('david-blog.example');
