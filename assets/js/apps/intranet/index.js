@@ -269,7 +269,7 @@ function renderMain() {
         <div class="intra-card" data-path="/intranet/company_public">
           <div class="intra-card__icon">🏢</div>
           <div class="intra-card__title">公司公開資訊</div>
-          <div class="small muted">公司名稱・Logo 設計・大樓企業名錄（含 Nori Limited 鴨嘴道135號中央大樓3507室）</div>
+          <div class="small muted">公司名稱・Logo 設計・上市公司名錄（含 Nori Limited 鴨嘴道135號中央大樓3507室）</div>
           <div class="small" style="margin-top:8px;color:var(--accent)">4 個檔案 →</div>
         </div>
         <div class="intra-card locked" data-path="/intranet/client_info">
