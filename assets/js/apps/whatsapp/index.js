@@ -82,17 +82,17 @@ const chats = [
       { id: 'm1', from: 'Maggie', text: 'Hi Casey, 歡迎來到Nori, 我是你的直屬主管, 接下來會由我來指派工作給你。但首先我知道這是你的第一份工作，我會先跟你講解一下我們的工作流程，還有常用工具。', time: '2024-07-15', read: 'read', type: 'text' },
       { id: 'm2', from: 'Maggie', text: '當有新的工作時，我會在Dev Team通知你，然後會附上工單資訊', time: '2024-07-15', read: 'read', type: 'text' },
       { id: 'm3', from: 'Maggie', text: '然後請根據工單號，到Jiua系統查看詳細資訊', time: '2024-07-15', read: 'read', type: 'text' },
-      { id: 'm4', from: 'Maggie', text: '', media: '${import.meta.env.BASE_URL}assets/data/files/wts/jiuaPage.png', time: '2024-07-15', read: 'read', type: 'image' },
+      { id: 'm4', from: 'Maggie', text: '', media: `${import.meta.env.BASE_URL}assets/data/files/wts/jiuaPage.png`, time: '2024-07-15', read: 'read', type: 'image' },
       { id: 'm5', from: 'Maggie', text: '通常Jiua都會詳細的告訴你要處理的事情是什麼', time: '2024-07-15', read: 'read', type: 'text' },
       { id: 'm6', from: 'Maggie', text: '然後到Vizual Studio Code找到有問題的檔案', time: '2024-07-15', read: 'read', type: 'text' },
-      { id: 'm7', from: 'Maggie', text: '', media: '${import.meta.env.BASE_URL}assets/data/files/wts/explorerPage.png', time: '2024-07-15', read: 'read', type: 'image' },
+      { id: 'm7', from: 'Maggie', text: '', media: `${import.meta.env.BASE_URL}assets/data/files/wts/explorerPage.png`, time: '2024-07-15', read: 'read', type: 'image' },
       { id: 'm8', from: 'Maggie', text: '你可以在SEARCH功能中搜索關鍵詞，找到相關的檔案', time: '2024-07-15', read: 'read', type: 'text' },
-      { id: 'm9', from: 'Maggie', text: '', media: '${import.meta.env.BASE_URL}assets/data/files/wts/searchFunctionPage.png', time: '2024-07-15', read: 'read', type: 'image' },
+      { id: 'm9', from: 'Maggie', text: '', media: `${import.meta.env.BASE_URL}assets/data/files/wts/searchFunctionPage.png`, time: '2024-07-15', read: 'read', type: 'image' },
       { id: 'm10', from: 'Maggie', text: '如果有不懂的，也可以到瀏覽器搜索相關資料和功能的寫法', time: '2024-07-15', read: 'read', type: 'text' },
-      { id: 'm11', from: 'Maggie', text: '', media: '${import.meta.env.BASE_URL}assets/data/files/wts/searchEnginePage.png', time: '2024-07-15', read: 'read', type: 'image' },
+      { id: 'm11', from: 'Maggie', text: '', media: `${import.meta.env.BASE_URL}assets/data/files/wts/searchEnginePage.png`, time: '2024-07-15', read: 'read', type: 'image' },
       { id: 'm12', from: 'Maggie', text: '修改完成之後，就可以到SOURCE CONTROL提交變更。\nGit是一個可以儲存code, 變更記錄, 控制版本的工具，常用功能有：\ncommit => 提交變更\nrevert => 撤銷變更\n查看Git Graph => 列表形式展示所有變更記錄', time: '2024-07-15', read: 'read', type: 'text' },
-      { id: 'm13', from: 'Maggie', text: '', media: '${import.meta.env.BASE_URL}assets/data/files/wts/sourceControlPage.png', time: '2024-07-15', read: 'read', type: 'image' },
-      { id: 'm14', from: 'Maggie', text: '', media: '${import.meta.env.BASE_URL}assets/data/files/wts/sourceControlPage-revert.png', time: '2024-07-15', read: 'read', type: 'image' },
+      { id: 'm13', from: 'Maggie', text: '', media: `${import.meta.env.BASE_URL}assets/data/files/wts/sourceControlPage.png`, time: '2024-07-15', read: 'read', type: 'image' },
+      { id: 'm14', from: 'Maggie', text: '', media: `${import.meta.env.BASE_URL}assets/data/files/wts/sourceControlPage-revert.png`, time: '2024-07-15', read: 'read', type: 'image' },
       { id: 'm15', from: 'Maggie', text: '如果修改有誤的話，提交時SonarQube會經過檢查，然後報錯，這時候就要重新修改', time: '2024-07-15', read: 'read', type: 'text' },
     ]
   },
@@ -626,7 +626,7 @@ export function triggerCh1Event1() {
     }
     // Add follow-up image message from Sawyer under the text (office.png)
     setTimeout(() => {
-      c.messages.push({ id: 'm-tree-img-' + Date.now(), from: 'Sawyer', text: '', media: '${import.meta.env.BASE_URL}assets/data/files/office.png', type: 'image', time: '剛剛', read: 'delivered' });
+      c.messages.push({ id: 'm-tree-img-' + Date.now(), from: 'Sawyer', text: '', media: `${import.meta.env.BASE_URL}assets/data/files/office.png`, type: 'image', time: '剛剛', read: 'delivered' });
       c.preview = 'Sawyer: [圖片]';
       c.lastTime = '剛剛';
       c.unread = (c.unread || 0) + 1;
