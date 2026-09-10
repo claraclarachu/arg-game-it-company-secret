@@ -16,7 +16,9 @@ const defaultState = {
     language: 'zh-TW',
     theme: 'dark',
     sound: true,
-    reducedMotion: false
+    reducedMotion: false,
+    bgmVolume: 0.25,
+    bgmMuted: false
   },
   playtime: 0,
   lastSaved: null

@@ -701,7 +701,7 @@ function doSearch(q) {
   // ensure we are in results view when doing a new search
   showResultsView();
   if (!lastResults.length) {
-    c.innerHTML = `<div class="muted small" style="margin-top:12px">無結果 — 嘗試 "Sawyer" 或 <code>filetype:js</code> 或 <code>site:nori.internal</code></div>`;
+    c.innerHTML = `<div class="muted small" style="margin-top:12px">無結果 — 嘗試輸入相關字眼 </code></div>`;
     return;
   }
   c.innerHTML = lastResults.map((r, idx) => `

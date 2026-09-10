@@ -6,6 +6,7 @@ import { renderDock, setActiveView } from './ui/dock.js';
 import { toast } from './ui/notifications.js';
 import { openSettings, bindSettings } from './ui/settings.js';
 import { openNotebook } from './ui/notebook.js';
+import { bgm } from './ui/bgm.js';
 import { mountVSCode } from './apps/vscode/index.js';
 import { mountJira } from './apps/jira/index.js';
 import { mountWhatsApp, openChat as openWhatsAppChat } from './apps/whatsapp/index.js';
@@ -218,6 +219,17 @@ function showEnding(ending) {
   const restartBtn = document.getElementById('endingRestart');
   if (!screen || !title || !desc) return;
 
+  // Play ending BGM
+  const endingBgmMap = {
+    flee: 'flee',
+    cooperate: 'cooperate',
+    report: 'report',
+    resign: 'resign',
+    fried: 'fried'
+  };
+  const bgmKey = endingBgmMap[ending];
+  if (bgmKey) bgm.play(bgmKey);
+
   const map = {
     flee: { title: '平凡的日常', desc: 
       '你已完成了工作，登出了電腦，走出辨公室，回到家中安心睡一覺。\n第二天回到辨公室，重新開啟電腦，像平常一樣進入辨公模式，但你感覺有點不對勁，昨天看到的一些文件不見了，有部分git history好像有被人改動過的痕跡，你認為你記錯了。\n接下來繼續日復日的重複性工作，漸漸對此工作感到沉悶，但也只能接受不變的人生。' },
@@ -292,6 +304,7 @@ function showEnding(ending) {
 
 function bindEnding() {
   document.getElementById('endingRestart')?.addEventListener('click', async () => {
+    bgm.stop(false);
     try { state.reset(); } catch {}
     try { localStorage.removeItem('code_conspiracy_state'); } catch {}
     try { localStorage.clear(); } catch {}
@@ -327,6 +340,8 @@ function init() {
   const last = localStorage.getItem('cc_active_view') || 'vscode';
   switchView(state.get('unlockedInterfaces').includes(last) ? last : 'vscode');
   startEngine();
+  // Start default BGM
+  bgm.play('default');
   // Mark onboarding done immediately (no dialog) so engine progresses
   if (!state.hasFlag('onboarding_done')) state.setFlag('onboarding_done', true);
   // Show Windows-style WhatUp notification shortly after load
@@ -356,6 +371,8 @@ function init() {
     }, 600);
   });
   window.addEventListener('darknet:exit', () => {
+    // Switch back to default BGM when leaving darknet
+    bgm.play('default');
     if (state.hasFlag('ch4_all_opened') && !state.hasFlag('ch5_triggered')) {
       state.setFlag('ch5_triggered', true);
       renderDock({ onSwitch: switchView, onOpenSettings: openSettings, onOpenNotebook: openNotebook, t });
@@ -378,6 +395,10 @@ function init() {
   state.on('change', (e) => {
     if (e && e.path && e.path.includes('ch5_triggered')) {
       renderDock({ onSwitch: switchView, onOpenSettings: openSettings, onOpenNotebook: openNotebook, t });
+    }
+    // Darknet entry BGM: switch to darknet music when dark_entered flag is set
+    if (e && e.path && e.path.includes('dark_entered')) {
+      bgm.play('darknet');
     }
     // Ch1 Event1 trigger: 10s after ch0 (VIP fix) done, Sawyer tree message
     if (e && e.path && e.path.includes('ch0_vip_fixed') && !state.hasFlag('ch1_event1_triggered')) {
