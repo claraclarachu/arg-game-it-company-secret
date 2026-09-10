@@ -129,9 +129,9 @@ export function renderDock({ onSwitch, onOpenSettings, onOpenNotebook, t }) {
           const to = document.getElementById('mailTo');
           if (title && to) {
             const v = title.value;
-            if (v === 'Report') to.value = 'DEA <dea@nori.example>';
-            else if (v === 'Coperation') to.value = 'Sawyer <sawyer@nori.example>';
-            else if (v === 'Resign') to.value = 'Sawyer <sawyer@nori.example>';
+            if (v === 'Report') to.value = 'DEA <dea@world.example>';
+            else if (v === 'Coperation') to.value = 'Sawyer <sawyer@nori-drinks.example>';
+            else if (v === 'Resign') to.value = 'Sawyer <sawyer@nori-drinks.example>';
           }
           dlg.showModal();
         }

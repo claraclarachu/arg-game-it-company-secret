@@ -156,9 +156,9 @@ function renderDarkNav() {
   const items = [
     { path: '/darknet', label: '機密首頁', icon: '🕶️' },
     { path: '/darknet/全結構圖', label: '全結構圖', icon: '🗺️' },
-    { path: '/darknet/毒品交易列表', label: '毒品交易列表', icon: '📋' },
+    { path: '/darknet/交易列表', label: '交易列表', icon: '📋' },
     { path: '/darknet/合作公司列表', label: '合作公司', icon: '🏢' },
-    { path: '/darknet/毒品流量', label: '毒品流量', icon: '📦' },
+    { path: '/darknet/流量', label: '流量', icon: '📦' },
     { path: '/darknet/月結單', label: '月結單', icon: '💰' },
   ];
   el.innerHTML = items.map(it => {

@@ -22,7 +22,7 @@
 2023 中  喪事期間認識 FredyArc 主辦人 Fredy → 看中 Nori 運輸潛力 + Sawyer 可合作 → 投資 + 人力/機遇（旗下企業合作資金）
 2023 中後  多筆不明收入實為 FredyArc 給予，夾雜正當合作收入掩護；Sawyer 謊稱六合彩二獎並全投入公司 → 因巧合機遇成功翻身
 2023 下半年  迷信：神棍風水、Lobby 大樹「擋災勿觸」（Ch1 Event1）；夜間派對邀約變多；產品爆紅：冰釀茶酒最暢銷（12 款）
-2023-11-11 起  毒品流量 csv 起算（秘密檔案，藏於暗網）
+2023-11-11 起  流量 csv 起算（秘密檔案，藏於暗網）
 2023-2024  某次 commit 刪除 `generateSecretPath(internalPathDomain, hash)` 實作（`git log -p` / `Git Graph` 可見，`md5 key` 在 `.env.example`，`companyId=134`/`year=2023` 僅 `redis.get` 不明文）
 2024  Casey（48th / 初級開發人員 2024-07-15 入職）發現被刪 url 與 `WhatUp all staff` 2023 六合彩謊言紀錄，展開調查
 ```
@@ -51,10 +51,10 @@
 * **觸發**：玩家在 **正常內網**（`/intranet`）搜尋框輸入完整 url（含 `hash=`）後，會跳轉至**全新暗網內網頁面**（全黑風格，點綴酒紅色 `#722F37` / `#8B1A1A`，如 Google 首頁：中央大字 `SECRET`，下方單一 `search input`）。
 * **進入**：無點擊無反應，**僅點擊 `SECRET` 標題六下**才進入暗網檔案系統（界面同內部 VFS，僅 folder 不同）。
 * **暗網檔案系統內容（與正常內網不同 folder）**：
-  1. 毒品交易列表（`drug-transactions.csv`）
+  1. 交易列表（`drug-transactions.csv`）
   2. 合作公司列表及聯絡方式（含大樓名錄 + 額外虛構海外客戶）
   3. 全結構圖（`drug-route-graph.md`：`FredyArc → Nori 實驗室 → 葡萄/茶葉原料 → 銷售 → 配送（每趟公開物流綁一次秘密包裹）→ IT 內網`，標註 `COCOA/BEAN/LEAF/CRYSTAL`）
-  4. 毒品流量 csv（`drug-traffic.csv`，`datetime` 自 `2023-11-11` 起，`location` 大樓名錄 + 海外、`traffic_used` 含 `grape, 茶葉, alchol, grass bottle, box`、`drug_code`、`quantity`、`status`，30-50 列，表格檢視）
+  4. 流量 csv（`drug-traffic.csv`，`datetime` 自 `2023-11-11` 起，`location` 大樓名錄 + 海外、`traffic_used` 含 `grape, 茶葉, alchol, grass bottle, box`、`drug_code`、`quantity`、`status`，30-50 列，表格檢視）
   5. 月結單（`monthly-statements/*.csv`，`FredyArc → Nori $10,000-$500,000` 主體，夾雜 `Nori → Anonymous $100-$1,000` 小額，10 檔或單檔，Excel 表格檢視）
 
 ---
