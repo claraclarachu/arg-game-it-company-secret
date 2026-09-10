@@ -27,5 +27,7 @@ export default defineConfig({
       '@utils': '/assets/js/utils',
       '@data': '/assets/data'
     }
-  }
+  },
+  base: '/arg-game-it-company-secret/', 
+  plugins: []
 });

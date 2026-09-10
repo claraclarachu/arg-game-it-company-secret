@@ -7,11 +7,14 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "deploy": "node scripts/deploy.js",
-    "lint": "eslint assets/js --ext .js"
+    "deploy-test": "node scripts/deploy.js",
+    "lint": "eslint assets/js --ext .js",
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d dist"
   },
   "devDependencies": {
     "esbuild": "^0.28.2",
+    "gh-pages": "^6.3.0",
     "jsdom": "^29.1.1",
     "vite": "^8.2.2"
   },
