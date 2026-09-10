@@ -22,6 +22,7 @@ const webIndex = [
   { title: 'Sawyer Choi — 2023-12-20', url: 'https://sawyer-blog.example/2023-12-20', snippet: '2023-12-20\n\nI will do what you want me to do — Sawyer Choi / Choi Tsz Yeung 蔡梓掦', type: 'web', image: null },
   { title: '廣志中學作文比賽', url: 'https://school.example/guangzhi-essay-sawyer', snippet: '廣志中學聖誕假期作文比賽二等獎穫奬學生 中五甲班 蔡梓掦', type: 'web', image: '/assets/data/files/sawyer_writing_1.png', images: ['/assets/data/files/sawyer_writing_1.png', '/assets/data/files/sawyer_writing_2.png'] },
   { title: '新聞：夫婦平和道遇車禍雙亡　29歲兒子獲大額保險賠償', url: 'https://news.example/car-accident-2023', snippet: '【本報訊】\n\n2023年，一對夫婦在平和道發生嚴重交通事故，兩人最終不幸離世。意外發生後，29歲兒子成為相關保險賠償的主要受益人，據悉獲得一筆大額賠償。\n事故發生於2023年某日，涉事夫婦當時途經平和道，期間與另一輛車輛發生碰撞。救援人員接報後迅速趕抵現場，惟兩人傷勢嚴重，經搶救後仍證實不治。\n夫婦突然離世，令家人深受打擊。其29歲兒子在處理父母身後事及相關法律程序期間，亦需要面對保險索償及遺產安排等一系列問題。\n據了解，涉事夫婦生前曾購買多份保險，當中包括人壽及意外保障。由於兩人同時因意外身故，符合相關保單的賠償條件，兒子最終獲得一筆金額可觀的保險賠償。\n值得一提的是，意外發生地點附近一幢大樓由某集團旗下公司持有。集團創辦人 Fredy 得悉事件後表示深感惋惜，並對夫婦突然離世表示哀痛。Fredy其後決定向其遺屬提供一筆私人捐贈，希望在其面對家庭變故及生活壓力之際，提供一些實際援助。\nFredy表示，意外雖然令人惋惜，但更重要的是希望社會能夠在有需要時互相扶持，因此決定以個人名義向死者家屬伸出援手。至於捐贈的具體金額，則未有對外公布。\n有保險業人士指出，保險賠償金額取決於保單種類、投保額、受益人安排及事故是否符合保障條款等因素，不能單純以事故造成的死亡推算實際賠償金額。\n這宗意外亦再次引起社會對道路安全及家庭保障的關注。對不少家庭而言，突如其來的交通事故不僅帶來無法彌補的傷痛，亦可能造成長期的經濟影響。社會人士呼籲駕駛者時刻保持警覺，同時及早做好家庭保障及財務規劃。\n', type: 'news', image: null },
+  { title: '那些藏在程式碼裡的小彩蛋：我在小團隊看到的開發者塗鴉 — Peter Lin', url: 'https://peter-blog.example/code-easter-eggs', snippet: '待過幾間中小企業後發現，只要沒有嚴格的 code quality 流程，程式碼裡總會冒出一些跟公司或產品完全無關的東西——註解裡的粗口、對工作的抱怨、整段國歌歌詞，甚至藏得很深的小遊戲。我對這些小彩蛋的看法是：只要不影響功能與效能，算是工作中找到的小樂趣。 — Peter Lin', type: 'web', image: 'https://picsum.photos/seed/codeeggs/600/400' },
 ];
 
 // ── BlogWorld 平台資料 (全域部落格網絡) ──
@@ -54,6 +55,7 @@ const blogArticles = [
   { url:'https://peter-blog.example/python-one-year', title:'自學 Python 一年的踩坑筆記：從爬蟲到自動化報表', excerpt:'從 print("Hello") 到每天自動跑的報表腳本，這一年我踩過的坑，希望你不用再踩一次。', content:'一年前，我連 pip 是什麼都不知道。\n\n第一個月：跟著官方教學寫爬蟲，結果被網站的反爬蟲封 IP，學會了加 header、睡隨機秒數。\n\n第三個月：開始用 pandas 處理公司每週的 Excel 報表，本來要花兩小時手動整理，現在一個指令就完成，主管以為我加班，其實我在喝咖啡。\n\n第六個月：踩到最大坑——編碼。CSV 用 excel 開啟全是亂碼，後來才知道要存成 utf-8-sig。\n\n給新手的建議：不要追求一次學會所有套件，先解決一個實際問題，你會學得更快。', authorId:'peter', date:'2024-02-10', views:15600, likes:923, topic:'科技', tags:['Python','自學','效率'], cover:'https://picsum.photos/seed/python/600/400' },
   { url:'https://peter-blog.example/vim-vs-vscode', title:'Vim vs VSCode：我最後為什麼還是回到 Vim', excerpt:'用了三年 VSCode，我還是回到了 Vim。不是因為情懷，而是因為手指不想離開鍵盤。', content:'VSCode 很棒，外掛多、介面美、什麼都能做。但我發現自己一直在用滑鼠。\n\n回到 Vim 之後，我重新設定了 .vimrc，把常用操作都綁成快捷鍵。現在寫程式，眼睛不用離開螢幕，手也不用離開鍵盤。\n\n當然，Vim 的學習曲線很陡，前兩週我每天都在查 cheat sheet。但一旦肌肉記憶形成，效率真的會回不去。\n\n結論：沒有最好的編輯器，只有最適合你手指的編輯器。', authorId:'peter', date:'2023-09-18', views:8200, likes:412, topic:'科技', tags:['Vim','VSCode','工具'], cover:'https://picsum.photos/seed/vim/600/400' },
   { url:'https://peter-blog.example/nas-ds220', title:'家用 NAS 入門：Synology DS220+ 開箱與備份策略', excerpt:'照片、影片、文件散落在各個硬碟？一台 NAS 幫我把十年的回憶全部收好，還能自動備份。', content:'買 DS220+ 之前，我的照片分散在三顆外接硬碟、一台舊筆電和雲端。\n\n安裝比想像中簡單，插上兩顆 4TB 硬碟，照著精靈設定，半小時就完成。\n\n我設了三層備份：\n1. 手機照片自動同步到 NAS\n2. NAS 每週備份到外接硬碟\n3. 重要文件再同步一份到雲端\n\n最有感的是，再也不怕手機丟了照片就不見。所有的回憶，都在自己家裡好好存著。', authorId:'peter', date:'2023-06-12', views:4300, likes:210, topic:'科技', tags:['NAS','備份','開箱'], cover:'https://picsum.photos/seed/nas/600/400' },
+  { url:'https://peter-blog.example/code-easter-eggs', title:'那些藏在程式碼裡的小彩蛋：我在小團隊看到的開發者塗鴉', excerpt:'待過幾間小公司後，我在程式碼裡翻過粗口、抱怨、整首國歌，甚至不起眼的小遊戲。大多是小企業沒人管 code quality 才會長出來的東西。', content:'待過幾間中小企業之後，我歸納出一個規律：只要團隊對 code quality 管得不嚴，程式碼庫遲早會長出一些跟公司或產品完全無關的東西。\n\n我看過幾種，最常見的是藏在註解裡的粗口。某個凌晨三點還在解 bug 的同事，直接在註解寫「這段爛 code 別再問我為什麼這樣寫，我也不知道」。還有對工作的不滿，有人在一個永遠不會被執行到的 else 分支裡，留了一整段抱怨，說這個需求改了第七次、希望明天不用再改。\n\n最誇張的一次，是在一支內部工具的常數檔最底部，有人把國歌的歌詞整段貼上去，還用 ASCII art 排成旗子的形狀。問他為什麼，他說只是測試多行字串，沒有要上線，後來就忘了刪，結果一路跟著部署到正式環境。\n\n還有那種不起眼的小程式。有個同事在後台的 404 頁面裡，藏了一個用鍵盤方向鍵就能玩的小貪食蛇，按 Konami Code 才會觸發。一般使用者永遠不會發現，只有我們幾個開發者知道，午休時會偷偷比誰分數高。\n\n為什麼這些東西幾乎只出現在小企業？我的觀察很簡單：大公司有嚴格的 lint、SonarQube、強制 code review，連註解寫錯字都會被擋下來。小團隊很多時候是「能動就好」，review 只是形式，甚至根本沒人看第二眼，久了大家就覺得，塞一點無害的東西也不會有人發現。\n\n我對這種行為的看法是，只要不影響效能、不影響功能、不洩露敏感資訊，也沒有攻擊性或歧視性的內容，其實算是工作中找到的小樂趣。\n\n寫程式已經夠枯燥了，每天面對需求、時程、bug，如果能在不傷害產品的前提下，留一個只有自己人懂的小彩蛋，那反而會讓人覺得，這份工作還有點人味。像是那個貪食蛇，後來新人 onboarding 時，我們都會跟他說「去 404 按按看」，大家笑一下，氣氛就輕鬆很多。\n\n當然，底線還是要有。不能因為好玩就亂塞會影響效能的程式碼，也不能把情緒發洩變成對同事或客戶的人身攻擊。分清楚「無害的塗鴉」和「不負責任」就好。\n\n如果你的團隊現在還沒有嚴格的規範，與其一味禁止，不如把這些小彩蛋當成一個訊號：代表你們需要更好的流程，但也代表，你們的團隊還保有那一點點自由和幽默感。', authorId:'peter', date:'2024-05-18', views:12800, likes:672, topic:'科技', tags:['程式碼','開發者文化','職場','彩蛋','Code Review'], cover:'https://picsum.photos/seed/codeeggs/600/400' },
   // Paul
   { url:'https://paul-blog.example/tainan-beef-soup', title:'台南牛肉湯全攻略：在地人帶路的五間深夜食堂', excerpt:'凌晨三點的台南，牛肉湯的蒸氣比路燈還溫暖。這五間，是我吃過十年後還會想念的味道。', content:'台南的牛肉湯不是湯，是溫體牛肉用熱湯沖出來的甜。\n\n第一間：文章牛肉湯。觀光客很多，但品質穩定，肉片厚、湯頭清甜。\n\n第二間：六千牛肉湯。凌晨三點去排隊，點頭尾，牛肉的油花最漂亮。\n\n第三間：無名小攤（海安路）。沒有招牌，只有一個阿伯和五張桌子，但湯頭用了大量蔬果熬，喝起來最溫潤。\n\n吃牛肉湯的秘訣：不要加太多調味，先喝原味，再試米酒和薑絲。', authorId:'paul', date:'2024-01-28', views:20300, likes:1340, topic:'美食', tags:['台南','牛肉湯','深夜食堂'], cover:'https://picsum.photos/seed/beefsoup/600/400' },
   { url:'https://paul-blog.example/hand-drip-coffee', title:'手沖咖啡入門：從選豆到水溫的實驗筆記', excerpt:'同樣的豆子，水溫差 5 度，風味就完全不同。這半年，我記錄了 30 次沖煮的失敗與成功。', content:'開始手沖後，我才知道原來水溫這麼重要。\n\n93 度：酸度明亮，適合淺焙的花果香。\n88 度：甜感突出，堅果、巧克力味更明顯。\n83 度：口感最平順，但香氣會少一點。\n\n我現在的配方：20g 豆子、300ml 水、93 度、分三次注水，總時間 2:30。\n\n最有趣的是，同样的豆子，每次沖出來都不太一樣。像在跟豆子對話一樣。', authorId:'paul', date:'2023-10-14', views:11200, likes:687, topic:'美食', tags:['咖啡','手沖','實驗'], cover:'https://picsum.photos/seed/coffee/600/400' },
@@ -113,6 +115,11 @@ const blogComments = {
   'https://peter-blog.example/python-one-year': [
     { user:'Python 新手', avatar:'', time:'2024-02-11 09:00', text:'utf-8-sig 那個坑我也踩過！太有共鳴了。', likes:33 },
     { user:'工程師', avatar:'', time:'2024-02-12 14:20', text:'自動化報表那段太實用了，已經分享給同事。', likes:12 },
+  ],
+  'https://peter-blog.example/code-easter-eggs': [
+    { user:'前端仔', avatar:'', time:'2024-05-19 10:21', text:'那個 404 貪食蛇太好笑了，我們公司也有人在 console 藏 ASCII 貓！', likes:18 },
+    { user:'後端老鳥', avatar:'', time:'2024-05-19 14:03', text:'小公司真的沒人管 code quality，之前還看過有人把國歌寫進常數檔，差點上線被客戶看到。', likes:12 },
+    { user:'Peter Lin', avatar:'https://i.pravatar.cc/150?u=peter', time:'2024-05-19 16:40', text:'哈哈對，其實只要不影響效能跟功能，我覺得這些算是工作裡的小樂趣啦。', likes:27 },
   ],
   'https://paul-blog.example/tainan-beef-soup': [
     { user:'台南人', avatar:'', time:'2024-01-29 07:30', text:'六千真的要凌晨去排，但絕對值得！', likes:18 },
@@ -785,7 +792,10 @@ function openBlogHome(){
   // 推薦欄：依瀏覽數排序的熱門 + 編輯精選
   const featured = [...blogArticles].sort((a,b)=>b.views-a.views).slice(0,1)[0];
   const trending = [...blogArticles].sort((a,b)=>b.views-a.views).slice(1,4);
-  const recommended = [...blogArticles].sort(()=>0.5-Math.random()).slice(0,6);
+  // 保證 Peter Lin 新文章固定出現在「為你推薦」首位
+  const peterEggArticle = blogArticles.find(a=>a.url==='https://peter-blog.example/code-easter-eggs');
+  const shuffledOthers = [...blogArticles.filter(a=>a.url!=='https://peter-blog.example/code-easter-eggs')].sort(()=>0.5-Math.random());
+  const recommended = peterEggArticle ? [peterEggArticle, ...shuffledOthers].slice(0,6) : [...blogArticles].sort(()=>0.5-Math.random()).slice(0,6);
   const editorsPick = recommended.slice(0,6);
   const hotAuthors = Object.values(blogAuthors).sort((a,b)=>b.followers-a.followers).slice(0,4);
   detail.innerHTML = `
