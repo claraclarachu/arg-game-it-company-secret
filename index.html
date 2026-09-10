@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="zh-TW" data-theme="dark">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0078d4" />
+  <title>聽日辭職 — ARG</title>
+  <link rel="manifest" href="/arg-game-it-company-secret/manifest.json" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+  <script type="module" crossorigin src="/arg-game-it-company-secret/assets/main-wI-eHngP.js"></script>
+  <link rel="stylesheet" crossorigin href="/arg-game-it-company-secret/assets/main-BRYVFjfa.css">
+</head>
+<body>
+  <div class="app">
+    <!-- Windows 11 desktop wallpaper area -->
+    <main class="viewport">
+      <section id="view-vscode" class="view active" aria-label="Vizual Studio Code"></section>
+      <section id="view-jira" class="view" aria-label="Jiua"></section>
+      <section id="view-whatsapp" class="view" aria-label="WhatUp"></section>
+      <section id="view-search" class="view" aria-label="Search"></section>
+      <section id="view-intranet" class="view" aria-label="Intranet"></section>
+      <section id="view-darknet" class="view" aria-label="Secret"></section>
+    </main>
+
+    <!-- Windows 11 Taskbar -->
+    <nav id="dock" class="taskbar" aria-label="Windows Taskbar"></nav>
+  </div>
+
+  <div id="toasts" class="toasts" aria-live="polite"></div>
+
+  <dialog id="settingsDialog" style="background:var(--bg-secondary);color:var(--fg-primary);border:1px solid var(--border);border-radius:12px;padding:0;max-width:520px;width:90%">
+    <div style="padding:16px">
+      <h3 style="margin:0 0 12px">設定</h3>
+      <div style="display:grid;gap:10px">
+        <label>主題
+          <select id="settingTheme" class="select"><option value="dark">Dark</option><option value="light">Light</option></select>
+        </label>
+        <div class="small muted">遊玩時長: <span id="settingPlaytime">0s</span></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button id="btnExport" class="btn">匯出存檔</button>
+          <label class="btn" style="cursor:pointer">匯入存檔 <input id="btnImport" type="file" accept=".json" hidden /></label>
+          <button id="btnReset" class="btn" style="color:var(--error)">重置進度</button>
+        </div>
+        <details style="margin-top:8px;border:1px solid var(--border);border-radius:8px;padding:8px;background:var(--bg-primary)">
+          <summary style="cursor:pointer;font-weight:600;font-size:13px">鍵盤快捷鍵映射</summary>
+          <div style="margin-top:8px;display:grid;gap:4px;font-size:12px;color:var(--fg-secondary)">
+            <div><span class="badge">Ctrl+P</span> 快速開啟檔案（Quick Open）</div>
+            <div><span class="badge">Ctrl+Shift+F</span> 全域搜尋（Search）</div>
+            <div><span class="badge">Ctrl+Shift+G</span> 原始碼控管（Source Control）</div>
+            <div><span class="badge">Ctrl+Shift+D</span> 執行與偵錯</div>
+            <div><span class="badge">Ctrl+/</span> 聚焦終端機</div>
+            <div><span class="badge">Tab</span> 終端機補全 · <span class="badge">↑↓</span> 歷史</div>
+            <div class="small muted">提示：於編輯器按 <span class="badge">Help</span> 亦可查看</div>
+          </div>
+        </details>
+      </div>
+      <div style="text-align:right;margin-top:12px"><button class="btn primary" onclick="this.closest('dialog').close()">關閉</button></div>
+    </div>
+  </dialog>
+
+  <dialog id="notebookDialog" style="background:var(--bg-secondary);color:var(--fg-primary);border:1px solid var(--border);border-radius:12px;padding:0;max-width:640px;width:90%;max-height:80vh;overflow:auto">
+    <div style="padding:16px">
+      <h3 style="margin:0 0 12px">筆記本 · 證據板</h3>
+      <div id="notebookContent"></div>
+      <div style="text-align:right;margin-top:12px"><button class="btn primary" onclick="this.closest('dialog').close()">關閉</button></div>
+    </div>
+  </dialog>
+
+  <!-- Onboarding Narrative Dialog -->
+  <dialog id="onboardingDialog" style="background:var(--bg-secondary);color:var(--fg-primary);border:1px solid var(--border);border-radius:12px;padding:0;max-width:580px;width:90%;max-height:85vh;overflow:auto">
+    <div style="padding:20px">
+      <div id="onboardingContent"></div>
+      <div style="text-align:right;margin-top:16px;padding-top:12px;border-top:1px solid var(--border)">
+        <button id="onboardingNext" class="btn primary">下一步</button>
+        <button id="onboardingSkip" class="btn" style="margin-left:8px">跳過</button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- Send Mail Dialog (Ch5) -->
+  <dialog id="mailDialog" style="background:var(--bg-secondary);color:var(--fg-primary);border:1px solid var(--border);border-radius:12px;padding:0;max-width:560px;width:90%">
+    <div style="padding:16px">
+      <h3 style="margin:0 0 12px">寄送郵件</h3>
+      <div style="display:grid;gap:10px">
+        <label>標題
+          <select id="mailTitle" class="select">
+            <option value="Report">舉報Nori Limited</option>
+            <option value="Coperation">要求與貴公司合作</option>
+            <option value="Resign">辭職信</option>
+          </select>
+        </label>
+        <label>收件者
+          <input id="mailTo" class="input" readonly />
+        </label>
+        <label>內容
+          <textarea id="mailBody" class="input" style="min-height:120px;resize:vertical" placeholder="在此輸入郵件內容..."></textarea>
+        </label>
+      </div>
+      <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px">
+        <button id="mailTempExit" class="btn">暫時退出</button>
+        <button id="mailSend" class="btn primary">寄送</button>
+        <button class="btn" onclick="this.closest('dialog').close()">取消</button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- Start Menu -->
+  <div id="startMenu" style="display:none;position:fixed;left:12px;bottom:56px;width:320px;background:var(--bg-secondary);border:1px solid var(--border);border-radius:12px;box-shadow:0 12px 32px rgba(0,0,0,.4);z-index:1200;overflow:hidden">
+    <div style="padding:12px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px">
+      <div style="width:36px;height:36px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700">C</div>
+      <div><div style="font-weight:700">Casey</div><div class="small muted">初級開發人員</div></div>
+    </div>
+    <div style="padding:8px;display:grid;gap:4px">
+      <button class="btn" id="startShutdown" style="justify-content:flex-start;display:flex;gap:8px;align-items:center"><span>⏻</span> 關機</button>
+      <button class="btn" id="startLogout" style="justify-content:flex-start;display:flex;gap:8px;align-items:center"><span>⎋</span> 登出</button>
+    </div>
+  </div>
+
+  <!-- Ending Screen - black screen + typing dialog -->
+  <div id="endingScreen" style="display:none;position:fixed;inset:0;background:#000;z-index:1300;align-items:center;justify-content:center;padding:20px">
+    <div style="background:var(--bg-secondary);border:1px solid var(--border);border-radius:12px;padding:24px;max-width:580px;width:100%;box-shadow:0 16px 48px rgba(0,0,0,.5);position:relative;min-height:220px;display:flex;flex-direction:column">
+      <h2 id="endingTitle" style="margin:0 0 12px;text-align:left"></h2>
+      <p id="endingDesc" class="small" style="line-height:1.8;text-align:left;white-space:pre-wrap;min-height:80px"></p>
+      <div style="margin-top:16px;display:flex;justify-content:flex-end">
+        <button id="endingRestart" class="btn primary" style="display:none">重新遊玩</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js').then(reg => {
+          // Force update check on every load
+          reg.update();
+          // If a new SW is found, reload to get fresh assets
+          reg.addEventListener('updatefound', () => {
+            const nw = reg.installing;
+            if (nw) {
+              nw.addEventListener('statechange', () => {
+                if (nw.state === 'installed' && navigator.serviceWorker.controller) {
+                  console.log('New SW installed, reloading for fresh assets');
+                  window.location.reload();
+                }
+              });
+            }
+          });
+        }).catch(()=>{});
+        // Also handle controller change (new SW activated)
+        let refreshing = false;
+        navigator.serviceWorker.addEventListener('controllerchange', () => {
+          if (refreshing) return;
+          refreshing = true;
+          window.location.reload();
+        });
+      });
+    }
+  </script>
+</body>
+</html>
