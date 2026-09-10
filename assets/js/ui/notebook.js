@@ -1,14 +1,31 @@
 import { state } from '../core/state.js';
 
-const chapterNames = ['教學','異常發現','隱藏入口','資金流','帳本','網絡','對峙'];
+// REVAMP_PLAN §4: 5 chapters + onboarding
+const chapterNames = ['教學', '異常發現', '自由探索', '暗網入口', '秘密曝光', '抉擇'];
+const totalEvidence = 13;
+
+// 介面顯示名稱對照
+const interfaceLabels = {
+  vscode: 'Vizual',
+  jira: 'Jiua',
+  whatsapp: 'WhatUp',
+  search: 'Search',
+  intranet: 'Intranet',
+  darknet: 'Darknet',
+  email: 'Email'
+};
+function formatInterfaces(list) {
+  if (!list || !list.length) return '—';
+  return list.map(i => interfaceLabels[i] || i).join(', ');
+}
 
 function getAchievements(ev) {
   const all = [
     { id: 'first_evidence', title: '初次發現', desc: '取得第一個證據', check: () => ev.length >= 1 },
     { id: 'collector', title: '蒐集者', desc: '取得 5 個證據', check: () => ev.length >= 5 },
     { id: 'master', title: '真相大師', desc: '取得 10 個證據', check: () => ev.length >= 10 },
-    { id: 'portal_found', title: '入口發現者', desc: '觸發 420.69', check: () => state.hasFlag('hidden_portal_accessed') },
-    { id: 'bypass', title: '驗證破解', desc: '繞過 Portal 驗證', check: () => state.hasFlag('portal_auth_bypassed') },
+    { id: 'darknet_entered', title: '暗網闖入者', desc: '成功進入暗網', check: () => state.hasFlag('dark_entered') || state.hasFlag('hidden_portal_accessed') },
+    { id: 'darknet_complete', title: '暗網全覽', desc: '開啟所有暗網檔案', check: () => state.hasFlag('ch4_all_opened') },
   ];
   return all.map(a => ({ ...a, done: a.check() }));
 }
@@ -45,15 +62,15 @@ function renderNotebook() {
   el.innerHTML = `
     <div class="card">
       <div style="display:flex;justify-content:space-between;align-items:center">
-        <h3 style="margin:0">進度 · Chapter ${ch} / 6 — ${chapterNames[ch]||'—'}</h3>
+        <h3 style="margin:0">進度 · Chapter ${ch} / 5 — ${chapterNames[ch]||'—'}</h3>
         <span class="badge">${ev.length} 證據</span>
       </div>
-      <div style="margin-top:8px;height:8px;background:var(--bg-tertiary);border-radius:999px;overflow:hidden"><div style="width:${Math.min(100, Math.round(ch/6*100))}%;height:100%;background:var(--accent)"></div></div>
-      <div class="small muted" style="margin-top:6px">遊玩時長 ${state.get('playtime')}s · 已解鎖 ${state.get('unlockedInterfaces')?.join(', ')}</div>
+      <div style="margin-top:8px;height:8px;background:var(--bg-tertiary);border-radius:999px;overflow:hidden"><div style="width:${Math.min(100, Math.round(ch/5*100))}%;height:100%;background:var(--accent)"></div></div>
+      <div class="small muted" style="margin-top:6px">遊玩時長 ${state.get('playtime')}s · 已解鎖 ${formatInterfaces(state.get('unlockedInterfaces'))}</div>
     </div>
 
     <div class="card" style="margin-top:12px">
-      <h3 style="margin:0 0 8px">證據板 (${ev.length}/14)</h3>
+      <h3 style="margin:0 0 8px">證據板 (${ev.length}/${totalEvidence})</h3>
       ${ev.length ? `
         <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px">
           ${ev.map(e => `
@@ -68,8 +85,7 @@ function renderNotebook() {
             </div>
           `).join('')}
         </div>
-        <div class="small muted" style="margin-top:8px">提示：拖拉卡片可模擬關聯（未來關卡編輯器）· 共同關鍵字：Sawyer/420.69</div>
-      ` : '<div class="muted small">尚未發現證據。去 Vizual Studio Code 搜尋 "redirectTo" 或開啟 .env</div>'}
+      ` : '<div class="muted small">尚未發現證據。完成 Ch0 工單後開始探索吧。</div>'}
     </div>
 
     <div class="card" style="margin-top:12px">
@@ -88,11 +104,6 @@ function renderNotebook() {
         ${chapterNames.map((n,i)=>`<div style="display:flex;justify-content:space-between;padding:6px 8px;border-radius:6px;background:${i<=ch?'var(--bg-tertiary)':'var(--bg-primary)'};border:1px solid var(--border)"><span>Ch${i} ${n}</span><span class="small ${i<ch?'':i===ch?'badge':''}" style="${i===ch?'background:var(--accent);color:#fff':''}">${i<ch?'完成':i===ch?'進行中':'未開始'}</span></div>`).join('')}
       </div>
     </div>
-
-    <details style="margin-top:12px" class="card">
-      <summary style="cursor:pointer;font-weight:600">Flags (${Object.keys(flags).length})</summary>
-      <pre class="mono small" style="white-space:pre-wrap;margin-top:8px;max-height:160px;overflow:auto">${Object.keys(flags).length ? JSON.stringify(flags, null, 2) : '—'}</pre>
-    </details>
 
     <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
       <button class="btn" onclick="navigator.clipboard.writeText(JSON.stringify(JSON.parse(localStorage.getItem('code_conspiracy_state')||'{}'), null, 2))">複製存檔 JSON</button>

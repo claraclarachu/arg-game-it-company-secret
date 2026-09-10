@@ -2,144 +2,121 @@ import { state } from './state.js';
 import { events } from './events.js';
 import { vfs } from './vfs.js';
 
+// REVAMP_PLAN.md §4: 5 chapters + onboarding
+// Ch0 教學 → Ch1 異常發現 → Ch2 自由探索 → Ch3 暗網入口 → Ch4 秘密曝光 → Ch5 抉擇
 const puzzles = [
-  // Chapter 0 — Onboarding (interfaces already unlocked; keep puzzle for evidence/progression only)
-  {
-    id: 'ch0_complete_onboarding',
-    chapter: 0,
-    check: () => state.hasFlag('onboarding_done'),
-    reward: {},
-    title: '完成新手引導'
-  },
-  // Chapter 0 — VIP discount fix (new INV-2024-0042)
+  // ── Chapter 0 — 教學 (Onboarding) ──
   {
     id: 'ch0_vip_fix',
     chapter: 0,
     check: () => state.hasFlag('ch0_vip_fixed'),
-    reward: { evidence: { id: 'e000', title: 'VIP 折扣已修正 (INV-2024-0042)', chapter: 0, type: 'fix' } },
+    reward: {},
     title: '修正 VIP 折扣計算 (INV-2024-0042)'
   },
-  // Chapter 1 — The Anomaly
+
+  // ── Chapter 1 — 異常發現 (The Anomaly) ──
   {
-    id: 'ch1_trigger_hidden_route',
+    id: 'ch1_system_alert',
     chapter: 1,
-    check: () => state.hasFlag('hidden_portal_accessed'),
-    reward: { evidence: { id: 'e001', title: '隱藏入口 /internal/portal', chapter: 1, type: 'portal' } },
-    title: '觸發隱藏路由 420.69'
+    check: () => state.hasFlag('ch1_system_down'),
+    reward: { evidence: { id: 'e001', title: 'INV-2024-0043 系統警報', chapter: 1, type: 'anomaly' } },
+    title: '觸發系統警報 (INV-2024-0043)'
   },
   {
-    id: 'ch1_read_billing_service',
+    id: 'ch1_feng_shui_tree',
     chapter: 1,
-    check: () => state.get('discoveredFiles')?.includes('/customer-portal/src/billing/service.js'),
-    reward: { evidence: { id: 'e001b', title: '計費模組原始碼', chapter: 1, type: 'code' } },
-    title: '閱讀計費模組'
+    check: () => state.hasFlag('ch1_tree_seen'),
+    reward: { evidence: { id: 'e002', title: '老闆的風水樹', chapter: 1, type: 'behavior' } },
+    title: '發現老闆的風水樹'
   },
-  // Chapter 2 — Hidden Portal
+
+  // ── Chapter 2 — 自由探索 (Free Exploration) ──
   {
-    id: 'ch2_bypass_portal_auth',
+    id: 'ch2_accident_news',
     chapter: 2,
-    check: () => state.hasFlag('portal_auth_bypassed'),
-    reward: { evidence: { id: 'e002', title: '內部庫存 (drink-001 420/drink-002 118)', chapter: 2, type: 'inventory' } },
-    title: '繞過 Portal 驗證'
+    check: () => state.get('searchHistory')?.some(h => h.includes('Sawyer') || h.includes('Choi') || h.includes('車禍')),
+    reward: { evidence: { id: 'e003', title: '車禍新聞 — 父母雙亡', chapter: 2, type: 'news' } },
+    title: '搜尋到車禍新聞'
   },
   {
-    id: 'ch2_find_code_map',
+    id: 'ch2_insurance_blog',
     chapter: 2,
-    check: () => state.hasFlag('found_code_map'),
-    reward: { evidence: { id: 'e003', title: '庫存對照表 (drink-001 等)', chapter: 2, type: 'mapping' } },
-    title: '發現代號對照表'
+    check: () => state.get('discoveredFiles')?.includes('https://sawyer-blog.example/2012-07-07') || state.get('searchHistory')?.some(h => h.includes('保險')),
+    reward: { evidence: { id: 'e004', title: '保險受益人 Blog', chapter: 2, type: 'blog' } },
+    title: '發現保險受益人文章'
   },
   {
-    id: 'ch2_read_env_token',
+    id: 'ch2_lottery_lie',
     chapter: 2,
-    check: () => state.get('discoveredFiles')?.includes('/customer-portal/.env'),
-    reward: { evidence: { id: 'e003b', title: '洩漏的 Token (.env)', chapter: 2, type: 'secret' } },
-    title: '找到 INTERNAL_PORTAL_TOKEN'
+    check: () => state.hasFlag('lottery_lie_seen'),
+    reward: { evidence: { id: 'e005', title: '六合彩謊言', chapter: 2, type: 'lie' } },
+    title: '發現六合彩謊言紀錄'
   },
-  // Chapter 3 — Following the Money
   {
-    id: 'ch3_find_crypto_mixer',
+    id: 'ch2_dark_blog',
+    chapter: 2,
+    check: () => state.get('discoveredFiles')?.includes('https://sawyer-blog.example/2023-12-20'),
+    reward: { evidence: { id: 'e006', title: 'Sawyer 暗示文字', chapter: 2, type: 'blog' } },
+    title: '發現 2023-12-20 Blog'
+  },
+
+  // ── Chapter 3 — 暗網入口 (Darknet Entry) ──
+  {
+    id: 'ch3_git_secret',
     chapter: 3,
-    check: () => state.get('discoveredFiles')?.includes('/customer-portal/src/payment/mixer.js') || state.hasFlag('found_crypto_mixer'),
-    reward: { evidence: { id: 'e004', title: '加密混淆器 @shady/crypto-mixer', chapter: 3, type: 'crypto' } },
-    title: '發現混淆器依賴'
+    check: () => state.hasFlag('git_secret_found'),
+    reward: { evidence: { id: 'e007', title: 'Git 刪除的 secret path', chapter: 3, type: 'code' } },
+    title: '在 Git 歷史找到刪除的 secret path'
   },
   {
-    id: 'ch3_discover_fee_mapping',
+    id: 'ch3_darknet_url',
     chapter: 3,
-    check: () => state.get('discoveredFiles')?.includes('/customer-portal/src/payment/gateway.js') || state.hasFlag('found_fee_mapping'),
-    reward: { evidence: { id: 'e005', title: '手續費即分潤 (feeRate)', chapter: 3, type: 'finance' } },
-    title: '揭露手續費分潤'
+    check: () => state.hasFlag('dark_entered') || state.hasFlag('hidden_portal_accessed'),
+    reward: { evidence: { id: 'e008', title: '暗網入口 URL', chapter: 3, type: 'portal' } },
+    title: '找到暗網完整入口'
   },
+
+  // ── Chapter 4 — 秘密曝光 (Secrets Revealed) ──
   {
-    id: 'ch3_trace_mixer_config',
-    chapter: 3,
-    check: () => state.get('discoveredFiles')?.includes('/customer-portal/src/payment/cryptoConfig.json') || state.hasFlag('found_mixer_config'),
-    reward: { evidence: { id: 'e006', title: '混幣錢包地址', chapter: 3, type: 'wallet' } },
-    title: '追蹤錢包配置'
-  },
-  // Chapter 4 — The Ledger
-  {
-    id: 'ch4_export_ledger',
+    id: 'ch4_drug_transactions',
     chapter: 4,
-    check: () => state.get('discoveredFiles')?.includes('/customer-portal/ledger.db') || state.hasFlag('ledger_exported'),
-    reward: { evidence: { id: 'e007', title: '帳本 ledger.db', chapter: 4, type: 'db' } },
-    title: '匯出帳本'
+    check: () => state.hasFlag('ch4_all_opened') || state.get('discoveredFiles')?.some(f => f.includes('/darknet/')),
+    reward: { evidence: { id: 'e009', title: '毒品交易紀錄', chapter: 4, type: 'darknet' } },
+    title: '開啟毒品交易列表'
   },
   {
-    id: 'ch4_sql_injection',
+    id: 'ch4_drug_route',
     chapter: 4,
-    check: () => state.get('discoveredFiles')?.includes('/customer-portal/docs/arch.pdf') || state.hasFlag('sql_injected'),
-    reward: { evidence: { id: 'e008', title: '架構圖即物流圖', chapter: 4, type: 'sqli' } },
-    title: '發現物流路線圖'
+    check: () => state.hasFlag('ch4_all_opened') || state.get('discoveredFiles')?.some(f => f.includes('drug-route')),
+    reward: { evidence: { id: 'e010', title: '毒品結構圖', chapter: 4, type: 'darknet' } },
+    title: '開啟毒品結構圖'
   },
   {
-    id: 'ch4_find_coordinates',
+    id: 'ch4_sawyer_expenses',
     chapter: 4,
-    check: () => state.get('discoveredFiles')?.includes('/customer-portal/data/ledger_export.csv') || state.hasFlag('found_coordinates'),
-    reward: { evidence: { id: 'e009', title: '交易座標與物流單號', chapter: 4, type: 'geo' } },
-    title: '發現座標'
+    check: () => state.hasFlag('ch4_all_opened') || state.get('discoveredFiles')?.some(f => f.includes('sawyer_expenses')),
+    reward: { evidence: { id: 'e011', title: 'Sawyer 個人支出', chapter: 4, type: 'darknet' } },
+    title: '發現 Sawyer 與 FredyArc 金流'
   },
-  // Chapter 5 — The Network
   {
-    id: 'ch5_find_supplier',
+    id: 'ch4_travel_records',
+    chapter: 4,
+    check: () => state.hasFlag('ch4_all_opened') || state.get('discoveredFiles')?.some(f => f.includes('travel_records')),
+    reward: { evidence: { id: 'e012', title: 'Travel 紀錄', chapter: 4, type: 'darknet' } },
+    title: '發現 Sawyer 多次前往毒品路線城市'
+  },
+  {
+    id: 'ch4_meeting_minutes',
+    chapter: 4,
+    check: () => state.hasFlag('ch4_all_opened') || state.get('discoveredFiles')?.some(f => f.includes('meeting_minutes')),
+    reward: { evidence: { id: 'e013', title: 'Sawyer × Fredy 會議紀錄', chapter: 4, type: 'darknet' } },
+    title: '發現定期會議紀錄'
+  },
+
+  // ── Chapter 5 — 抉擇 (The Choice) ──
+  {
+    id: 'ch5_choose_ending',
     chapter: 5,
-    check: () => state.hasFlag('found_supplier'),
-    reward: { evidence: { id: 'e010', title: '供應商 聯繫方式', chapter: 5, type: 'contact' } },
-    title: '找到供應商'
-  },
-  {
-    id: 'ch5_reverse_image',
-    chapter: 5,
-    check: () => state.hasFlag('reverse_image_done'),
-    reward: { evidence: { id: 'e011', title: '包裹圖片反向搜尋', chapter: 5, type: 'image' } },
-    title: '反向圖片搜尋'
-  },
-  {
-    id: 'ch5_shell_company',
-    chapter: 5,
-    check: () => state.hasFlag('found_shell_company'),
-    reward: { evidence: { id: 'e012', title: '殼公司登記', chapter: 5, type: 'company' } },
-    title: '發現殼公司'
-  },
-  {
-    id: 'ch5_ssh_trace',
-    chapter: 5,
-    check: () => state.hasFlag('found_ssh_trace'),
-    reward: { evidence: { id: 'e013', title: '海外伺服器 ssh 紀錄', chapter: 5, type: 'infra' } },
-    title: '追蹤海外伺服器'
-  },
-  // Chapter 6 — Confrontation
-  {
-    id: 'ch6_collect_all',
-    chapter: 6,
-    check: () => (state.get('collectedEvidence') || []).length >= 6,
-    reward: { evidence: { id: 'e014', title: '完整證據鏈', chapter: 6, type: 'chain' } },
-    title: '蒐集完整證據'
-  },
-  {
-    id: 'ch6_choose_ending',
-    chapter: 6,
     check: () => (state.get('endings') || []).length > 0,
     reward: {},
     title: '選擇結局'
@@ -156,26 +133,21 @@ function evaluatePuzzles() {
       events.emit('puzzle:solved', p);
     }
   }
-  // chapter progression heuristic
-  const chapterFlags = [
-    'onboarding_done',
-    'ch0_vip_fixed',
-    'hidden_portal_accessed',
-    'portal_auth_bypassed',
-    'found_crypto_mixer',
-    'found_fee_mapping',
-    'ledger_exported',
-    'found_supplier',
-    'found_coordinates',
-  ];
-  let idx = 0;
-  for (const f of chapterFlags) {
-    if (state.hasFlag(f)) idx++;
-    else break;
-  }
-  // map: 0->0, 1->0 (onboarding but not yet vip), 2->1, 3->2, etc.
-  const chapterMap = [0,0,1,2,2,3,3,4,5];
-  const ch = chapterMap[idx] ?? idx;
+
+  // ── Chapter progression (REVAMP_PLAN §4) ──
+  // Ch0: onboarding_done (INV-2024-0042 fix)
+  // Ch1: ch1_system_down (INV-2024-0043 alert) + ch1_revert_done
+  // Ch2: free exploration (after ch1 revert)
+  // Ch3: dark_entered / hidden_portal_accessed (entered darknet)
+  // Ch4: ch4_all_opened (opened all darknet files)
+  // Ch5: endings chosen
+  let ch = 0;
+  if (state.hasFlag('ch0_vip_fixed')) ch = 1;
+  if (state.hasFlag('ch1_revert_done')) ch = 2;
+  if (state.hasFlag('dark_entered') || state.hasFlag('hidden_portal_accessed')) ch = 3;
+  if (state.hasFlag('ch4_all_opened')) ch = 4;
+  if ((state.get('endings') || []).length > 0) ch = 5;
+
   if (ch !== state.get('currentChapter')) {
     state.set('currentChapter', ch);
     events.emit('chapter:changed', ch);
