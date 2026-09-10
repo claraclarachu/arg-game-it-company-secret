@@ -864,7 +864,7 @@ function handleCommit() {
       if (body) {
         const snippetA = `const legacyRoutes = {\n    archive: "/internal/portal",\n    documents: "/documents"\n};\nfunction resolveLegacyPath(path) {\n    return legacyRoutes[path] || path;\n}`;
         const snippetB = `// Legacy filesystem compatibility\n// TODO: remove after migration\n// Filesystem v2 migration completed, no longer used\n` + snippetA;
-        body.textContent = `SonarQube 掃描失敗 — 未移除已棄用的 legacy 入口\n\n檔案: ${searchBarPath}\n錯誤: 偵測到未移除的 legacyRoutes / resolveLegacyPath 區塊\n\n此為已關閉的入口，必須移除以下其中一段程式碼：\n\n— 選項 A (精簡版):\n${snippetA}\n\n— 選項 B (含註解版):\n${snippetB}\n\n請刪除其中一段後重新 Commit，INV-2024-0043 才會移至 Done。`;
+        body.textContent = `SonarQube 掃描失敗 — 未移除已棄用的 legacy 入口\n\n檔案: ${searchBarPath}\n錯誤: 偵測到未移除的 legacyRoutes / resolveLegacyPath 區塊`;
       }
       if (modal) modal.style.display = 'flex';
       if (statusEl) statusEl.innerHTML = `<span style="color:var(--error)">✕ SonarQube: 尚未移除 legacyRoutes 區塊 (SearchBar.jsx)</span>`;
