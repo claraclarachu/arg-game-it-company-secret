@@ -143,39 +143,70 @@ export function mountJira() {
   if (!root) return;
   root.innerHTML = `
     <div class="jira">
-      <div class="jira__topbar">
-        <div class="jira__title">
-          <h2 style="margin:0">Jiua · Nori Board</h2>
-          <span class="badge">Sprint 24</span>
-          <span class="badge badge--count">5 tickets</span>
-        </div>
-        <div class="jira__filters">
-          <input id="jiraSearch" class="input" placeholder="搜尋 / JQL: status = &quot;To Do&quot; AND text ~ &quot;420&quot;  |  assignee = 你" style="min-width:280px" />
-          <select id="jiraAssignee" class="select" style="width:140px">
-            <option value="">全部經辦人</option>
-            <option value="你">你</option>
-            <option value="finance-bot">finance-bot</option>
-            <option value="ops">ops</option>
-          </select>
-          <select id="jiraSwimlane" class="select" style="width:140px">
-            <option value="all">Group：無</option>
-            <option value="assignee">Group：經辦人</option>
-            <option value="epic">Group：Epic</option>
-          </select>
+      <div class="jira__app">
+        <nav class="jira__sidebar" aria-label="Jiua project navigation">
+          <div class="jira__sidebar-logo" title="Jiua">JU</div>
+          <div class="jira__sidebar-nav">
+            <div class="jira__sidebar-item active" title="看板 Board"><i class="fa-solid fa-table-columns"></i><span>看板</span></div>
+            <div class="jira__sidebar-item" title="待辦清單"><i class="fa-solid fa-list-check"></i><span>清單</span></div>
+            <div class="jira__sidebar-item" title="時程表"><i class="fa-solid fa-chart-gantt"></i><span>時程</span></div>
+            <div class="jira__sidebar-item" title="程式碼"><i class="fa-solid fa-code"></i><span>程式碼</span></div>
+          </div>
+          <div class="jira__sidebar-bottom">
+            <div class="jira__sidebar-item" title="設定"><i class="fa-solid fa-gear"></i></div>
+            <div class="jira__sidebar-item" title="說明"><i class="fa-solid fa-circle-question"></i></div>
+          </div>
+        </nav>
+        <div class="jira__main">
+          <header class="jira__header">
+            <div class="jira__breadcrumbs">
+              <a>專案</a><span class="sep">/</span><a>Nori Drinks Supply</a><span class="sep">/</span><a>NOR</a><span class="sep">/</span><b style="color:#1291ff">Nori Board</b>
+            </div>
+            <div class="jira__header-row">
+              <div class="jira__board-title"><i class="fa-solid fa-table-columns"></i> Nori Board <span class="badge">Sprint 24</span><span class="badge badge--count">5 tickets</span></div>
+              <div class="jira__header-actions">
+                <button class="jira__header-btn"><i class="fa-solid fa-share-nodes"></i> 分享</button>
+                <button class="jira__header-btn primary"><i class="fa-solid fa-plus"></i> 建立</button>
+              </div>
+            </div>
+            <div class="jira__board-nav">
+              <a class="active">看板</a><a>清單</a><a>日曆</a><a>時間軸</a><a>摘要</a>
+            </div>
+          </header>
+          <div class="jira__toolbar">
+            <input id="jiraSearch" class="input" placeholder="搜尋 / JQL: status = &quot;To Do&quot; AND text ~ &quot;420&quot;  |  assignee = 你" style="min-width:280px;flex:1;max-width:420px" />
+            <select id="jiraAssignee" class="select" style="width:140px">
+              <option value="">全部經辦人</option>
+              <option value="你">你</option>
+              <option value="Casey">Casey</option>
+              <option value="finance-bot">finance-bot</option>
+              <option value="ops">ops</option>
+            </select>
+            <select id="jiraSwimlane" class="select" style="width:140px">
+              <option value="all">群組：無</option>
+              <option value="assignee">群組：經辦人</option>
+              <option value="epic">群組：Epic</option>
+            </select>
+            <span class="small muted" style="margin-left:auto;display:flex;align-items:center;gap:6px"><i class="fa-solid fa-circle-info"></i> JQL: <code>key = INV-2024-0042</code></span>
+          </div>
+          <div class="jira__meta">
+            <span>拖拉卡片可在 To Do ↔ In Progress ↔ Done 間移動（模擬真實看板）· 點擊卡片看詳情</span>
+            <span>範例：<code>status = "Done"</code> · <code>assignee = 你 AND text ~ "drink"</code></span>
+          </div>
+          <div id="jiraBoard" class="jira__board"></div>
         </div>
       </div>
-
-      <div class="jira__meta">
-        <span class="small muted">拖拉卡片可在 To Do ↔ In Progress ↔ Done 間移動（模擬真實看板）· 點擊卡片看詳情/附件/歷史</span>
-        <span class="small muted">JQL 範例: <code>status = "Done"</code> · <code>assignee = 你 AND text ~ "drink"</code> · <code>key = INV-2024-0042</code></span>
-      </div>
-
-      <div id="jiraBoard" class="jira__board"></div>
-      <div id="jiraDetail" class="card" style="display:none"></div>
+      <div id="jiraDetailBackdrop" class="jira__backdrop" style="display:none"></div>
+      <div id="jiraDetail" class="jira__detail" style="display:none"></div>
     </div>
   `;
   bindJira();
   renderBoard();
+  // backdrop close
+  document.getElementById('jiraDetailBackdrop')?.addEventListener('click', () => {
+    document.getElementById('jiraDetail').style.display='none';
+    document.getElementById('jiraDetailBackdrop').style.display='none';
+  });
 }
 
 function bindJira() {
@@ -253,24 +284,47 @@ function renderBoard() {
 }
 
 function colHtml(col, list) {
+  const colIcon = col === 'To Do' ? 'fa-solid fa-circle' : col === 'In Progress' ? 'fa-solid fa-spinner' : 'fa-solid fa-circle-check';
+  const colColor = col === 'To Do' ? '#0052cc' : col === 'In Progress' ? '#ff991f' : '#00875a';
   return `
     <div class="jira__col" data-col="${col}">
-      <h3>${col} <span class="badge" style="margin-left:6px">${list.length}</span></h3>
+      <div class="jira__col-header"><i class="${colIcon}" style="color:${colColor};font-size:10px"></i> ${col} <span class="count">${list.length}</span></div>
+      <div class="jira__col-line"></div>
       <div class="jira__dropzone" data-col="${col}">
-        ${list.map(t => ticketHtml(t)).join('') || '<div class="muted small" style="padding:6px;border:1px dashed var(--border);border-radius:6px;text-align:center">拖曳至此</div>'}
+        ${list.map(t => ticketHtml(t)).join('') || '<div class="jira__empty">拖曳至此</div>'}
       </div>
     </div>
   `;
 }
 
+function getTicketType(t){
+  if (t.key.includes('0042') || t.epic === 'Billing') return { cls:'story', icon:'fa-solid fa-bookmark', label:'Story' };
+  if (t.epic === 'HR' || t.key.includes('0003')) return { cls:'task', icon:'fa-solid fa-square-check', label:'Task' };
+  if (t.epic === 'Frontend') return { cls:'task', icon:'fa-solid fa-square-check', label:'Task' };
+  if (t.priority === 'High' && t.status !== 'Done') return { cls:'bug', icon:'fa-solid fa-bug', label:'Bug' };
+  return { cls:'story', icon:'fa-solid fa-bookmark', label:'Story' };
+}
 function ticketHtml(t) {
-  const priColor = t.priority === 'High' ? 'var(--error)' : t.priority === 'Medium' ? 'var(--warning)' : 'var(--success)';
+  const type = getTicketType(t);
+  const priCls = t.priority === 'High' ? 'High' : t.priority === 'Medium' ? 'Medium' : 'Low';
+  const priIcon = t.priority === 'High' ? 'fa-solid fa-angle-up' : t.priority === 'Medium' ? 'fa-solid fa-equals' : 'fa-solid fa-angle-down';
+  const assigneeInitial = t.assignee ? t.assignee.charAt(0).toUpperCase() : '?';
+  const assigneeColor = t.assignee === 'Casey' ? '#0052cc' : t.assignee === 'Parker' ? '#0065ff' : t.assignee === 'Jessie' ? '#6554c0' : '#6b778c';
   return `
-    <div class="ticket" draggable="true" data-key="${t.key}" style="border-left:3px solid ${priColor}">
-      <div class="ticket__key">${t.key} · ${t.priority}</div>
+    <div class="ticket" draggable="true" data-key="${t.key}">
+      <div class="ticket__top">
+        <span class="ticket__type ${type.cls}" title="${type.label}"><i class="${type.icon}"></i></span>
+        <span class="ticket__key">${t.key}</span>
+        <span style="margin-left:auto;font-size:10px;color:#6b778c">${t.epic}</span>
+      </div>
       <div class="ticket__title">${t.title}</div>
-      <div class="ticket__meta">${t.assignee} · ${t.epic} · ${t.points}pts</div>
-      ${t.attachments.length ? `<div class="small muted" style="margin-top:4px">📎 ${t.attachments.length} 附件</div>` : ''}
+      ${t.epic ? `<span class="ticket__epic">${t.epic}</span>` : ''}
+      <div class="ticket__meta">
+        <span class="pri pri--${priCls}" title="${t.priority}"><i class="${priIcon}"></i></span>
+        <span class="ticket__points">${t.points}</span>
+        ${t.attachments.length ? `<span class="ticket__attach"><i class="fa-solid fa-paperclip"></i> ${t.attachments.length}</span>` : ''}
+        <span class="ticket__assignee" style="background:${assigneeColor}">${assigneeInitial}</span>
+      </div>
     </div>
   `;
 }
@@ -279,17 +333,17 @@ function bindBoardDnD() {
   document.querySelectorAll('.ticket').forEach(el => {
     el.addEventListener('dragstart', e => {
       dragKey = el.dataset.key;
-      el.style.opacity = '0.5';
+      el.classList.add('dragging');
       e.dataTransfer.effectAllowed = 'move';
     });
-    el.addEventListener('dragend', e => { el.style.opacity = '1'; dragKey = null; });
+    el.addEventListener('dragend', e => { el.classList.remove('dragging'); dragKey = null; });
     el.addEventListener('click', () => openTicket(el.dataset.key));
   });
   document.querySelectorAll('.jira__dropzone').forEach(zone => {
-    zone.addEventListener('dragover', e => { e.preventDefault(); zone.style.background = 'var(--bg-tertiary)'; });
-    zone.addEventListener('dragleave', () => { zone.style.background = ''; });
+    zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag-over'); });
+    zone.addEventListener('dragleave', () => { zone.classList.remove('drag-over'); });
     zone.addEventListener('drop', e => {
-      e.preventDefault(); zone.style.background = '';
+      e.preventDefault(); zone.classList.remove('drag-over');
       const col = zone.dataset.col;
       if (!dragKey) return;
       const t = tickets.find(x => x.key === dragKey);
@@ -307,6 +361,7 @@ function bindBoardDnD() {
 function openTicket(key) {
   const t = tickets.find(x => x.key === key);
   const d = document.getElementById('jiraDetail');
+  const bd = document.getElementById('jiraDetailBackdrop');
   if (!t || !d) return;
   state.set('jiraTickets.' + key, true);
 
@@ -315,50 +370,74 @@ function openTicket(key) {
     trackOnboarding('jiua_viewed');
   }
 
-  d.style.display = 'block';
+  if (bd) bd.style.display = 'block';
+  d.style.display = 'flex';
+  const type = getTicketType(t);
+  const statusCls = t.status==='Done'?'badge--done':t.status==='In Progress'?'badge--inprogress':'badge--todo';
   d.innerHTML = `
-    <div style="display:flex;justify-content:space-between;align-items:start;gap:12px">
-      <h3 style="margin:0">${t.key} · ${t.title}</h3>
-      <span class="badge ${t.status==='Done'?'badge--done':t.status==='In Progress'?'badge--inprogress':'badge--todo'}">${t.status}</span>
+    <div class="jira__detail-head">
+      <div style="flex:1;min-width:0">
+        <div class="jira__detail-key"><span class="ticket__type ${type.cls}" style="width:18px;height:18px;font-size:10px"><i class="${type.icon}"></i></span> ${t.key} · ${t.epic}</div>
+        <div class="jira__detail-title">${t.title}</div>
+      </div>
+      <span class="badge ${statusCls}">${t.status}</span>
+      <button class="jira__detail-close" id="jiraDetailClose" aria-label="關閉"><i class="fa-solid fa-xmark"></i></button>
     </div>
-    <div class="small muted" style="margin:6px 0">經辦人: ${t.assignee} · Epic: ${t.epic} · 優先度: ${t.priority} · 點數: ${t.points}</div>
-    <pre class="mono" style="white-space:pre-wrap;background:var(--bg-primary);padding:10px;border-radius:6px;border:1px solid var(--border)">${t.desc}</pre>
-
-    <div style="margin-top:12px">
-      <b class="small">附件 (${t.attachments.length})</b>
-      <div style="margin-top:6px;display:grid;gap:6px">
-        ${t.attachments.length ? t.attachments.map(a => `
-          <div class="card" style="padding:8px;display:flex;justify-content:space-between;align-items:center">
-            <div><div style="font-weight:600;font-size:13px">📎 ${a.name}</div><div class="small muted">${a.type} · ${a.snippet.slice(0,60)}</div></div>
-            <button class="btn" style="padding:4px 8px" data-attach="${a.name}">檢視</button>
+    <div class="jira__detail-body">
+      <div class="jira__detail-main">
+        <div>
+          <div class="jira__detail-label">描述</div>
+          <pre class="jira__detail-desc">${t.desc}</pre>
+        </div>
+        <div>
+          <div class="jira__detail-label">附件 — ${t.attachments.length}</div>
+          <div style="display:grid;gap:8px">
+            ${t.attachments.length ? t.attachments.map(a => `
+              <div class="jira__detail-card" style="display:flex;justify-content:space-between;align-items:center;gap:12px">
+                <div style="min-width:0"><div style="font-weight:600;font-size:13px;display:flex;align-items:center;gap:6px"><i class="fa-solid fa-paperclip" style="color:#6b778c"></i> ${a.name}</div><div class="small" style="color:#6b778c;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${a.type} · ${a.snippet.slice(0,80)}</div></div>
+                <button class="jira__header-btn" style="padding:4px 10px;flex-shrink:0" data-attach="${a.name}">檢視</button>
+              </div>
+            `).join('') : '<div class="small" style="color:#6b778c">無附件</div>'}
           </div>
-        `).join('') : '<div class="small muted">無附件</div>'}
+        </div>
+        <div>
+          <div class="jira__detail-label">活動 — 評論 ${t.comments.length}</div>
+          <div style="display:grid;gap:8px">
+            ${t.comments.map(c => `<div class="jira__detail-card" style="padding:10px;font-size:13px;line-height:1.5">💬 ${c}</div>`).join('')}
+            ${!t.comments.length ? '<div class="small" style="color:#6b778c">尚無評論 — 成為第一個留言的人</div>' : ''}
+          </div>
+          <div style="display:flex;gap:8px;margin-top:10px">
+            <div style="width:28px;height:28px;border-radius:50%;background:#0052cc;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;flex-shrink:0">你</div>
+            <input id="jiraCommentInput" class="input" placeholder="新增評論..." style="flex:1" />
+            <button class="jira__header-btn primary" id="jiraAddComment">留言</button>
+          </div>
+        </div>
       </div>
-    </div>
-
-    <div style="margin-top:12px">
-      <b class="small">歷史 / 工作流</b>
-      <div style="margin-top:6px;border-left:2px solid var(--border);padding-left:8px;display:grid;gap:4px">
-        ${t.history.length ? t.history.map(h => `<div class="small"><span class="badge">${h.from} → ${h.to}</span> by ${h.by} @ ${h.at}</div>`).join('') : '<div class="small muted">無歷史</div>'}
+      <div class="jira__detail-side">
+        <div>
+          <div class="jira__detail-label">詳細資訊</div>
+          <div class="jira__detail-card">
+            <div class="jira__detail-row"><b>狀態</b><span class="badge ${statusCls}" style="font-size:11px">${t.status}</span></div>
+            <div class="jira__detail-row"><b>經辦人</b><span>${t.assignee}</span></div>
+            <div class="jira__detail-row"><b>Epic</b><span>${t.epic}</span></div>
+            <div class="jira__detail-row"><b>優先度</b><span>${t.priority}</span></div>
+            <div class="jira__detail-row"><b>Story points</b><span>${t.points}</span></div>
+            <div class="jira__detail-row"><b>類型</b><span>${type.label}</span></div>
+          </div>
+        </div>
+        <div>
+          <div class="jira__detail-label">工作流</div>
+          <div style="display:grid;gap:6px">
+            ${t.history.length ? t.history.map(h => `<div class="small" style="display:flex;align-items:center;gap:6px"><span class="badge" style="font-size:11px">${h.from} → ${h.to}</span><span style="font-size:11px;color:#6b778c">by ${h.by} @ ${h.at}</span></div>`).join('') : '<div class="small" style="color:#6b778c">無歷史</div>'}
+          </div>
+          <div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap">
+            ${['To Do','In Progress','Done'].filter(s=>s!==t.status).map(s=>`<button class="jira__header-btn" data-move="${s}">移至 ${s}</button>`).join('')}
+          </div>
+        </div>
+        <div style="margin-top:auto;padding-top:12px;border-top:1px solid #dfe1e6;display:flex;gap:8px">
+          <button class="jira__header-btn" style="flex:1" id="jiraDetailClose2">關閉</button>
+        </div>
       </div>
-      <div style="margin-top:8px;display:flex;gap:6px">
-        ${['To Do','In Progress','Done'].filter(s=>s!==t.status).map(s=>`<button class="btn" data-move="${s}">移至 ${s}</button>`).join('')}
-      </div>
-    </div>
-
-    <div style="margin-top:12px">
-      <b class="small">評論 (${t.comments.length})</b>
-      <div style="margin-top:6px;display:grid;gap:6px">
-        ${t.comments.map(c => `<div class="small card" style="padding:8px;background:var(--bg-primary)">💬 ${c}</div>`).join('')}
-      </div>
-      <div style="display:flex;gap:6px;margin-top:8px">
-        <input id="jiraCommentInput" class="input" placeholder="新增評論..." style="flex:1" />
-        <button class="btn primary" id="jiraAddComment">留言</button>
-      </div>
-    </div>
-
-    <div style="margin-top:12px;text-align:right">
-      <button class="btn" onclick="document.getElementById('jiraDetail').style.display='none'">關閉</button>
     </div>
   `;
   d.querySelectorAll('[data-attach]').forEach(b => {
@@ -389,6 +468,13 @@ function openTicket(key) {
     openTicket(key);
     renderBoard();
   });
+  function closeDetail(){ d.style.display='none'; const b=document.getElementById('jiraDetailBackdrop'); if(b) b.style.display='none'; }
+  document.getElementById('jiraDetailClose')?.addEventListener('click', closeDetail);
+  document.getElementById('jiraDetailClose2')?.addEventListener('click', closeDetail);
+  document.getElementById('jiraCommentInput')?.addEventListener('keydown', e => { if(e.key==='Enter'){ e.preventDefault(); document.getElementById('jiraAddComment')?.click(); } });
+  // esc to close
+  const escHandler = (e)=>{ if(e.key==='Escape'){ closeDetail(); document.removeEventListener('keydown', escHandler); } };
+  document.addEventListener('keydown', escHandler);
 }
 
 export function markTicketDone(key) {
