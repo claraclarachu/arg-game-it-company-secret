@@ -82,17 +82,17 @@ const chats = [
       { id: 'm1', from: 'Maggie', text: 'Hi Casey, 歡迎來到Nori, 我是你的直屬主管, 接下來會由我來指派工作給你。但首先我知道這是你的第一份工作，我會先跟你講解一下我們的工作流程，還有常用工具。', time: '2024-07-15', read: 'read', type: 'text' },
       { id: 'm2', from: 'Maggie', text: '當有新的工作時，我會在Dev Team通知你，然後會附上工單資訊', time: '2024-07-15', read: 'read', type: 'text' },
       { id: 'm3', from: 'Maggie', text: '然後請根據工單號，到Jiua系統查看詳細資訊', time: '2024-07-15', read: 'read', type: 'text' },
-      { id: 'm4', from: 'Maggie', text: '', media: '/assets/data/files/jiuaPage.png', time: '2024-07-15', read: 'read', type: 'image' },
+      { id: 'm4', from: 'Maggie', text: '', media: '/assets/data/files/wts/jiuaPage.png', time: '2024-07-15', read: 'read', type: 'image' },
       { id: 'm5', from: 'Maggie', text: '通常Jiua都會詳細的告訴你要處理的事情是什麼', time: '2024-07-15', read: 'read', type: 'text' },
       { id: 'm6', from: 'Maggie', text: '然後到Vizual Studio Code找到有問題的檔案', time: '2024-07-15', read: 'read', type: 'text' },
-      { id: 'm7', from: 'Maggie', text: '', media: '/assets/data/files/explorerPage.png', time: '2024-07-15', read: 'read', type: 'image' },
+      { id: 'm7', from: 'Maggie', text: '', media: '/assets/data/files/wts/explorerPage.png', time: '2024-07-15', read: 'read', type: 'image' },
       { id: 'm8', from: 'Maggie', text: '你可以在SEARCH功能中搜索關鍵詞，找到相關的檔案', time: '2024-07-15', read: 'read', type: 'text' },
-      { id: 'm9', from: 'Maggie', text: '', media: '/assets/data/files/searchFunctionPage.png', time: '2024-07-15', read: 'read', type: 'image' },
+      { id: 'm9', from: 'Maggie', text: '', media: '/assets/data/files/wts/searchFunctionPage.png', time: '2024-07-15', read: 'read', type: 'image' },
       { id: 'm10', from: 'Maggie', text: '如果有不懂的，也可以到瀏覽器搜索相關資料和功能的寫法', time: '2024-07-15', read: 'read', type: 'text' },
-      { id: 'm11', from: 'Maggie', text: '', media: '/assets/data/files/searchEnginePage.png', time: '2024-07-15', read: 'read', type: 'image' },
+      { id: 'm11', from: 'Maggie', text: '', media: '/assets/data/files/wts/searchEnginePage.png', time: '2024-07-15', read: 'read', type: 'image' },
       { id: 'm12', from: 'Maggie', text: '修改完成之後，就可以到SOURCE CONTROL提交變更。\nGit是一個可以儲存code, 變更記錄, 控制版本的工具，常用功能有：\ncommit => 提交變更\nrevert => 撤銷變更\n查看Git Graph => 列表形式展示所有變更記錄', time: '2024-07-15', read: 'read', type: 'text' },
-      { id: 'm13', from: 'Maggie', text: '', media: '/assets/data/files/sourceControlPage.png', time: '2024-07-15', read: 'read', type: 'image' },
-      { id: 'm14', from: 'Maggie', text: '', media: '/assets/data/files/sourceControlPage-revert.png', time: '2024-07-15', read: 'read', type: 'image' },
+      { id: 'm13', from: 'Maggie', text: '', media: '/assets/data/files/wts/sourceControlPage.png', time: '2024-07-15', read: 'read', type: 'image' },
+      { id: 'm14', from: 'Maggie', text: '', media: '/assets/data/files/wts/sourceControlPage-revert.png', time: '2024-07-15', read: 'read', type: 'image' },
       { id: 'm15', from: 'Maggie', text: '如果修改有誤的話，提交時SonarQube會經過檢查，然後報錯，這時候就要重新修改', time: '2024-07-15', read: 'read', type: 'text' },
     ]
   },
@@ -465,8 +465,9 @@ function renderChat(id) {
     });
   });
   document.querySelectorAll('[data-img]').forEach(img => {
-    img.addEventListener('click', () => { window.open(img.src, '_blank'); });
+    img.addEventListener('click', () => openWaLightbox(img.src));
   });
+  ensureWaLightbox();
 }
 
 function getInitial(name) {
@@ -771,6 +772,124 @@ export function startSawyerRevertSeq() {
   try { state.setFlag('sawyer_seq_started', true); } catch {}
 }
 export function getSawyerSeq() { return sawyerSeq; }
+
+// ── WhatsApp image lightbox with zoom in/out ──
+let waZoomScale = 1;
+let waZoomX = 0;
+let waZoomY = 0;
+let waIsDragging = false;
+let waDragStartX = 0;
+let waDragStartY = 0;
+let waDragOrigX = 0;
+let waDragOrigY = 0;
+
+function ensureWaLightbox() {
+  if (document.getElementById('waLightbox')) return;
+  const lb = document.createElement('div');
+  lb.id = 'waLightbox';
+  lb.className = 'wa-lightbox';
+  lb.setAttribute('aria-hidden', 'true');
+  lb.innerHTML = `
+    <div class="wa-lightbox__backdrop" data-wa-close></div>
+    <div class="wa-lightbox__card" role="dialog" aria-label="圖片預覽">
+      <div class="wa-lightbox__head">
+        <span><i class="fa-solid fa-image"></i> 圖片預覽 · 滾輪縮放 · 拖拽平移</span>
+        <div class="wa-lightbox__controls">
+          <button class="wa-lightbox__btn" data-wa-zoom="out" title="縮小"><i class="fa-solid fa-magnifying-glass-minus"></i></button>
+          <span class="wa-lightbox__scale" id="waLightboxScale">100%</span>
+          <button class="wa-lightbox__btn" data-wa-zoom="in" title="放大"><i class="fa-solid fa-magnifying-glass-plus"></i></button>
+          <button class="wa-lightbox__btn" data-wa-zoom="reset" title="重置"><i class="fa-solid fa-expand"></i></button>
+        </div>
+        <button class="wa-lightbox__close" id="waLightboxClose" aria-label="關閉"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="wa-lightbox__body" id="waLightboxBody">
+        <img id="waLightboxImg" src="" alt="preview" draggable="false" />
+      </div>
+      <div class="wa-lightbox__foot small muted">點擊背景或按 ESC 關閉 · 滾輪縮放 · 拖拽可平移</div>
+    </div>
+  `;
+  document.body.appendChild(lb);
+  const img = lb.querySelector('#waLightboxImg');
+  const body = lb.querySelector('#waLightboxBody');
+  const scaleEl = lb.querySelector('#waLightboxScale');
+  function updateTransform() {
+    if (!img) return;
+    img.style.transform = `translate(${waZoomX}px, ${waZoomY}px) scale(${waZoomScale})`;
+    if (scaleEl) scaleEl.textContent = Math.round(waZoomScale * 100) + '%';
+    body.style.cursor = waZoomScale > 1 ? (waIsDragging ? 'grabbing' : 'grab') : 'zoom-in';
+  }
+  function setScale(next, cx, cy) {
+    const clamped = Math.max(0.5, Math.min(4, next));
+    waZoomScale = clamped;
+    // keep translation within bounds when zoom out to 1
+    if (waZoomScale === 1) { waZoomX = 0; waZoomY = 0; }
+    updateTransform();
+  }
+  lb.querySelector('[data-wa-zoom="in"]')?.addEventListener('click', () => setScale(waZoomScale + 0.25));
+  lb.querySelector('[data-wa-zoom="out"]')?.addEventListener('click', () => setScale(waZoomScale - 0.25));
+  lb.querySelector('[data-wa-zoom="reset"]')?.addEventListener('click', () => { waZoomScale = 1; waZoomX = 0; waZoomY = 0; updateTransform(); });
+  lb.querySelector('#waLightboxClose')?.addEventListener('click', () => closeWaLightbox());
+  lb.querySelector('[data-wa-close]')?.addEventListener('click', () => closeWaLightbox());
+  // wheel zoom
+  body?.addEventListener('wheel', (e) => {
+    e.preventDefault();
+    const delta = e.deltaY > 0 ? -0.1 : 0.1;
+    setScale(waZoomScale + delta);
+  }, { passive: false });
+  // drag pan
+  function onPointerDown(e) {
+    if (waZoomScale <= 1) return;
+    waIsDragging = true;
+    img.classList.add('dragging');
+    waDragStartX = e.clientX;
+    waDragStartY = e.clientY;
+    waDragOrigX = waZoomX;
+    waDragOrigY = waZoomY;
+    body.setPointerCapture?.(e.pointerId);
+  }
+  function onPointerMove(e) {
+    if (!waIsDragging) return;
+    waZoomX = waDragOrigX + (e.clientX - waDragStartX);
+    waZoomY = waDragOrigY + (e.clientY - waDragStartY);
+    updateTransform();
+  }
+  function onPointerUp(e) {
+    waIsDragging = false;
+    img.classList.remove('dragging');
+    try { body.releasePointerCapture?.(e.pointerId); } catch {}
+  }
+  body?.addEventListener('pointerdown', onPointerDown);
+  body?.addEventListener('pointermove', onPointerMove);
+  body?.addEventListener('pointerup', onPointerUp);
+  body?.addEventListener('pointercancel', onPointerUp);
+  // click on body to close if not dragging and scale==1? keep backdrop only for close to avoid conflict
+  // esc
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && lb.classList.contains('open')) closeWaLightbox();
+  });
+  // expose updater
+  lb._updateTransform = updateTransform;
+  lb._setScale = setScale;
+}
+
+export function openWaLightbox(src) {
+  ensureWaLightbox();
+  const lb = document.getElementById('waLightbox');
+  const img = document.getElementById('waLightboxImg');
+  if (!lb || !img) return;
+  img.src = src;
+  waZoomScale = 1; waZoomX = 0; waZoomY = 0;
+  lb._updateTransform?.();
+  lb.classList.add('open');
+  lb.setAttribute('aria-hidden', 'false');
+}
+
+export function closeWaLightbox() {
+  const lb = document.getElementById('waLightbox');
+  if (!lb) return;
+  lb.classList.remove('open');
+  lb.setAttribute('aria-hidden', 'true');
+}
 
 // Central listener: when any module pushes a message and dispatches whatsapp:newMessage, re-render list/chat
 if (typeof window !== 'undefined' && !window.__waListenerBound) {
