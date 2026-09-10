@@ -54,7 +54,7 @@ function showMaggieNotification() {
   container.setAttribute('aria-live', 'polite');
   container.innerHTML = `
     <div class="win-notif__app">
-      <img src="/icon/whatsup.svg" alt="WhatUp" width="20" height="20" style="width:20px;height:20px;object-fit:contain" />
+      <img src="${import.meta.env.BASE_URL}icon/whatsup.svg" alt="WhatUp" width="20" height="20" style="width:20px;height:20px;object-fit:contain" />
       <span class="win-notif__app-name">WhatUp</span>
       <span class="win-notif__app-sub">Dev Team</span>
       <button class="win-notif__close" aria-label="關閉">✕</button>

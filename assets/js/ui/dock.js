@@ -15,15 +15,15 @@ export function renderDock({ onSwitch, onOpenSettings, onOpenNotebook, t }) {
   const activeView = localStorage.getItem('cc_active_view') || 'vscode';
 
   const ICONS = {
-    vscode: '/icon/vizual-studio-code.svg',
-    intranet: '/icon/file-system.svg',
-    jira: '/icon/jiua.svg',
-    whatsapp: '/icon/whatsup.svg',
-    search: '/icon/browser.svg',
-    email: '/icon/mail.svg',
+    vscode: `${import.meta.env.BASE_URL}icon/vizual-studio-code.svg`,
+    intranet: `${import.meta.env.BASE_URL}icon/file-system.svg`,
+    jira: `${import.meta.env.BASE_URL}icon/jiua.svg`,
+    whatsapp: `${import.meta.env.BASE_URL}icon/whatsup.svg`,
+    search: `${import.meta.env.BASE_URL}icon/browser.svg`,
+    email: `${import.meta.env.BASE_URL}icon/mail.svg`,
   };
   const ACTION_ICONS = {
-    notebook: '/icon/notepad.png',
+    notebook: `${import.meta.env.BASE_URL}icon/notepad.png`,
   };
 
   function appBtn(id, icon, label) {

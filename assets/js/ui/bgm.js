@@ -2,13 +2,13 @@ import { state } from '../core/state.js';
 
 // BGM 路徑對照
 const BGM_PATHS = {
-  default: '/assets/data/music/Teacup Corridor (warmer).mp3',
-  darknet: '/assets/data/music/Teacup Corridor.mp3',
-  cooperate: '/assets/data/music/bgm_cowork.mp3',
-  flee: '/assets/data/music/bgm_flee.mp3',
-  fried: '/assets/data/music/bgm_fried.mp3',
-  report: '/assets/data/music/bgm_report.mp3',
-  resign: '/assets/data/music/bgm_resign.mp3'
+  default: `${import.meta.env.BASE_URL}assets/data/music/Teacup Corridor (warmer).mp3`,
+  darknet: `${import.meta.env.BASE_URL}assets/data/music/Teacup Corridor.mp3`,
+  cooperate: `${import.meta.env.BASE_URL}assets/data/music/bgm_cowork.mp3`,
+  flee: `${import.meta.env.BASE_URL}assets/data/music/bgm_flee.mp3`,
+  fried: `${import.meta.env.BASE_URL}assets/data/music/bgm_fried.mp3`,
+  report: `${import.meta.env.BASE_URL}assets/data/music/bgm_report.mp3`,
+  resign: `${import.meta.env.BASE_URL}assets/data/music/bgm_resign.mp3`
 };
 
 // 預設音量 (0-1)

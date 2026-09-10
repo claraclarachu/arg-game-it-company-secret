@@ -1,5 +1,4 @@
 import { state } from '../core/state.js';
-import { bgm } from './bgm.js';
 
 // REVAMP_PLAN §4: 5 chapters + onboarding
 const chapterNames = ['教學', '異常發現', '自由探索', '暗網入口', '秘密曝光', '抉擇'];
@@ -100,18 +99,6 @@ function renderNotebook() {
     </div>
 
     <div class="card" style="margin-top:12px">
-      <h3 style="margin:0 0 8px">背景音樂</h3>
-      <div style="display:flex;align-items:center;gap:12px">
-        <button class="btn" id="bgmMuteBtn" style="min-width:48px">${bgm.isMutedState() ? '🔇' : '🔊'}</button>
-        <div style="flex:1;display:flex;flex-direction:column;gap:2px">
-          <input type="range" id="bgmVolumeSlider" min="0" max="100" value="${Math.round(bgm.getVolume()*100)}" style="width:100%;accent-color:var(--accent)" />
-          <div class="small muted" style="text-align:center">${Math.round(bgm.getVolume()*100)}%</div>
-        </div>
-      </div>
-      <div class="small muted" style="margin-top:6px">正在播放：${bgm.getCurrentBgm() || '無'}</div>
-    </div>
-
-    <div class="card" style="margin-top:12px">
       <h3 style="margin:0 0 8px">章節</h3>
       <div style="display:grid;gap:4px">
         ${chapterNames.map((n,i)=>`<div style="display:flex;justify-content:space-between;padding:6px 8px;border-radius:6px;background:${i<=ch?'var(--bg-tertiary)':'var(--bg-primary)'};border:1px solid var(--border)"><span>Ch${i} ${n}</span><span class="small ${i<ch?'':i===ch?'badge':''}" style="${i===ch?'background:var(--accent);color:#fff':''}">${i<ch?'完成':i===ch?'進行中':'未開始'}</span></div>`).join('')}
@@ -154,29 +141,5 @@ function renderNotebook() {
         window.location.reload(true);
       }, 150);
     });
-
-    // BGM controls
-    const muteBtn = document.getElementById('bgmMuteBtn');
-    const slider = document.getElementById('bgmVolumeSlider');
-    if (muteBtn && !muteBtn._bound) {
-      muteBtn._bound = true;
-      muteBtn.addEventListener('click', () => {
-        const muted = bgm.toggleMute();
-        muteBtn.textContent = muted ? '🔇' : '🔊';
-        const pctEl = muteBtn.parentElement?.querySelector('.small');
-        if (pctEl) pctEl.textContent = muted ? '靜音' : Math.round(bgm.getVolume() * 100) + '%';
-      });
-    }
-    if (slider && !slider._bound) {
-      slider._bound = true;
-      slider.addEventListener('input', (e) => {
-        const v = parseInt(e.target.value) / 100;
-        bgm.setVolume(v);
-        bgm.setMuted(false);
-        if (muteBtn) muteBtn.textContent = '🔊';
-        const pctEl = slider.parentElement?.querySelector('.small');
-        if (pctEl) pctEl.textContent = Math.round(v * 100) + '%';
-      });
-    }
   }, 0);
 }

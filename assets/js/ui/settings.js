@@ -2,6 +2,7 @@ import { state } from '../core/state.js';
 import { t } from '../core/i18n.js';
 import { downloadText, readFileAsText } from '../utils/storage.js';
 import { toast } from './notifications.js';
+import { bgm } from './bgm.js';
 
 export function openSettings() {
   const dlg = document.getElementById('settingsDialog');
@@ -24,6 +25,28 @@ export function bindSettings() {
     document.documentElement.setAttribute('data-theme', v);
     toast(t('toast.saved'));
   });
+  // BGM controls
+  const muteBtn = document.getElementById('bgmMuteBtn');
+  const slider = document.getElementById('bgmVolumeSlider');
+  const pctEl = document.getElementById('bgmVolumePct');
+  if (muteBtn && !muteBtn._bound) {
+    muteBtn._bound = true;
+    muteBtn.addEventListener('click', () => {
+      const muted = bgm.toggleMute();
+      muteBtn.textContent = muted ? '🔇' : '🔊';
+      if (pctEl) pctEl.textContent = muted ? '靜音' : Math.round(bgm.getVolume() * 100) + '%';
+    });
+  }
+  if (slider && !slider._bound) {
+    slider._bound = true;
+    slider.addEventListener('input', (e) => {
+      const v = parseInt(e.target.value) / 100;
+      bgm.setVolume(v);
+      bgm.setMuted(false);
+      if (muteBtn) muteBtn.textContent = '🔊';
+      if (pctEl) pctEl.textContent = Math.round(v * 100) + '%';
+    });
+  }
   document.getElementById('btnExport')?.addEventListener('click', () => {
     downloadText('code-conspiracy-save.json', state.exportSave());
   });
