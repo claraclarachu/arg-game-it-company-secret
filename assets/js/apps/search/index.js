@@ -19,9 +19,18 @@ const webIndex = [
   { title: 'Sawyer Choi — 2010-06-06', url: 'https://sawyer-blog.example/2010-06-06', snippet: '2010-06-06\n\n今天媽媽又買了一箱檸檬茶回來。\n\n看到它的時候，我突然想起以前很喜歡喝檸檬茶。\n\n小時候總覺得它很好喝，甜甜的，喝完心情也會很好。\n\n不知道為什麼，現在再看到它，突然有一種很奇怪的感覺。\n\n可能有些東西就是這樣吧。\n\n以前很喜歡的東西，長大以後不一定還會喜歡。 — Sawyer Choi / Choi Tsz Yeung 蔡梓掦', type: 'web', image: null },
   { title: 'Sawyer Choi — 2012-07-07', url: 'https://sawyer-blog.example/2012-07-07', snippet: '2012-07-07\n\n今天媽媽帶我去一間很大的辦公室，叫我簽一些文件。\n\n原來，她是在幫我辦保險。\n\n一開始我沒有想太多，只覺得大人辦事情真的很麻煩。直到後來看到保單上的資料，我才發現一件事情。\n\n我的保險受益人，是爸爸媽媽。\n\n而爸爸媽媽的保險受益人，也是我。\n\n那一刻突然有點說不出話。\n\n以前總覺得保險就是大人要處理的事情，跟自己沒有什麼關係。\n\n可是看到名字寫在一起，我才第一次很清楚地感覺到，原來我們都在替彼此想著以後。 — Sawyer Choi / Choi Tsz Yeung 蔡梓掦', type: 'web', image: null },
   { title: 'Sawyer Choi — 2013-01-01', url: 'https://sawyer-blog.example/2013-01-01', snippet: '2013-01-01\n\n美麗的天空 — Sawyer Choi / Choi Tsz Yeung 蔡梓掦', type: 'web', image: '/assets/data/files/sawyer_blog_pic.HEIC' },
+  { title: 'Sawyer Choi — 2023-04-25', url: 'https://sawyer-blog.example/2023-04-25', snippet: '2023-04-25\n\n有些決定，做了一輩子都不會後悔。 — Sawyer Choi / Choi Tsz Yeung 蔡梓掦', type: 'web', image: null },
+  { title: 'Sawyer Choi — 2023-05-01', url: 'https://sawyer-blog.example/2023-05-01', snippet: '2023-05-01\n\n爸媽，我會繼續努力的。你們放心。 — Sawyer Choi / Choi Tsz Yeung 蔡梓掦', type: 'web', image: null },
+  { title: 'Sawyer Choi — 2023-05-10', url: 'https://sawyer-blog.example/2023-05-10', snippet: '2023-05-10\n\n今天是媽媽的生日。如果她還在，應該會很高興看到公司的成長吧。我買了她最喜歡的檸檬茶，放在辦公桌上。 — Sawyer Choi / Choi Tsz Yeung 蔡梓掦', type: 'web', image: null },
   { title: 'Sawyer Choi — 2023-12-20', url: 'https://sawyer-blog.example/2023-12-20', snippet: '2023-12-20\n\nI will do what you want me to do — Sawyer Choi / Choi Tsz Yeung 蔡梓掦', type: 'web', image: null },
+  { title: 'Sawyer Choi — 2024-01-15', url: 'https://sawyer-blog.example/2024-01-15', snippet: '2024-01-15\n\n壓力越來越大，但我不能停下來。太多人依賴我了。如果他們知道真相... — Sawyer Choi / Choi Tsz Yeung 蔡梓掦', type: 'web', image: null },
+  { title: 'Sawyer Choi — 2024-03-20', url: 'https://sawyer-blog.example/2024-03-20', snippet: '2024-03-20\n\n今天又失眠了。夢見爸媽在看我，他們的眼神...我不知道該怎麼面對。 — Sawyer Choi / Choi Tsz Yeung 蔡梓掦', type: 'web', image: null },
   { title: '廣志中學作文比賽', url: 'https://school.example/guangzhi-essay-sawyer', snippet: '廣志中學聖誕假期作文比賽二等獎穫奬學生 中五甲班 蔡梓掦', type: 'web', image: '/assets/data/files/sawyer_writing_1.png', images: ['/assets/data/files/sawyer_writing_1.png', '/assets/data/files/sawyer_writing_2.png'] },
   { title: '新聞：夫婦平和道遇車禍雙亡　29歲兒子獲大額保險賠償', url: 'https://news.example/car-accident-2023', snippet: '【本報訊】\n\n2023年，一對夫婦在平和道發生嚴重交通事故，兩人最終不幸離世。意外發生後，29歲兒子成為相關保險賠償的主要受益人，據悉獲得一筆大額賠償。\n事故發生於2023年某日，涉事夫婦當時途經平和道，期間與另一輛車輛發生碰撞。救援人員接報後迅速趕抵現場，惟兩人傷勢嚴重，經搶救後仍證實不治。\n夫婦突然離世，令家人深受打擊。其29歲兒子在處理父母身後事及相關法律程序期間，亦需要面對保險索償及遺產安排等一系列問題。\n據了解，涉事夫婦生前曾購買多份保險，當中包括人壽及意外保障。由於兩人同時因意外身故，符合相關保單的賠償條件，兒子最終獲得一筆金額可觀的保險賠償。\n值得一提的是，意外發生地點附近一幢大樓由某集團旗下公司持有。集團創辦人 Fredy 得悉事件後表示深感惋惜，並對夫婦突然離世表示哀痛。Fredy其後決定向其遺屬提供一筆私人捐贈，希望在其面對家庭變故及生活壓力之際，提供一些實際援助。\nFredy表示，意外雖然令人惋惜，但更重要的是希望社會能夠在有需要時互相扶持，因此決定以個人名義向死者家屬伸出援手。至於捐贈的具體金額，則未有對外公布。\n有保險業人士指出，保險賠償金額取決於保單種類、投保額、受益人安排及事故是否符合保障條款等因素，不能單純以事故造成的死亡推算實際賠償金額。\n這宗意外亦再次引起社會對道路安全及家庭保障的關注。對不少家庭而言，突如其來的交通事故不僅帶來無法彌補的傷痛，亦可能造成長期的經濟影響。社會人士呼籲駕駛者時刻保持警覺，同時及早做好家庭保障及財務規劃。\n', type: 'news', image: null },
+  { title: '新聞：平和道致命車禍調查 — 煞車油管疑遭人為破壞', url: 'https://news.example/car-accident-investigation-2023', snippet: '【本報訊】\n\n2023年平和道致命車禍案，調查報告近日流出。報告指出，涉事車輛的煞車油管有異常切割痕跡，初步鑑定疑為人為破壞，但因證據不足，警方最終未有立案調查。\n報告透露，事故車輛為一輛 2018 年款房車，事發前一週剛完成保養。負責鑑證的技術人員指出，油管切口整齊，與自然老化或意外損壞的特徵不符。\n然而，由於事發路段的監視器恰巧在事故前一週故障，未能拍到任何可疑人士，加上缺乏直接證據，案件最終以「意外」結案。\n附近商戶接受本報查詢時表示，事發前一週曾見一名年約 30 歲的男子在路段附近徘徊，但因天色昏暗，未能看清面貌。\n有法律界人士指出，若日後發現新證據，案件仍有重新調查的可能。\n', type: 'news', image: null },
+  { title: '新聞：事發前一週曾見可疑男子在平和道一帶徘徊', url: 'https://news.example/ping-wo-suspicious-man-2023', snippet: '【本報訊】\n\n本報接獲讀者報料，指 2023 年平和道致命車禍發生前一週，曾有一名年約 30 歲的男子在事故路段附近多次現身。\n該名讀者為附近便利店職員，表示：「那幾天我當夜班，總看到同一個男人在對面馬路站著，像是在等什麼人。他穿著深色外套，戴著帽子，看起來不太像本地人。」\n另一名附近停車場管理員亦表示，事發前數日曾見該男子在停車場出入口徘徊，「他好像在觀察什麼車輛，但我不確定」。\n由於該路段事發前一週監視器故障，警方未能取得任何影像證據。警方回應稱，已知悉相關線索，惟現階段暫無足夠證據顯示案件涉及刑事成分。\n有犯罪學專家指出，若有人預謀破壞車輛煞車系統，通常會在事發前多次踩點，觀察目標車輛的停放位置與行車路線。\n', type: 'news', image: null },
+  { title: '新聞：警方澄清平和道車禍純屬意外　煞車油管損壞為自然老化', url: 'https://news.example/police-clarification-2023', snippet: '【本報訊】\n\n針對近日網上流傳有關 2023 年平和道致命車禍的調查報告，警方今日（2024 年 3 月 15 日）發聲明澄清，指該宗車禍經詳細調查後，已確認純屬意外。\n警方表示：「經法證科學鑑證，涉事車輛的煞車油管損壞屬自然老化所致，並無證據顯示涉及人為破壞。」\n聲明又指出，現場監視器故障為獨立事件，與車禍無關。警方呼籲市民切勿妄加揣測，以免對家屬造成二次傷害。\n死者家屬對此回應：「父母的離去是我人生最大的損失。我會帶著他們的期望繼續努力，不會被這些不實傳言影響。」\n', type: 'news', image: null },
+  { title: 'Sawyer Choi：父母的離去是我人生最大的損失', url: 'https://news.example/sawyer-statement-2023', snippet: '【本報訪問】\n\n2023 年平和道車禍死者的兒子 Sawyer Choi（蔡梓掦）近日首度接受本報訪問，談及父母離世後的心路歷程。\n「父母的離去是我人生最大的損失。我會帶著他們的期望繼續努力。」Sawyer 語帶哽咽地說。\n他表示，事發後一直專注於處理後事及公司事務，未有時間回應外界種種揣測。「我知道有人在說一些奇怪的話，但那些都不是真的。我只是想好好地紀念他們。」\nSawyer 創辦的 Nori 飲品供應，在車禍後一年內業績大幅增長。對此他解釋：「這是父母留給我的力量。我想讓他們知道，他們的兒子不會讓他們失望。」\n他亦澄清了外界對其突然變富的質疑：「公司的发展得益于一筆意外的投資，以及團隊的努力。我希望外界不要再做無謂的揣測。」\n', type: 'news', image: null },
   { title: '那些藏在程式碼裡的小彩蛋：我在小團隊看到的開發者塗鴉 — Peter Lin', url: 'https://peter-blog.example/code-easter-eggs', snippet: '待過幾間中小企業後發現，只要沒有嚴格的 code quality 流程，程式碼裡總會冒出一些跟公司或產品完全無關的東西——註解裡的粗口、對工作的抱怨、整段國歌歌詞，甚至藏得很深的小遊戲。我對這些小彩蛋的看法是：只要不影響功能與效能，算是工作中找到的小樂趣。 — Peter Lin', type: 'web', image: 'https://picsum.photos/seed/codeeggs/600/400' },
 ];
 
@@ -47,6 +56,11 @@ const blogArticles = [
   { url:'https://sawyer-blog.example/2012-07-07', title:'Sawyer Choi — 2012-07-07', excerpt:'媽媽帶我去辦保險，才發現彼此的受益人都是對方。那一刻才感覺到，原來我們都在替彼此想著以後。', content:'2012-07-07\n\n今天媽媽帶我去一間很大的辦公室，叫我簽一些文件。\n\n原來，她是在幫我辦保險。\n\n一開始我沒有想太多，只覺得大人辦事情真的很麻煩。直到後來看到保單上的資料，我才發現一件事情。\n\n我的保險受益人，是爸爸媽媽。\n\n而爸爸媽媽的保險受益人，也是我。\n\n那一刻突然有點說不出話。\n\n以前總覺得保險就是大人要處理的事情，跟自己沒有什麼關係。\n\n可是看到名字寫在一起，我才第一次很清楚地感覺到，原來我們都在替彼此想著以後。', authorId:'sawyer', date:'2012-07-07', views:12300, likes:567, topic:'家庭', tags:['保險','家庭','成長'], cover:null },
   { url:'https://sawyer-blog.example/2013-01-01', title:'Sawyer Choi — 2013-01-01', excerpt:'美麗的天空', content:'2013-01-01\n\n美麗的天空', authorId:'sawyer', date:'2013-01-01', views:7600, likes:310, topic:'攝影', tags:['天空','攝影','日常'], cover:'/assets/data/files/sawyer_blog_pic.HEIC' },
   { url:'https://sawyer-blog.example/2023-12-20', title:'Sawyer Choi — 2023-12-20', excerpt:'我只好做你想我做的事了', content:'2023-12-20\n\nI will do what you want me to do', authorId:'sawyer', date:'2023-12-20', views:99, likes:1, topic:'心情', tags:[], cover:null },
+  { url:'https://sawyer-blog.example/2023-04-25', title:'Sawyer Choi — 2023-04-25', excerpt:'有些決定，做了一輩子都不會後悔。', content:'2023-04-25\n\n有些決定，做了一輩子都不會後悔。', authorId:'sawyer', date:'2023-04-25', views:2100, likes:87, topic:'心情', tags:['決定','人生'], cover:null },
+  { url:'https://sawyer-blog.example/2023-05-01', title:'Sawyer Choi — 2023-05-01', excerpt:'爸媽，我會繼續努力的。你們放心。', content:'2023-05-01\n\n爸媽，我會繼續努力的。你們放心。', authorId:'sawyer', date:'2023-05-01', views:4300, likes:198, topic:'家庭', tags:['父母','紀念'], cover:null },
+  { url:'https://sawyer-blog.example/2023-05-10', title:'Sawyer Choi — 2023-05-10', excerpt:'今天是媽媽的生日。如果她還在，應該會很高興看到公司的成長吧。', content:'2023-05-10\n\n今天是媽媽的生日。\n\n如果她還在，應該會很高興看到公司的成長吧。\n\n我買了她最喜歡的檸檬茶，放在辦公桌上。雖然她喝不到了，但我想讓她知道，我一直都記得。', authorId:'sawyer', date:'2023-05-10', views:3800, likes:167, topic:'家庭', tags:['檸檬茶','生日','紀念'], cover:'/lemon_tea.jpg' },
+  { url:'https://sawyer-blog.example/2024-01-15', title:'Sawyer Choi — 2024-01-15', excerpt:'壓力越來越大，但我不能停下來。太多人依賴我了。如果他們知道真相...', content:'2024-01-15\n\n壓力越來越大，但我不能停下來。\n\n太多人依賴我了。如果他們知道真相...\n\n算了，不想了。繼續工作。', authorId:'sawyer', date:'2024-01-15', views:156, likes:3, topic:'心情', tags:['壓力','秘密'], cover:null },
+  { url:'https://sawyer-blog.example/2024-03-20', title:'Sawyer Choi — 2024-03-20', excerpt:'今天又失眠了。夢見爸媽在看我，他們的眼神...我不知道該怎麼面對。', content:'2024-03-20\n\n今天又失眠了。\n\n夢見爸媽在看我，他們的眼神...\n\n我不知道該怎麼面對。\n\n也許，有些事情永遠都不會有答案。', authorId:'sawyer', date:'2024-03-20', views:203, likes:5, topic:'心情', tags:['失眠','父母','夢'], cover:null },
   // Mary
   { url:'https://mary-blog.example/kyoto-sakura-2024', title:'京都賞櫻七日散策 — 從哲學之道到嵐山小火車', excerpt:'沿著哲學之道慢慢走，櫻花像雪一樣落在肩頭。嵐山小火車穿過山谷那一刻，我明白了什麼叫「一期一會」。', content:'三月底的京都，櫻花比預報早開了兩天。\n\n第一天我從哲學之道開始，整條小徑兩側都是染井吉野櫻，風一吹，花瓣像細雪一樣落下。有位老婆婆坐在長椅上摺紙鶴，她說每年都會來這裡看一次櫻花，已經三十年了。\n\n第二天搭嵐山小火車，車廂是開放式的，山谷的風直接吹在臉上。保津川的水很清，偶爾能看到一兩隻鷺鷥站在石頭上。\n\n最喜歡的是傍晚在鴨川邊發呆，看著情侶、學生、上班族各自走過，像是一部沒有劇本的電影。\n\n旅行教我的事：不用趕行程，慢慢走反而能看見更多。', authorId:'mary', date:'2024-04-02', views:8900, likes:523, topic:'旅遊', tags:['京都','櫻花','旅行'], cover:'https://picsum.photos/seed/kyoto/600/400' },
   { url:'https://mary-blog.example/one-person-kitchen', title:'一人廚房：三道十分鐘上菜的下班療癒料理', excerpt:'下班後不想叫外送？這三道菜只要十分鐘，連洗碗都很快。給獨居的你，也給想好好吃飯的自己。', content:'獨居第三年，我終於學會不把「煮飯」當成壓力。\n\n第一道：蒜香櫛瓜炒蝦仁。櫛瓜切薄片，大火快炒，加一點檸檬汁就很清爽。\n\n第二道：番茄豆腐味噌湯。把所有材料丟進鍋子，五分鐘就能喝到熱湯，配白飯就很滿足。\n\n第三道：半熟蛋拌菠菜。菠菜燙一下、擠乾水份，和半熟蛋、醬油、芝麻油拌在一起，超下飯。\n\n一個人吃飯，也可以很隆重。點一盞燈，擺好碗筷，為自己好好煮一頓飯，就是對今天最溫柔的收尾。', authorId:'mary', date:'2024-03-15', views:12400, likes:812, topic:'美食', tags:['料理','一人食','療癒'], cover:'https://picsum.photos/seed/cooking/600/400' },
@@ -99,7 +113,17 @@ const blogComments = {
     { user:'Emma Wu', avatar:'https://i.pravatar.cc/150?u=emma', time:'2014-03-23 07:12', text:'Beautiful sky~', likes:6 },
     { user:'攝影同好', avatar:'', time:'2015-01-05 22:10', text:'這張天空的顏色好美，和我用底片拍的黃昏好像。', likes:2 },
   ],
+  'https://sawyer-blog.example/2023-04-25': [
+  ],
+  'https://sawyer-blog.example/2023-05-01': [
+  ],
+  'https://sawyer-blog.example/2023-05-10': [
+  ],
   'https://sawyer-blog.example/2023-12-20': [
+  ],
+  'https://sawyer-blog.example/2024-01-15': [
+  ],
+  'https://sawyer-blog.example/2024-03-20': [
   ],
   'https://mary-blog.example/kyoto-sakura-2024': [
     { user:'櫻花控', avatar:'', time:'2024-04-03 08:12', text:'哲學之道真的必去！我去年也走過，感動到哭。', likes:14 },

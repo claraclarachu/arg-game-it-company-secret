@@ -587,6 +587,46 @@ IT 團隊：維運官網與內部管理系統
     content: `飲品,產地,賞味期限,基礎價格,說明,適合對象\n招牌冰釀茶酒,高山茶＋葡萄,180 天,32,HKD 最暢銷,企業宴會\n葡萄釀造酒,實驗室自釀,365 天,85,果香飽滿,禮盒\n季節水果茶,當季水果,90 天,28,清爽季節限定,日常飲用\n`,
     meta: { lang: 'csv' }
   });
+  registerFile('/intranet/business_plans/2023_Q1_財務報告.md', {
+    content: `# Nori 2023 年第一季財務報告
+
+> 2023-01 至 2023-03 營運概況
+
+## 營收概況
+
+| 月份 | 營收 (HKD) | 支出 (HKD) | 淨利 (HKD) |
+|------|-----------|-----------|-----------|
+| 2023-01 | 125,000 | 180,000 | -55,000 |
+| 2023-02 | 98,000 | 165,000 | -67,000 |
+| 2023-03 | 110,000 | 172,000 | -62,000 |
+
+## 現金流狀況
+
+- 期初現金：HKD 450,000
+- 期末現金：HKD 266,000
+- **每月平均虧損：HKD 61,333**
+- **現金流僅剩約 4 個月**
+
+## 債務
+
+- 銀行貸款：HKD 800,000（2024-06 到期）
+- 應付帳款：HKD 120,000
+
+## 備註
+
+本季持續虧損，主要原因為：
+1. 原物料成本上升（葡萄、茶葉供應不穩）
+2. 市場競爭激烈，定價壓力大
+3. 團隊擴張導致人力成本增加
+
+**建議：若持續虧損，需在 2023 年 Q3 前尋求外部資金注入，否則將面臨現金流斷裂風險。**
+
+> 本報告僅供內部參考，請勿外傳。
+> 製表人：Taylor（行政及人力資源主管）
+> 審核人：Sawyer（創辦人／執行長）
+`,
+    meta: { lang: 'markdown' }
+  });
 
   // ── 員工名錄 50 人（001 Sawyer … 048 Casey） ──
   registerFile('/intranet/staff/員工名錄.csv', {
@@ -717,6 +757,61 @@ IT 團隊：維運官網與內部管理系統
     hidden: false,
     content: `SQLite export endpoint - 需要 portalAuth 通過 (Nori 訂單匯出)`,
     meta: { portal: true }
+  });
+  registerFile('/internal/portal/sawyer_expenses.csv', {
+    hidden: false,
+    content: `日期,項目,金額(HKD),備註\n2023-07-15,Consulting fee to FredyArc,50000,月度顧問費\n2023-08-15,Consulting fee to FredyArc,50000,月度顧問費\n2023-09-15,Consulting fee to FredyArc,50000,月度顧問費\n2023-10-15,Consulting fee to FredyArc,50000,月度顧問費\n2023-11-15,Consulting fee to FredyArc,50000,月度顧問費\n2023-12-15,Consulting fee to FredyArc,50000,月度顧問費\n2024-01-15,Consulting fee to FredyArc,50000,月度顧問費\n2024-02-15,Consulting fee to FredyArc,50000,月度顧問費\n2024-03-15,Consulting fee to FredyArc,50000,月度顧問費\n2024-04-15,Consulting fee to FredyArc,50000,月度顧問費\n2024-05-15,Consulting fee to FredyArc,50000,月度顧問費\n2024-06-15,Consulting fee to FredyArc,50000,月度顧問費\n`,
+    meta: { portal: true, lang: 'csv' }
+  });
+  registerFile('/internal/portal/travel_records.csv', {
+    hidden: false,
+    content: `日期,目的地,行程目的,天數,同行人員\n2023-07-20,新加坡,業務會議,3,Fredy\n2023-08-10,東京,供應商考察,4,\n2023-09-05,曼谷,業務拓展,3,Fredy\n2023-10-12,新加坡,客戶會議,2,\n2023-11-18,東京,年度總結,3,Fredy\n2023-12-22,曼谷,節日拜訪,2,\n2024-01-15,新加坡,季度會議,3,Fredy\n2024-02-20,東京,新品發表,4,\n2024-03-10,曼谷,業務會議,3,Fredy\n2024-04-05,新加坡,客戶維護,2,\n`,
+    meta: { portal: true, lang: 'csv' }
+  });
+  registerFile('/internal/portal/meeting_minutes.md', {
+    hidden: false,
+    content: `# Nori × FredyArc 定期會議紀錄
+
+> 請勿外傳 — 僅限內部查閱
+
+## 2023-07-15 會議
+
+- **出席**：Sawyer, Fredy
+- **議題**：合作架構確認
+- **決議**：FredyArc 每月支付顧問費 HKD 50,000，Nori 提供物流配送支援
+- **備註**：Fredy 強調「合作方式要低調，不要引起外界注意」
+
+## 2023-09-05 會議
+
+- **出席**：Sawyer, Fredy
+- **議題**：配送路線優化
+- **決議**：新增新加坡、東京、曼谷站點，由 Nori 團隊負責本地配送
+- **備註**：Fredy 表示「這些站點的貨物要與一般飲品分開處理」
+
+## 2023-11-18 會議
+
+- **出席**：Sawyer, Fredy
+- **議題**：年度總結與展望
+- **決議**：2024 年擴大合作規模，預計營收增長 200%
+- **備註**：Fredy 表示「明年會有更多資源投入，但要確保所有流程都符合規範」
+
+## 2024-01-15 會議
+
+- **出席**：Sawyer, Fredy
+- **議題**：季度檢討
+- **決議**：調整配送頻率，增加深夜時段運輸
+- **備註**：Sawyer 表示「深夜配送會增加成本，但 Fredy 說這是必要的」
+
+## 2024-03-10 會議
+
+- **出席**：Sawyer, Fredy
+- **議題**：風險管理
+- **決議**：建立「備用方案」，若發生異常情況立即暫停合作
+- **備註**：Fredy 表示「安全第一，不能讓任何人發現我們的合作模式」
+
+> 下次会议：2024-05-15（待確認）
+`,
+    meta: { portal: true, lang: 'markdown' }
   });
 }
 
