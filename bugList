@@ -1,3 +1,14 @@
 - should save player progress
 - if player F5, the music will gone,  the progress is saved but the ui show from the begining
 - notebook should show the ending that player have played. e.g. 一個五格嘅版, 未解開的就顯示?????, 解開了的話顯示該結局彈黑dialog時的標題, 需要記到local cache, 然後重置notebook時不會清此cache
+- disable wts searching bar
+- wts with sawyer icon will change
+- remove sonarqube from jiua
+- searching engine suggest tab, add md5
+- searching engine cannot show 作文比賽
+- 0043 attached files out of the border
+- remove branding from company list, and some name from staff list
+- add the mute function
+- timer should be 2024
+- remove gateway.js internal/portal
+- remove the revert button from git graph for the history commit
