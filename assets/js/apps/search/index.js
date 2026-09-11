@@ -1041,6 +1041,7 @@ function openBlogArticle(url){
     }
   }
   if (!article) return;
+  try { state.markArticleRead(article.url); } catch {}
   const author = getBlogAuthor(article.authorId);
   const detail = document.getElementById('searchDetail');
   const layout = document.getElementById('searchLayout');
@@ -1213,6 +1214,7 @@ function bindSchoolHeader(root){
 function openSchoolPortfolio(targetItem){
   const item = targetItem || webIndex.find(r=> r.url==='https://school.example/guangzhi-essay-sawyer') || lastResults.find(r=> isSchoolEssay(r.url));
   if (!item) return;
+  try { state.markArticleRead(item.url); } catch {}
   const detail = document.getElementById('searchDetail');
   const layout = document.getElementById('searchLayout');
   if (!detail || !layout) return;
@@ -1609,6 +1611,8 @@ function openDetail(idx) {
   const layout = document.getElementById('searchLayout');
   const detail = document.getElementById('searchDetail');
   if (!layout || !detail) return;
+  // Track news / car accident reading for achievements
+  try { if (item.url && (item.type === 'news' || item.url.includes('news.example'))) state.markArticleRead(item.url); } catch {}
   layout.style.display = 'none';
   detail.style.display = 'block';
   detail.classList.add('open');

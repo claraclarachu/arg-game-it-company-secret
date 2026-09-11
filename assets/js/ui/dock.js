@@ -164,7 +164,23 @@ function startClock() {
   clockTimer = setInterval(tick, 60000);
 }
 
+function closeAllModalsForDock(){
+  document.querySelectorAll('dialog[open]').forEach(d=>{
+    try{ d.close(); }catch{}
+    d.style.removeProperty('display');
+  });
+  const sm = document.getElementById('startMenu');
+  if(sm) sm.style.display='none';
+  const ip = document.getElementById('intraPreview');
+  if(ip) ip.style.display='none';
+  const dp = document.getElementById('darkPreview');
+  if(dp) dp.style.display='none';
+  const lb = document.getElementById('waLightbox');
+  if(lb) lb.classList.remove('open');
+}
+
 export function setActiveView(id) {
+  closeAllModalsForDock();
   localStorage.setItem('cc_active_view', id);
   document.querySelectorAll('.taskbar__app[data-view]').forEach(b => {
     b.classList.toggle('active', b.dataset.view === id);

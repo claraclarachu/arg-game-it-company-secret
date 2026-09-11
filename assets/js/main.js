@@ -20,7 +20,30 @@ function applyTheme() {
   document.documentElement.setAttribute('data-theme', theme);
 }
 
+function closeAllModals(){
+  document.querySelectorAll('dialog[open]').forEach(d=>{
+    try{ d.close(); }catch{}
+  });
+  // non-dialog overlays that also block clicks
+  const startMenu = document.getElementById('startMenu');
+  if(startMenu) startMenu.style.display='none';
+  const intraPreview = document.getElementById('intraPreview');
+  if(intraPreview) intraPreview.style.display='none';
+  const darkPreview = document.getElementById('darkPreview');
+  if(darkPreview) darkPreview.style.display='none';
+  const waLightbox = document.getElementById('waLightbox');
+  if(waLightbox) waLightbox.classList.remove('open');
+  // clean leftover inline display from legacy fallback
+  document.querySelectorAll('dialog').forEach(d=>{
+    if(!d.open){
+      d.style.removeProperty('display');
+    }
+  });
+}
+
 function switchView(id) {
+  // Close any modal first — prevents backdrop from blocking the newly activated view
+  closeAllModals();
   // All interfaces are unlocked from the start — free navigation
   setActiveView(id);
   localStorage.setItem('cc_active_view', id);
@@ -41,7 +64,14 @@ function mountAll() {
 // Windows-style WhatUp notification (bottom-right, 10s, click -> Dev Team chat) - only once per game at chp0
 let _notifTimer = null;
 function showMaggieNotification() {
-  // Only show once per game at chp0 (and again after reset to chp0)
+  // Only show once per game at chp0 (and again after reset to chp0) — persisted via localStorage
+  // Check both in-memory flags and raw storage to survive debounced-save edge cases
+  try {
+    const raw = JSON.parse(localStorage.getItem('code_conspiracy_state') || '{}');
+    if (raw.flags && raw.flags.ch0_maggie_notified) return;
+    if (raw.flags && raw.flags.ch0_vip_fixed) return;
+    if (raw.currentChapter && raw.currentChapter !== 0) return;
+  } catch {}
   if (state.hasFlag('ch0_maggie_notified')) return;
   if (state.hasFlag('ch0_vip_fixed')) return;
   if ((state.get('currentChapter') ?? 0) !== 0) return;
@@ -438,29 +468,11 @@ function init() {
   });
   document.querySelectorAll('dialog').forEach(d => {
     d.addEventListener('click', e => { if (e.target === d) d.close(); });
+    d.addEventListener('cancel', e => { e.preventDefault(); d.close(); });
     d.addEventListener('close', () => {
-      // Ensure fallback display is cleared and dialog is hidden behind page
-      d.style.display = 'none';
-      // Small delay to allow native close to remove [open], then ensure hidden
-      setTimeout(() => { if (!d.open) d.style.display = 'none'; }, 0);
+      // Native dialog hides via [open]; just clean any inline style left from legacy fallback
+      d.style.removeProperty('display');
     });
-    // Ensure showModal fallback is handled
-    const origShowModal = d.showModal;
-    if (origShowModal) {
-      d.showModal = function() {
-        this.style.display = 'block';
-        return origShowModal.call(this);
-      };
-    }
-  });
-  // Fix notebook close buttons that use inline onclick="this.closest('dialog').close()"
-  document.addEventListener('click', e => {
-    const btn = e.target.closest('button');
-    if (btn && btn.textContent.trim() === '關閉' && btn.closest('dialog')) {
-      const dlg = btn.closest('dialog');
-      // Allow native close to happen, then ensure hidden
-      setTimeout(() => { if (!dlg.open) dlg.style.display = 'none'; }, 50);
-    }
   });
 }
 

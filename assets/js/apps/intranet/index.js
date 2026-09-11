@@ -110,10 +110,12 @@ function bindIntranet() {
     }
     if (isSimple) {
       // Simple portal without hash: go to SECRET page but title has no effect
+      state.setFlag('portal_simple_entered', true);
       triggerDarknetFromIntranet({ simple: true });
       return;
     }
     if (isFull) {
+      state.setFlag('portal_hash_entered', true);
       const hashMatch = val.match(/hash=([a-f0-9]{32})/i);
       const hash = hashMatch ? hashMatch[1] : darkHash;
       if (vfs.tryAccessPortal && vfs.tryAccessPortal({ hash })) {

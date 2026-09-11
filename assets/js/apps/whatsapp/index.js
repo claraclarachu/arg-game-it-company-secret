@@ -157,16 +157,98 @@ let sidebarTab = 'chat'; // chat | account
 let sawyerSeq = 0; // 0 idle, 1 wait first send (long text), 2 typing, 3 wait second send ("但是"), 4 done unlocked
 let sawyerSeqLocked = false;
 
+// ── Persistence helpers — keep UI identical after refresh ──
+function persistWhatsApp() {
+  try {
+    const data = chats.map(c => ({
+      id: c.id,
+      name: c.name,
+      avatar: c.avatar,
+      desc: c.desc,
+      members: c.members,
+      preview: c.preview,
+      lastTime: c.lastTime,
+      unread: c.unread,
+      pinned: c.pinned,
+      muted: c.muted,
+      archived: c.archived,
+      messages: c.messages
+    }));
+    state.set('whatsappChats', data);
+    state.set('whatsappMeta', {
+      activeId,
+      ch1Event1Triggered,
+      ch1Event2Triggered,
+      sawyerSeq,
+      sawyerSeqLocked
+    });
+    state.save(true);
+  } catch {}
+}
+
+function trackWhatsappSent(chatId, text) {
+  try { state.incrementWhatsappSent(); } catch {}
+  try {
+    const t = (text || '').toLowerCase();
+    const keywords = ['rubbish', '垃圾', 'dumb', '笨', '蠢', 'stupid', '傻', '笨蛋', '白癡', 'idiot', 'fool', '傻瓜', 'die', 'dead', '死', 'shit', 'fuck', '屎'];
+    const isSawyer = chatId === 'sawyer';
+    const hasKeyword = keywords.some(k => t.includes(k.toLowerCase()));
+    if (isSawyer && hasKeyword) {
+      state.setFlag('sawyer_abuse_sent', true);
+    }
+  } catch {}
+}
+
+function restoreWhatsAppState() {
+  try {
+    const saved = state.get('whatsappChats');
+    if (Array.isArray(saved) && saved.length) {
+      for (const sc of saved) {
+        const c = chats.find(x => x.id === sc.id);
+        if (c) {
+          c.messages = Array.isArray(sc.messages) ? sc.messages : c.messages;
+          c.preview = sc.preview ?? c.preview;
+          c.lastTime = sc.lastTime ?? c.lastTime;
+          c.unread = typeof sc.unread === 'number' ? sc.unread : c.unread;
+          c.pinned = typeof sc.pinned === 'boolean' ? sc.pinned : c.pinned;
+          c.muted = typeof sc.muted === 'boolean' ? sc.muted : c.muted;
+          c.archived = typeof sc.archived === 'boolean' ? sc.archived : c.archived;
+        }
+      }
+      for (const sc of saved) {
+        if (!chats.some(x => x.id === sc.id)) chats.push(sc);
+      }
+    }
+    const meta = state.get('whatsappMeta');
+    if (meta && typeof meta === 'object') {
+      if (meta.activeId && chats.some(x=>x.id===meta.activeId)) activeId = meta.activeId;
+      if (typeof meta.ch1Event1Triggered === 'boolean') ch1Event1Triggered = meta.ch1Event1Triggered;
+      if (typeof meta.ch1Event2Triggered === 'boolean') ch1Event2Triggered = meta.ch1Event2Triggered;
+      if (typeof meta.sawyerSeq === 'number') sawyerSeq = meta.sawyerSeq;
+      if (typeof meta.sawyerSeqLocked === 'boolean') sawyerSeqLocked = meta.sawyerSeqLocked;
+    }
+    if (state.hasFlag('ch1_event1_triggered')) ch1Event1Triggered = true;
+    const nori = chats.find(x=>x.id==='nori-all');
+    if (nori && nori.messages.some(m=> m.text && m.text.includes('發財樹'))) {
+      ch1Event1Triggered = true;
+      if (!state.hasFlag('ch1_event1_triggered')) state.setFlag('ch1_event1_triggered', true);
+    }
+    const dev = chats.find(x=>x.id==='dev-team');
+    if (dev && dev.messages.some(m=> m.text && m.text.includes('INV-2024-0043'))) {
+      ch1Event2Triggered = true;
+    }
+  } catch {}
+  if (ch1Event1Triggered && !state.hasFlag('ch1_event1_triggered')) state.setFlag('ch1_event1_triggered', true);
+}
+
 export function openChat(id) {
   const exists = chats.some(c => c.id === id);
   if (!exists) return;
   activeId = id;
   const c = chats.find(x => x.id === id);
   if (c) c.unread = 0;
-  if (id === 'nori-all') {
-    // If this is the first time reading the tree message after Event1, trigger Event2
-    setTimeout(() => markNoriAllRead(), 100);
-  }
+  // persist unread reset + activeId
+  persistWhatsApp();
   if (id === 'nori-all') {
     // If this is the first time reading the tree message after Event1, trigger Event2
     setTimeout(() => markNoriAllRead(), 100);
@@ -183,6 +265,7 @@ export function openChat(id) {
 }
 
 export function mountWhatsApp() {
+  restoreWhatsAppState();
   const root = document.getElementById('view-whatsapp');
   if (!root) return;
   root.innerHTML = `<div class="wa">
@@ -319,6 +402,7 @@ function renderList() {
     activeId = n.dataset.id;
     const c = chats.find(x=>x.id===activeId);
     if (c) c.unread = 0;
+    persistWhatsApp();
     if (n.dataset.id === 'nori-all') {
       setTimeout(() => markNoriAllRead(), 100);
     }
@@ -333,6 +417,7 @@ function renderList() {
       if (!c || !isUnlocked(c.id)) return;
       // toggle pinned
       c.pinned = !c.pinned;
+      persistWhatsApp();
       renderList();
     });
   });
@@ -446,9 +531,9 @@ function renderChat(id) {
   document.getElementById('waChatHeader')?.addEventListener('click', () => { infoOpen = !infoOpen; document.getElementById('waInfoPanel')?.classList.toggle('open', infoOpen); });
   document.getElementById('waInfoBtn')?.addEventListener('click', e => { e.stopPropagation(); infoOpen = !infoOpen; document.getElementById('waInfoPanel')?.classList.toggle('open', infoOpen); });
   document.getElementById('waInfoClose')?.addEventListener('click', () => { infoOpen = false; document.getElementById('waInfoPanel')?.classList.remove('open'); });
-  document.getElementById('waToggleMute')?.addEventListener('click', () => { c.muted = !c.muted; renderList(); renderChat(id); });
-  document.getElementById('waTogglePin')?.addEventListener('click', () => { c.pinned = !c.pinned; renderList(); renderChat(id); });
-  document.getElementById('waToggleArchive')?.addEventListener('click', () => { c.archived = !c.archived; renderList(); renderChat(id); });
+  document.getElementById('waToggleMute')?.addEventListener('click', () => { c.muted = !c.muted; persistWhatsApp(); renderList(); renderChat(id); });
+  document.getElementById('waTogglePin')?.addEventListener('click', () => { c.pinned = !c.pinned; persistWhatsApp(); renderList(); renderChat(id); });
+  document.getElementById('waToggleArchive')?.addEventListener('click', () => { c.archived = !c.archived; persistWhatsApp(); renderList(); renderChat(id); });
   document.getElementById('waMsgSearchBtn')?.addEventListener('click', () => { msgSearch = ''; document.getElementById('waMsgSearchBar').style.display='flex'; document.getElementById('waMsgSearchInput')?.focus(); });
   document.getElementById('waMsgSearchInput')?.addEventListener('input', e => { msgSearch = e.target.value; renderChat(id); });
   document.getElementById('waMsgSearchClear')?.addEventListener('click', () => { msgSearch=''; renderChat(id); });
@@ -518,6 +603,8 @@ function sendMessage(chat) {
     chat.lastTime = '剛剛';
     chat.unread = 0;
     sawyerSeq = 2;
+    trackWhatsappSent(chat.id, lockedText);
+    persistWhatsApp();
     renderChat(chat.id);
     renderList();
     // show typing for 3 sec
@@ -527,6 +614,7 @@ function sendMessage(chat) {
       chat.messages.push({ id: 'sawyer-reply2-'+Date.now(), from: 'Sawyer', text: '先別管，肯定是這段的影響，已經在影響我工作了', time: '剛剛', read: 'delivered', type: 'text' });
       chat.preview = 'Sawyer: 先別管，肯定是這段的影響...';
       chat.unread = (chat.unread||0)+1;
+      persistWhatsApp();
       window.dispatchEvent(new CustomEvent('whatsapp:newMessage', {detail:{chatId:'sawyer'}}));
       renderChat(chat.id);
       renderList();
@@ -554,6 +642,8 @@ function sendMessage(chat) {
     chat.preview = lockedText;
     chat.lastTime = '剛剛';
     chat.unread = 0;
+    trackWhatsappSent(chat.id, lockedText);
+    persistWhatsApp();
     renderChat(chat.id);
     renderList();
     // Sawyer immediately sends 趕快revert！
@@ -561,9 +651,10 @@ function sendMessage(chat) {
       chat.messages.push({ id: 'sawyer-reply3-'+Date.now(), from: 'Sawyer', text: '趕快revert！', time: '剛剛', read: 'delivered', type: 'text' });
       chat.preview = 'Sawyer: 趕快revert！';
       chat.unread = (chat.unread||0)+1;
-      window.dispatchEvent(new CustomEvent('whatsapp:newMessage', {detail:{chatId:'sawyer'}}));
       sawyerSeq = 4;
       sawyerSeqLocked = false;
+      persistWhatsApp();
+      window.dispatchEvent(new CustomEvent('whatsapp:newMessage', {detail:{chatId:'sawyer'}}));
       renderChat(chat.id);
       renderList();
       const container = document.createElement('div');
@@ -590,6 +681,8 @@ function sendMessage(chat) {
   chat.lastTime = '剛剛';
   chat.unread = 0;
   inp.value = '';
+  trackWhatsappSent(chat.id, val);
+  persistWhatsApp();
   renderChat(chat.id);
   renderList();
   // fake reply after 1s for supplier - disabled for sawyer after seq 4
@@ -597,6 +690,7 @@ function sendMessage(chat) {
   if (chat.id !== 'qa-lee' && Math.random() > 0.5) {
     setTimeout(()=>{
       chat.messages.push({ id: 'r'+Date.now(), from: chat.id === 'backend-team'?'ops':'supplier', text: '收到，後續私聊', time: '剛剛', read: 'delivered', type: 'text' });
+      persistWhatsApp();
       renderChat(chat.id); renderList();
     }, 1200);
   }
@@ -611,6 +705,8 @@ let ch1Event2Timer = null;
 export function triggerCh1Event1() {
   if (ch1Event1Triggered) return;
   ch1Event1Triggered = true;
+  persistWhatsApp();
+  state.setFlag('ch1_event1_triggered', true);
   const c = chats.find(x => x.id === 'nori-all');
   if (!c) return;
   // Add tree message from Sawyer after 10 sec
@@ -619,6 +715,7 @@ export function triggerCh1Event1() {
     c.preview = 'Sawyer: 聽從風水師建議，已在 Lobby 擺放';
     c.lastTime = '剛剛';
     c.unread = (c.unread || 0) + 1;
+    persistWhatsApp();
     window.dispatchEvent(new CustomEvent('whatsapp:newMessage', { detail: { chatId: 'nori-all' } }));
     const root = document.getElementById('view-whatsapp');
     if (root && root.innerHTML) {
@@ -630,6 +727,7 @@ export function triggerCh1Event1() {
       c.preview = 'Sawyer: [圖片]';
       c.lastTime = '剛剛';
       c.unread = (c.unread || 0) + 1;
+      persistWhatsApp();
       window.dispatchEvent(new CustomEvent('whatsapp:newMessage', { detail: { chatId: 'nori-all' } }));
       const root2 = document.getElementById('view-whatsapp');
       if (root2 && root2.innerHTML) renderList();
@@ -678,6 +776,7 @@ export function triggerCh1Event1() {
 export function triggerCh1Event2() {
   if (ch1Event2Triggered) return;
   ch1Event2Triggered = true;
+  persistWhatsApp();
   const c = chats.find(x => x.id === 'dev-team');
   if (!c) return;
   setTimeout(() => {
@@ -685,6 +784,7 @@ export function triggerCh1Event2() {
     c.preview = 'Hi @Casey, 有新的工單 INV-2024-0043';
     c.lastTime = '剛剛';
     c.unread = (c.unread || 0) + 1;
+    persistWhatsApp();
     window.dispatchEvent(new CustomEvent('whatsapp:newMessage', { detail: { chatId: 'dev-team' } }));
     // Add Jira ticket
     import('../jira/index.js').then(m => {
@@ -761,6 +861,7 @@ export function getActiveChatId() { return activeId; }
 export function startSawyerRevertSeq() {
   if (sawyerSeq !== 0) return;
   sawyerSeq = 1;
+  persistWhatsApp();
   // If player is focused on WhatUp (whatsapp view active), show locked input immediately
   const root = document.getElementById('view-whatsapp');
   const isWhatsappActive = root && root.classList.contains('active') || localStorage.getItem('cc_active_view') === 'whatsapp';
@@ -895,6 +996,7 @@ export function closeWaLightbox() {
 if (typeof window !== 'undefined' && !window.__waListenerBound) {
   window.__waListenerBound = true;
   window.addEventListener('whatsapp:newMessage', (e) => {
+    try { persistWhatsApp(); } catch {}
     const root = document.getElementById('view-whatsapp');
     if (!root || !root.innerHTML) return;
     try { renderLeftPane(); } catch {}

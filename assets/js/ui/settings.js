@@ -7,7 +7,16 @@ import { bgm } from './bgm.js';
 export function openSettings() {
   const dlg = document.getElementById('settingsDialog');
   if (!dlg) return;
-  dlg.showModal?.() || (dlg.style.display = 'block');
+  // Modal with blur backdrop — blocks background clicks, click on backdrop closes
+  if (typeof dlg.showModal === 'function') {
+    if (!dlg.open) dlg.showModal();
+  } else if (typeof dlg.show === 'function') {
+    if (!dlg.open) dlg.show();
+  } else {
+    dlg.style.display = 'block';
+    dlg.setAttribute('open', '');
+  }
+  dlg.style.removeProperty('display');
   renderSettingsPanel();
 }
 
@@ -65,7 +74,10 @@ export function bindSettings() {
       try { localStorage.clear(); } catch {}
       const dlg = document.getElementById('settingsDialog');
       if (dlg && dlg.open) try { dlg.close(); } catch {}
-      if (dlg) { dlg.style.display = 'none'; dlg.removeAttribute('open'); }
+      if (dlg) {
+        dlg.style.removeProperty('display');
+        dlg.removeAttribute('open');
+      }
       try {
         if ('caches' in window) {
           const keys = await caches.keys();

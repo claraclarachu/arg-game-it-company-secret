@@ -138,7 +138,49 @@ let dragKey = null;
 let activeSwimlane = 'all'; // all | assignee | epic
 let currentFilter = '';
 
+function persistJira() {
+  try {
+    state.set('jiraTicketsData', JSON.parse(JSON.stringify(tickets)));
+    state.set('jiraMeta', { activeSwimlane, currentFilter });
+    state.save(true);
+  } catch {}
+}
+function restoreJira() {
+  try {
+    const saved = state.get('jiraTicketsData');
+    if (Array.isArray(saved) && saved.length) {
+      // Replace tickets content with saved (preserve reference)
+      tickets.length = 0;
+      for (const t of saved) tickets.push(t);
+    } else {
+      // Check flag for 0043 — if flag indicates it should exist but not in array, add it
+      if (state.hasFlag('ch1_event1_triggered') || (state.get('jiraTickets') && state.get('jiraTickets')['INV-2024-0043'])) {
+        if (!tickets.some(x=>x.key==='INV-2024-0043')) {
+          addTicket0043();
+          // addTicket0043 will persist again, avoid recursion
+          return;
+        }
+      }
+    }
+    const meta = state.get('jiraMeta');
+    if (meta && typeof meta === 'object') {
+      if (typeof meta.activeSwimlane === 'string') activeSwimlane = meta.activeSwimlane;
+      if (typeof meta.currentFilter === 'string') currentFilter = meta.currentFilter;
+    }
+    // If system has ch0_vip_fixed flag, ensure 0042 is Done
+    if (state.hasFlag('ch0_vip_fixed')) {
+      const t = tickets.find(x=>x.key==='INV-2024-0042');
+      if (t && t.status !== 'Done') t.status = 'Done';
+    }
+    if (state.hasFlag('ch1_0043_committed')) {
+      const t = tickets.find(x=>x.key==='INV-2024-0043');
+      if (t && t.status !== 'Done') t.status = 'Done';
+    }
+  } catch {}
+}
+
 export function mountJira() {
+  restoreJira();
   const root = document.getElementById('view-jira');
   if (!root) return;
   root.innerHTML = `
@@ -210,9 +252,9 @@ export function mountJira() {
 }
 
 function bindJira() {
-  document.getElementById('jiraSearch')?.addEventListener('input', e => { currentFilter = e.target.value; renderBoard(); });
-  document.getElementById('jiraAssignee')?.addEventListener('change', e => { currentFilter = document.getElementById('jiraSearch').value; renderBoard(); });
-  document.getElementById('jiraSwimlane')?.addEventListener('change', e => { activeSwimlane = e.target.value; renderBoard(); });
+  document.getElementById('jiraSearch')?.addEventListener('input', e => { currentFilter = e.target.value; persistJira(); renderBoard(); });
+  document.getElementById('jiraAssignee')?.addEventListener('change', e => { currentFilter = document.getElementById('jiraSearch').value; persistJira(); renderBoard(); });
+  document.getElementById('jiraSwimlane')?.addEventListener('change', e => { activeSwimlane = e.target.value; persistJira(); renderBoard(); });
 }
 
 function parseJQL(q) {
@@ -352,6 +394,7 @@ function bindBoardDnD() {
       t.status = col;
       t.history.push({ from: old, to: col, by: '你', at: new Date().toISOString().slice(0,10) });
       state.set('jiraTickets.' + t.key, true);
+      persistJira();
       renderBoard();
       openTicket(t.key);
     });
@@ -455,6 +498,7 @@ function openTicket(key) {
       const from = t.status;
       t.status = to;
       t.history.push({ from, to, by: '你', at: new Date().toISOString().slice(0,10) });
+      persistJira();
       renderBoard();
       openTicket(key);
     });
@@ -465,6 +509,7 @@ function openTicket(key) {
     if (!val) return;
     t.comments.push(`你: ${val}`);
     inp.value = '';
+    persistJira();
     openTicket(key);
     renderBoard();
   });
@@ -480,12 +525,18 @@ function openTicket(key) {
 export function markTicketDone(key) {
   const t = tickets.find(x => x.key === key);
   if (!t) return false;
-  if (t.status === 'Done') return true;
+  if (t.status === 'Done') {
+    // still ensure persistence flag is correct
+    if (key==='INV-2024-0042' && !state.hasFlag('ch0_vip_fixed')) state.setFlag('ch0_vip_fixed', true);
+    return true;
+  }
   const from = t.status;
   t.status = 'Done';
   t.history.push({ from, to: 'Done', by: 'Casey', at: new Date().toISOString().slice(0,10) });
   state.set('jiraTickets.' + key, true);
-  state.setFlag('ch0_vip_fixed', true);
+  if (key==='INV-2024-0042') state.setFlag('ch0_vip_fixed', true);
+  if (key==='INV-2024-0043') state.setFlag('ch1_0043_committed', true);
+  persistJira();
   // refresh board if mounted
   const board = document.getElementById('jiraBoard');
   if (board) {
@@ -513,6 +564,7 @@ export function addTicket0043() {
       { from: '—', to: 'To Do', by: 'Maggie', at: new Date().toISOString().slice(0,10) },
     ],
   });
+  persistJira();
   // Refresh board if mounted
   const board = document.getElementById('jiraBoard');
   if (board) {

@@ -31,6 +31,7 @@ function markDirty(path, content) {
   const orig = getOriginalContent(path);
   if (content === orig) editedFiles.delete(path);
   else editedFiles.set(path, content);
+  persistVSCode();
   renderTabs();
   renderScmChanges();
 }
@@ -103,6 +104,7 @@ function handleGitGraphRevert(hash) {
     const statusEl = document.getElementById('scmCommitStatus');
     if (statusEl) statusEl.innerHTML = `<span style="color:var(--success)">✓ Revert 成功: ${hash2} (from ${hash}) — ${isBug ? '已套用 Parker 修復' : '已回退至 bug 版'}</span>`;
     appendTerminal(`✓ revert ${hash2} — ${msg}`);
+    persistVSCode();
     renderTabs(); renderTree(); renderScmChanges();
     if (gitGraphOpen) renderGitGraphEditor();
     return;
@@ -128,6 +130,7 @@ function handleGitGraphRevert(hash) {
   const statusEl = document.getElementById('scmCommitStatus');
   if (statusEl) statusEl.innerHTML = `<span style="color:var(--success)">✓ Revert 成功: ${hash2} (from ${hash})</span>`;
   appendTerminal(`✓ revert ${hash2} — ${msg}`);
+  persistVSCode();
   renderTabs(); renderTree(); renderScmChanges();
   if (gitGraphOpen) renderGitGraphEditor();
   // Trigger healthy
@@ -178,7 +181,50 @@ let gitGraphCommits = [
   { hash: 'd4e5f6a', branch: 'main', author: 'dev-chen', date: '2023-11-20', msg: '(INV-2023-0039) refactor: simplify portal auth (remove dynamic generator)', diff: `- function generateInternalPortalPath(internalPortalDomain){ \n-     const cid = redis.get('companyId'); \n-     const y = redis.get('year'); \n-     const k = import.meta.env.MD5_KEY; \n-     return internalPortalDomain + 'hash=' + md5(\`companyId=\${cid}&year=\${y}&key=\${k}\`); \n-     }` },
 ];
 
+function persistVSCode() {
+  try {
+    const edited = Array.from(editedFiles.entries());
+    state.set('vscodeState', {
+      editedFiles: edited,
+      gitCommits: gitCommits.slice(0, 20),
+      gitGraphCommits: gitGraphCommits.slice(0, 20),
+      currentFile,
+      activeActivity,
+      gitGraphOpen,
+      expandedGraphHash
+    });
+    state.save(true);
+  } catch {}
+}
+function restoreVSCode() {
+  try {
+    const vs = state.get('vscodeState');
+    if (!vs || typeof vs !== 'object') return;
+    if (Array.isArray(vs.editedFiles)) {
+      for (const [p, c] of vs.editedFiles) {
+        editedFiles.set(p, c);
+        const entry = vfs.getFile(p);
+        if (entry) entry.content = c;
+        else vfs.registerFile(p, { content: c, meta: { lang: p.endsWith('.java')?'java':p.endsWith('.js')?'javascript':'text' } });
+      }
+    }
+    if (Array.isArray(vs.gitCommits) && vs.gitCommits.length) {
+      gitCommits.length = 0;
+      for (const gc of vs.gitCommits) gitCommits.push(gc);
+    }
+    if (Array.isArray(vs.gitGraphCommits) && vs.gitGraphCommits.length) {
+      gitGraphCommits.length = 0;
+      for (const gc of vs.gitGraphCommits) gitGraphCommits.push(gc);
+    }
+    if (typeof vs.currentFile === 'string' && vs.currentFile) currentFile = vs.currentFile;
+    if (typeof vs.activeActivity === 'string') activeActivity = vs.activeActivity;
+    if (typeof vs.gitGraphOpen === 'boolean') gitGraphOpen = vs.gitGraphOpen;
+    if (vs.expandedGraphHash) expandedGraphHash = vs.expandedGraphHash;
+  } catch {}
+}
+
 export function mountVSCode() {
+  restoreVSCode();
   const root = document.getElementById('view-vscode');
   if (!root) return;
   root.innerHTML = `
@@ -453,6 +499,7 @@ function updateActivityBar() {
   document.getElementById('vsPanelDebug').style.display = activeActivity === 'debug' ? 'flex' : 'none';
   document.getElementById('vsPanelExtensions').style.display = activeActivity === 'extensions' ? 'flex' : 'none';
   if (activeActivity === 'scm') { renderScmChanges(); }
+  persistVSCode();
 }
 
 function renderTree(filter = '') {
@@ -670,11 +717,13 @@ function openFile(path) {
   // Git Graph virtual file
   if (path === GIT_GRAPH_PATH) {
     currentFile = path;
+    persistVSCode();
     renderGitGraphEditor();
     renderTree(document.getElementById('vsQuickOpen')?.value.trim().toLowerCase() || '');
     return;
   }
   currentFile = path;
+  persistVSCode();
   const entry = vfs.getFile(path);
   const content = getCurrentContent(path);
   const editor = document.getElementById('vsEditor');
@@ -889,6 +938,7 @@ function handleCommit() {
     if (msgEl) msgEl.value = '';
     if (statusEl) statusEl.innerHTML = `<span style="color:var(--success)">✓ Commit 成功: ${hash43}</span>`;
     appendTerminal(`✓ commit ${hash43} — ${msg}`);
+    persistVSCode();
     renderTabs(); renderTree(); renderScmChanges();
     if (gitGraphOpen && currentFile === GIT_GRAPH_PATH) renderGitGraphEditor();
     // Mark 0043 as Done
@@ -1057,6 +1107,7 @@ function handleCommit() {
     editedFiles.clear();
     if (statusEl) statusEl.innerHTML = `<span style="color:var(--success)">✓ Commit 成功 (revert): ${hash2}</span>`;
     appendTerminal(`✓ commit ${hash2} — ${msg} (revert)`);
+    persistVSCode();
     renderTabs(); renderTree(); renderScmChanges();
     if (gitGraphOpen) renderGitGraphEditor();
     // Send system health message via WhatUp + win notification 10s per spec (both revert methods)
@@ -1082,6 +1133,7 @@ function handleCommit() {
   if (msgEl) msgEl.value = '';
   if (statusEl) statusEl.innerHTML = `<span style="color:var(--success)">✓ Commit 成功: ${hash}</span>`;
   appendTerminal(`✓ commit ${hash} — ${msg}`);
+  persistVSCode();
   renderTabs();
   renderTree();
   renderScmChanges();

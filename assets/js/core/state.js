@@ -7,9 +7,16 @@ const defaultState = {
   unlockedInterfaces: ['vscode', 'jira', 'whatsapp', 'search'],
   discoveredFiles: [],
   collectedEvidence: [],
-  whatsappChats: {},
+  whatsappChats: null,
+  whatsappMeta: null,
   jiraTickets: {},
+  jiraTicketsData: null,
+  vscodeState: null,
+  intranetState: null,
+  darknetState: null,
   searchHistory: [],
+  readArticles: [],
+  whatsappSentCount: 0,
   flags: {},
   endings: [],
   settings: {
@@ -50,18 +57,41 @@ class StateManager {
     if (!state.version) {
       state.version = STATE_VERSION;
     }
-    if (!state.settings) {
-      state.settings = defaultState.settings;
-    }
-    if (!state.unlockedInterfaces) {
-      state.unlockedInterfaces = [...defaultState.unlockedInterfaces];
+    // Deep merge defaults for critical keys to avoid losing flags/endings on corrupted saves
+    const merged = { ...defaultState, ...state };
+    // Ensure flags is always an object and preserve all stored flags
+    merged.flags = { ...(defaultState.flags || {}), ...(state.flags || {}) };
+    merged.endings = Array.isArray(state.endings) ? [...state.endings] : [...defaultState.endings];
+    merged.discoveredFiles = Array.isArray(state.discoveredFiles) ? [...state.discoveredFiles] : [];
+    merged.collectedEvidence = Array.isArray(state.collectedEvidence) ? [...state.collectedEvidence] : [];
+    merged.searchHistory = Array.isArray(state.searchHistory) ? [...state.searchHistory] : [];
+    merged.readArticles = Array.isArray(state.readArticles) ? [...state.readArticles] : [];
+    merged.whatsappSentCount = typeof state.whatsappSentCount === 'number' ? state.whatsappSentCount : 0;
+    if (!merged.settings || typeof merged.settings !== 'object') {
+      merged.settings = { ...defaultState.settings };
     } else {
-      // Ensure all interfaces are unlocked from the start — no gating
+      merged.settings = { ...defaultState.settings, ...state.settings };
+    }
+    if (!Array.isArray(merged.unlockedInterfaces) || !merged.unlockedInterfaces.length) {
+      merged.unlockedInterfaces = [...defaultState.unlockedInterfaces];
+    } else {
       for (const iface of defaultState.unlockedInterfaces) {
-        if (!state.unlockedInterfaces.includes(iface)) state.unlockedInterfaces.push(iface);
+        if (!merged.unlockedInterfaces.includes(iface)) merged.unlockedInterfaces.push(iface);
       }
     }
-    return { ...defaultState, ...state, unlockedInterfaces: state.unlockedInterfaces };
+    // Preserve optional persisted app states if present
+    if (state.whatsappChats !== undefined) merged.whatsappChats = state.whatsappChats;
+    if (state.whatsappMeta !== undefined) merged.whatsappMeta = state.whatsappMeta;
+    if (state.jiraTicketsData !== undefined) merged.jiraTicketsData = state.jiraTicketsData;
+    if (state.jiraTickets !== undefined) merged.jiraTickets = { ...(state.jiraTickets || {}) };
+    if (state.vscodeState !== undefined) merged.vscodeState = state.vscodeState;
+    if (state.intranetState !== undefined) merged.intranetState = state.intranetState;
+    if (state.darknetState !== undefined) merged.darknetState = state.darknetState;
+    if (state.readArticles !== undefined) merged.readArticles = Array.isArray(state.readArticles) ? [...state.readArticles] : [];
+    if (typeof state.whatsappSentCount === 'number') merged.whatsappSentCount = state.whatsappSentCount;
+    if (typeof state.currentChapter === 'number') merged.currentChapter = state.currentChapter;
+    if (typeof state.playtime === 'number') merged.playtime = state.playtime;
+    return merged;
   }
 
   save(immediate = false) {
@@ -98,7 +128,10 @@ class StateManager {
     }, this.state);
     target[lastKey] = value;
     this.emit('change', { path, value, state: this.state });
-    this.save();
+    // Critical paths should persist immediately to survive refresh
+    const critical = path.startsWith('flags.') || path === 'currentChapter' || path === 'endings' || path.startsWith('endings') || path === 'readArticles' || path.startsWith('readArticles') || path === 'whatsappSentCount';
+    if (critical) this.save(true);
+    else this.save();
   }
 
   update(path, updater) {
@@ -121,7 +154,10 @@ class StateManager {
   }
 
   setFlag(flag, value = true) {
+    // Flags drive progression — save immediately so refresh never loses them (e.g. ch0_maggie_notified)
     this.set(`flags.${flag}`, value);
+    // Force immediate persist for flags/endings/currentChapter to survive instant refresh
+    this.save(true);
   }
 
   addEvidence(evidence) {
@@ -129,6 +165,7 @@ class StateManager {
     if (!exists) {
       this.push('collectedEvidence', { ...evidence, discoveredAt: new Date().toISOString() });
       this.emit('evidence', evidence);
+      this.save(true);
     }
   }
 
@@ -143,7 +180,23 @@ class StateManager {
     if (!this.state.discoveredFiles.includes(filePath)) {
       this.push('discoveredFiles', filePath);
       this.emit('fileDiscovered', filePath);
+      this.save(true);
     }
+  }
+
+  markArticleRead(url) {
+    if (!url) return;
+    if (!this.state.readArticles) this.state.readArticles = [];
+    if (!this.state.readArticles.includes(url)) {
+      this.push('readArticles', url);
+      this.save(true);
+    }
+  }
+
+  incrementWhatsappSent() {
+    const cur = typeof this.state.whatsappSentCount === 'number' ? this.state.whatsappSentCount : 0;
+    this.set('whatsappSentCount', cur + 1);
+    this.save(true);
   }
 
   startPlaytimeTracking() {
@@ -189,8 +242,13 @@ class StateManager {
     this.state.discoveredFiles = [];
     this.state.endings = [];
     this.state.searchHistory = [];
+    this.state.readArticles = [];
+    this.state.whatsappSentCount = 0;
     this.state.jiraTickets = {};
-    this.state.whatsappChats = {};
+    this.state.whatsappChats = null;
+    this.state.whatsappMeta = null;
+    this.state.jiraTicketsData = null;
+    this.state.vscodeState = null;
     this.state.playtime = 0;
     this.save(true);
     this.emit('reset', this.state);
