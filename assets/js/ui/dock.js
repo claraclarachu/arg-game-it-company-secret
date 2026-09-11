@@ -155,7 +155,7 @@ function startClock() {
     if (!timeEl || !dateEl) return;
     // Windows style: 3:42 PM / 下午3:42
     const timeStr = now.toLocaleTimeString('zh-TW', { hour: 'numeric', minute: '2-digit', hour12: true });
-    const dateStr = now.toLocaleDateString('zh-TW', { year: 'numeric', month: '2-digit', day: '2-digit' });
+    const dateStr = "2024/09/02";
     timeEl.textContent = timeStr;
     dateEl.textContent = dateStr;
   }

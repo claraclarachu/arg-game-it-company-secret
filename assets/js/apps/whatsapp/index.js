@@ -93,7 +93,7 @@ const chats = [
       { id: 'm12', from: 'Maggie', text: '修改完成之後，就可以到SOURCE CONTROL提交變更。\nGit是一個可以儲存code, 變更記錄, 控制版本的工具，常用功能有：\ncommit => 提交變更\nrevert => 撤銷變更\n查看Git Graph => 列表形式展示所有變更記錄', time: '2024-07-15', read: 'read', type: 'text' },
       { id: 'm13', from: 'Maggie', text: '', media: `${import.meta.env.BASE_URL}assets/data/files/wts/sourceControlPage.png`, time: '2024-07-15', read: 'read', type: 'image' },
       { id: 'm14', from: 'Maggie', text: '', media: `${import.meta.env.BASE_URL}assets/data/files/wts/sourceControlPage-revert.png`, time: '2024-07-15', read: 'read', type: 'image' },
-      { id: 'm15', from: 'Maggie', text: '如果修改有誤的話，提交時SonarQube會經過檢查，然後報錯，這時候就要重新修改', time: '2024-07-15', read: 'read', type: 'text' },
+      { id: 'm15', from: 'Maggie', text: '如果修改有誤的話，提交時結果會經過檢查，然後報錯，這時候就要重新修改', time: '2024-07-15', read: 'read', type: 'text' },
     ]
   },
   {

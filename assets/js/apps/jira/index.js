@@ -65,7 +65,7 @@ Home.jsx 寫死文案時誤植，2018 為草稿年份未更新至 2019；slogan 
     points: 3,
     epic: 'Billing',
     desc: `【問題描述】\nVIP 用戶訂單金額計算錯誤：目前 VIP 等級折扣比預期少 5%，導致 VIP 用戶實際支付過高。\n\n【復現步驟】\n1. 以 VIP1 身份建立訂單 (金額 1000)\n2. 實際扣款為 950 (95%)，預期應為 900 (90%)\n3. VIP2~VIP5 同樣偏移 5%\n\n【正確對照】\nVIP1 → 90% (0.90)\nVIP2 → 85% (0.85)\nVIP3 → 80% (0.80)\nVIP4 → 75% (0.75)\nVIP5 → 70% (0.70)\n\n`,
-    comments: ['Maggie: @Casey 麻煩幫忙修一下，估計是/customer-portal/src/main/java/com/nori/OrderService.java裡vip折扣計算錯誤了\n看一下switch case, 不知道怎樣修可以到瀏覽器查一下相關資料。\n在vizual studio code找不到檔案的話，可以到SEARCH搜尋一下"switch","vip"等關鍵字 \n修好了記得到"SOURCE CONTROL" commit一下, 然後看 SonarQube 結果, 沒問題的話這張單會自動切到Done, 就好了。'],
+    comments: ['Maggie: @Casey 麻煩幫忙修一下，估計是/customer-portal/src/main/java/com/nori/OrderService.java裡vip折扣計算錯誤了\n看一下switch case, 如果忘了如何修正，可以看一下我跟你的對話。記得要Commit這張單才會完成。'],
     attachments: [
       { name: 'OrderService.java', type: 'java', snippet: 'switch(vipLv){case 1: price*=0.95; break;... // VIP1 應為 0.90' },
       { name: 'vip-discount-spec.md', type: 'md', snippet: 'VIP1 90% | VIP2 85% | VIP3 80% | VIP4 75% | VIP5 70%' },

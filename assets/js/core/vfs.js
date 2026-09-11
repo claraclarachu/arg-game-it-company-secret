@@ -377,7 +377,7 @@ function seedFiles() {
     meta: { lang: 'javascript' }
   });
   registerFile('/customer-portal/src/payment/gateway.js', {
-    content: `// gateway.js - Nori 支付閘道統一入口 (Bank / ABPay / LalaPay)\nimport { getFeeRate } from '../billing/service.js';\nimport { createBankTransfer } from './bankTransfer.js';\nimport { createABPay } from './abPay.js';\nimport { createLalaPay } from './lalaPay.js';\n\nexport async function settle(order) {\n  const rate = getFeeRate(order.drinkId); // drink-001 0.05 / drink-002 0.08 / drink-003 0.03\n  const payout = order.amount * (1 - rate);\n  switch(order.paymentMethod){\n    case 'BANK_TRANSFER': return createBankTransfer({ ...order, totalPrice: order.amount });\n    case 'ABPAY': return createABPay(order);\n    case 'LALAPAY': return createLalaPay(order);\n    default: return { payout, route: "internal/portal" };\n  }\n}\n`,
+    content: `// gateway.js - Nori 支付閘道統一入口 (Bank / ABPay / LalaPay)\nimport { getFeeRate } from '../billing/service.js';\nimport { createBankTransfer } from './bankTransfer.js';\nimport { createABPay } from './abPay.js';\nimport { createLalaPay } from './lalaPay.js';\n\nexport async function settle(order) {\n  const rate = getFeeRate(order.drinkId); // drink-001 0.05 / drink-002 0.08 / drink-003 0.03\n  const payout = order.amount * (1 - rate);\n  switch(order.paymentMethod){\n    case 'BANK_TRANSFER': return createBankTransfer({ ...order, totalPrice: order.amount });\n    case 'ABPAY': return createABPay(order);\n    case 'LALAPAY': return createLalaPay(order);\n    default: return { payout};\n  }\n}\n`,
     meta: { lang: 'javascript' }
   });
   registerFile('/customer-portal/src/frontend/src/pages/Home.jsx', {

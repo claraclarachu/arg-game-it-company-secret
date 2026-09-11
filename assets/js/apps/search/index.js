@@ -166,7 +166,7 @@ const blogComments = {
   ],
 };
 
-const trends = ['switch', 'h1', 'HTML 標籤'];
+const trends = ['switch', 'h1', 'HTML 標籤', 'md5'];
 let activeTab = 'all'; // all | image | news | academic
 let lastQuery = '';
 let lastResults = [];
@@ -532,6 +532,7 @@ export function mountSearch() {
         <span class="chip" data-q="h1">h1</span>
         <span class="chip" data-q="<h1>">&lt;h1&gt;</span>
         <span class="chip" data-q="HTML 標籤">HTML 標籤</span>
+        <span class="chip" data-q="md5">md5</span>
       </div>
       <div class="search__tabs" role="tablist">
         <button class="search__tab active" data-tab="all">全部</button>
