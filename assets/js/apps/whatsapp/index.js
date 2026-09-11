@@ -198,6 +198,12 @@ function trackWhatsappSent(chatId, text) {
     }
   } catch {}
 }
+function isChatMuted(id){
+  try{
+    const c = chats.find(x=>x.id===id);
+    return !!(c && c.muted);
+  }catch{ return false; }
+}
 
 function restoreWhatsAppState() {
   try {
@@ -368,7 +374,7 @@ function renderList() {
   const filtered = getFilteredChats();
   el.innerHTML = `
     <div class="wa__list-header">
-      <div class="wa__search"><input id="waSearch" class="input" placeholder="搜尋聊天" value="${listFilter}" /></div>
+      <div class="wa__search"><input id="waSearch" class="input" placeholder="搜尋聊天" value="${listFilter}" disabled readonly style="opacity:0.6;pointer-events:none;cursor:not-allowed" title="搜尋已停用" /></div>
       <div class="wa__filters">
         <button class="wa__filter ${listTab==='all'?'active':''}" data-tab="all">全部</button>
         <button class="wa__filter ${listTab==='unread'?'active':''}" data-tab="unread">未讀</button>
@@ -424,6 +430,10 @@ function renderList() {
 }
 
 function renderChat(id) {
+  const prevMessagesEl = document.getElementById('waMessages');
+  const prevTop = prevMessagesEl ? prevMessagesEl.scrollTop : null;
+  const prevHeight = prevMessagesEl ? prevMessagesEl.scrollHeight : null;
+  const wasAtBottom = prevMessagesEl ? (prevHeight - prevTop - prevMessagesEl.clientHeight < 80) : true;
   const c = chats.find(x => x.id === id);
   const el = document.getElementById('waChat');
   if (!c || !el) return;
@@ -553,6 +563,14 @@ function renderChat(id) {
     img.addEventListener('click', () => openWaLightbox(img.src));
   });
   ensureWaLightbox();
+  // restore scroll — stay where user was (or at bottom if was at bottom), instead of jumping to top
+  requestAnimationFrame(()=>{
+    const elMs = document.getElementById('waMessages');
+    if(!elMs) return;
+    if(wasAtBottom) elMs.scrollTop = elMs.scrollHeight;
+    else if(prevTop !== null) elMs.scrollTop = prevTop;
+    else elMs.scrollTop = elMs.scrollHeight;
+  });
 }
 
 function getInitial(name) {
@@ -619,6 +637,7 @@ function sendMessage(chat) {
       renderChat(chat.id);
       renderList();
       // also show win notification for this Sawyer message
+      if (isChatMuted('sawyer')) return;
       const container = document.createElement('div');
       container.id = 'wa-win-notif-sawyer-seq2-'+Date.now();
       container.setAttribute('role','alert');
@@ -657,6 +676,7 @@ function sendMessage(chat) {
       window.dispatchEvent(new CustomEvent('whatsapp:newMessage', {detail:{chatId:'sawyer'}}));
       renderChat(chat.id);
       renderList();
+      if (isChatMuted('sawyer')) return;
       const container = document.createElement('div');
       container.id = 'wa-win-notif-sawyer-seq3-'+Date.now();
       container.setAttribute('role','alert');
@@ -685,15 +705,7 @@ function sendMessage(chat) {
   persistWhatsApp();
   renderChat(chat.id);
   renderList();
-  // fake reply after 1s for supplier - disabled for sawyer after seq 4
   if (isSawyerPostSeq) return;
-  if (chat.id !== 'qa-lee' && Math.random() > 0.5) {
-    setTimeout(()=>{
-      chat.messages.push({ id: 'r'+Date.now(), from: chat.id === 'backend-team'?'ops':'supplier', text: '收到，後續私聊', time: '剛剛', read: 'delivered', type: 'text' });
-      persistWhatsApp();
-      renderChat(chat.id); renderList();
-    }, 1200);
-  }
 }
 
 // Ch1 Event1 & Event2 helpers
@@ -732,7 +744,14 @@ export function triggerCh1Event1() {
       const root2 = document.getElementById('view-whatsapp');
       if (root2 && root2.innerHTML) renderList();
     }, 1500);
-    // Pop up at right bottom like initial ch0 notification
+    // Pop up at right bottom like initial ch0 notification — respect mute
+    if (isChatMuted('nori-all')) {
+      // still trigger Event2 after delay but no popup
+      setTimeout(() => {
+        if (!ch1Event2Triggered) triggerCh1Event2();
+      }, 10000);
+      return;
+    }
     const container = document.createElement('div');
     container.id = 'wa-win-notification-sawyer-tree';
     container.setAttribute('role', 'alert');
@@ -798,7 +817,8 @@ export function triggerCh1Event2() {
     if (root && root.innerHTML) {
       renderList();
     }
-    // Pop up at right bottom like initial ch0
+    // Pop up at right bottom like initial ch0 — respect mute
+    if (isChatMuted('dev-team')) return;
     const container = document.createElement('div');
     container.id = 'wa-win-notification-maggie-0043';
     container.setAttribute('role', 'alert');

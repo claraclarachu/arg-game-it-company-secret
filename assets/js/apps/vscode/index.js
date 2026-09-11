@@ -70,6 +70,7 @@ function triggerSystemHealthy(source = 'revert') {
         window.dispatchEvent(new CustomEvent('whatsapp:newMessage', {detail:{chatId:'system-alert'}}));
         // Win notification for health - hold 10 sec per spec
         const container = document.createElement('div');
+        if (isChatMutedVS('system-alert')) return;
         container.id = 'wa-win-notif-health-' + Date.now();
         container.setAttribute('role','alert');
         container.innerHTML = `<div class="win-notif__app"><img src="${import.meta.env.BASE_URL}icon/whatsup.svg" alt="WhatUp" width="20" height="20" style="width:20px;height:20px;object-fit:contain" /><span class="win-notif__app-name">WhatUp</span><span class="win-notif__app-sub">System Alert</span><button class="win-notif__close" aria-label="關閉">✕</button></div><div class="win-notif__body"><div class="win-notif__avatar" style="background:linear-gradient(135deg, #0d9488, #25D366)">✓</div><div class="win-notif__text"><div class="win-notif__sender">System Alert</div><div class="win-notif__msg">✅ 系統健康 — 所有服務已恢復正常</div><div class="win-notif__time">剛剛 · 點擊開啟對話</div></div></div><div class="win-notif__progress" style="animation: winNotifShrink 10000ms linear forwards"></div>`;
@@ -195,6 +196,17 @@ function persistVSCode() {
     });
     state.save(true);
   } catch {}
+}
+function isChatMutedVS(id){
+  try{
+    const raw = JSON.parse(localStorage.getItem('code_conspiracy_state')||'{}');
+    const chats = raw.whatsappChats;
+    if(Array.isArray(chats)){
+      const c = chats.find(x=>x.id===id);
+      if(c) return !!c.muted;
+    }
+    return false;
+  }catch{ return false; }
 }
 function restoreVSCode() {
   try {
@@ -612,7 +624,7 @@ function renderGitGraphEditor() {
     }).join('');
     const isUserRemovalCommit = c.author === 'Casey' && (c.diff.includes('SearchBar') || c.diff.includes('legacyRoutes') || c.msg.includes('0043'));
     const isParker0017 = (c.hash === '3f2a9c1' || c.msg.includes('INV-2024-0017')) && c.author === 'Parker';
-    const showRevert = (entryClosed && isUserRemovalCommit && !state.hasFlag('ch1_revert_done') && state.hasFlag('sawyer_seq_started')) || isParker0017;
+    const showRevert = (entryClosed && isUserRemovalCommit && !state.hasFlag('ch1_revert_done') && state.hasFlag('sawyer_seq_started'));
     return `
       <div class="gitgraph-row ${isExpanded ? 'expanded' : ''}" data-hash="${c.hash}">
         <div class="gitgraph-row__main">
@@ -946,6 +958,7 @@ function handleCommit() {
     // Trigger System Alert via WhatUp group every 5s, each win notification holds 4s
     // Helper to show Windows-style WhatUp notification (holds 4s)
     function showWhatUpWinNotif({ appSub, sender, avatarBg, avatarText, msg, chatId, duration }) {
+      if (chatId && isChatMutedVS(chatId)) return;
       const dur = duration || 4000;
       const container = document.createElement('div');
       const nid = 'wa-win-notif-' + Date.now() + '-' + Math.random().toString(36).slice(2,6);

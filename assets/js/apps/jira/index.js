@@ -434,10 +434,10 @@ function openTicket(key) {
         </div>
         <div>
           <div class="jira__detail-label">附件 — ${t.attachments.length}</div>
-          <div style="display:grid;gap:8px">
+          <div class="jira__attachments-grid" style="display:grid;gap:8px;width:100%">
             ${t.attachments.length ? t.attachments.map(a => `
-              <div class="jira__detail-card" style="display:flex;justify-content:space-between;align-items:center;gap:12px">
-                <div style="min-width:0"><div style="font-weight:600;font-size:13px;display:flex;align-items:center;gap:6px"><i class="fa-solid fa-paperclip" style="color:#6b778c"></i> ${a.name}</div><div class="small" style="color:#6b778c;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${a.type} · ${a.snippet.slice(0,80)}</div></div>
+              <div class="jira__detail-card" style="display:flex;justify-content:space-between;align-items:center;gap:12px;min-width:0;max-width:100%;overflow:hidden">
+                <div style="min-width:0;flex:1;overflow:hidden;max-width:100%"><div style="font-weight:600;font-size:13px;display:flex;align-items:center;gap:6px"><i class="fa-solid fa-paperclip" style="color:#6b778c"></i> ${a.name}</div><div class="small" style="color:#6b778c;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;display:block;min-width:0">${a.type} · ${a.snippet.slice(0,80)}</div></div>
                 <button class="jira__header-btn" style="padding:4px 10px;flex-shrink:0" data-attach="${a.name}">檢視</button>
               </div>
             `).join('') : '<div class="small" style="color:#6b778c">無附件</div>'}

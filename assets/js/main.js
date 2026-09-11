@@ -63,6 +63,18 @@ function mountAll() {
 
 // Windows-style WhatUp notification (bottom-right, 10s, click -> Dev Team chat) - only once per game at chp0
 let _notifTimer = null;
+function isChatMutedForNotify(id){
+  try{
+    const raw = JSON.parse(localStorage.getItem('code_conspiracy_state')||'{}');
+    const chats = raw.whatsappChats;
+    if(Array.isArray(chats)){
+      const c = chats.find(x=>x.id===id);
+      if(c) return !!c.muted;
+    }
+    // fallback to in-memory if not yet persisted
+    return false;
+  }catch{ return false; }
+}
 function showMaggieNotification() {
   // Only show once per game at chp0 (and again after reset to chp0) — persisted via localStorage
   // Check both in-memory flags and raw storage to survive debounced-save edge cases
@@ -75,6 +87,7 @@ function showMaggieNotification() {
   if (state.hasFlag('ch0_maggie_notified')) return;
   if (state.hasFlag('ch0_vip_fixed')) return;
   if ((state.get('currentChapter') ?? 0) !== 0) return;
+  if (isChatMutedForNotify('dev-team')) return;
   // avoid duplicate if already shown this session
   if (document.getElementById('wa-win-notification')) return;
 

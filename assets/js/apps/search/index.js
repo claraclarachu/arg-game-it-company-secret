@@ -672,6 +672,41 @@ function doSearch(q) {
   }
 
   let results = [];
+  // custom handling for Sawyer / Sawyer Choi — only 5 blogs + interview + essay at end
+  const normalizedBase = base.toLowerCase().trim().replace(/\s+/g, ' ');
+  const isSawyerQuery = normalizedBase === 'sawyer' || normalizedBase === 'sawyer choi';
+  if (isSawyerQuery) {
+    const sawyerFiveUrls = [
+      'https://sawyer-blog.example/2024-03-20',
+      'https://sawyer-blog.example/2024-01-15',
+      'https://sawyer-blog.example/2023-12-20',
+      'https://sawyer-blog.example/2023-05-10',
+      'https://sawyer-blog.example/2023-05-01',
+    ];
+    const interviewUrl = 'https://news.example/sawyer-statement-2023';
+    const essayUrl = 'https://school.example/guangzhi-essay-sawyer';
+    const urlMap = new Map(webIndex.map(r => [r.url, r]));
+    for (const u of sawyerFiveUrls) {
+      const r = urlMap.get(u);
+      if (r) {
+        if (activeTab !== 'all' && r.type !== activeTab) continue;
+        if (filters.site && !r.url.toLowerCase().includes(filters.site)) continue;
+        results.push(r);
+      }
+    }
+    const interview = urlMap.get(interviewUrl);
+    if (interview) {
+      if ((activeTab === 'all' || interview.type === activeTab) && (!filters.site || interview.url.toLowerCase().includes(filters.site))) {
+        results.push(interview);
+      }
+    }
+    const essay = urlMap.get(essayUrl);
+    if (essay) {
+      if ((activeTab === 'all' || essay.type === activeTab) && (!filters.site || essay.url.toLowerCase().includes(filters.site))) {
+        results.push(essay);
+      }
+    }
+  } else {
   // web index match (filtered by tab)
   for (const r of webIndex) {
     if (activeTab !== 'all' && r.type !== activeTab) continue;
@@ -683,6 +718,7 @@ function doSearch(q) {
     // filetype only applies to vfs, skip web for filetype mismatch? keep web if not filetype
     if (filters.filetype && r.type === 'image' && filters.filetype !== 'image') continue;
     results.push(r);
+  }
   }
   // VFS search removed: searching engine is browser only, not including Vizual Studio Code files
   // (previously searched vfs, now disabled per spec)

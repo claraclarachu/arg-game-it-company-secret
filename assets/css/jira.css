@@ -275,9 +275,11 @@
 .jira__detail-section{font-size:13px;line-height:1.6;color:#172b4d}
 :root[data-theme="dark"] .jira__detail-section{ color:#dee4ea; }
 .jira__detail-label{font-size:11px;font-weight:600;letter-spacing:.4px;text-transform:uppercase;color:#6b778c;margin-bottom:6px}
-.jira__detail-desc{background:#fff;border:1px solid #dfe1e6;border-radius:3px;padding:12px;white-space:pre-wrap;font-family:ui-monospace, SFMono-Regular, monospace;font-size:12px;line-height:1.6;max-height:240px;overflow:auto}
+.jira__detail-desc{background:#fff;border:1px solid #dfe1e6;border-radius:3px;padding:12px;white-space:pre-wrap;font-family:ui-monospace, SFMono-Regular, monospace;font-size:12px;line-height:1.6;max-height:240px;overflow:auto;width:100%;box-sizing:border-box}
 :root[data-theme="dark"] .jira__detail-desc{ background:#22272b; border-color:#3d474d; color:#dee4ea; }
-.jira__detail-card{background:#fff;border:1px solid #dfe1e6;border-radius:3px;padding:10px}
+.jira__detail-card{background:#fff;border:1px solid #dfe1e6;border-radius:3px;padding:10px;width:100%;max-width:100%;min-width:0;overflow:hidden;box-sizing:border-box}
+.jira__detail-main > div{width:100%;max-width:100%;min-width:0;box-sizing:border-box;overflow:hidden}
+.jira__attachments-grid{width:100%;max-width:100%;min-width:0;display:grid;gap:8px;grid-template-columns:minmax(0,1fr);box-sizing:border-box;overflow:hidden}
 :root[data-theme="dark"] .jira__detail-card{ background:#22272b; border-color:#3d474d; }
 .jira__detail-row{display:flex;justify-content:space-between;gap:8px;font-size:12px;padding:6px 0;border-bottom:1px solid #f4f5f7}
 .jira__detail-row:last-child{border-bottom:none}
