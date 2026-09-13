@@ -28,7 +28,16 @@ const defaultState = {
     bgmMuted: false
   },
   playtime: 0,
-  lastSaved: null
+  lastSaved: null,
+  // Persistent stats that survive reset/replay (achievements & endings meta-progression)
+  persistentStats: {
+    unlockedEndings: [],
+    readArticles: [],
+    darkFileCount: 0,
+    whatsappSentCount: 0,
+    searchHistoryCount: 0,
+    flags: {}
+  }
 };
 
 class StateManager {
@@ -91,6 +100,15 @@ class StateManager {
     if (typeof state.whatsappSentCount === 'number') merged.whatsappSentCount = state.whatsappSentCount;
     if (typeof state.currentChapter === 'number') merged.currentChapter = state.currentChapter;
     if (typeof state.playtime === 'number') merged.playtime = state.playtime;
+    // Ensure persistentStats exists and merge
+    merged.persistentStats = {
+      unlockedEndings: Array.isArray(state.persistentStats?.unlockedEndings) ? [...state.persistentStats.unlockedEndings] : [...defaultState.persistentStats.unlockedEndings],
+      readArticles: Array.isArray(state.persistentStats?.readArticles) ? [...state.persistentStats.readArticles] : [...defaultState.persistentStats.readArticles],
+      darkFileCount: typeof state.persistentStats?.darkFileCount === 'number' ? state.persistentStats.darkFileCount : 0,
+      whatsappSentCount: typeof state.persistentStats?.whatsappSentCount === 'number' ? state.persistentStats.whatsappSentCount : 0,
+      searchHistoryCount: typeof state.persistentStats?.searchHistoryCount === 'number' ? state.persistentStats.searchHistoryCount : 0,
+      flags: { ...(defaultState.persistentStats.flags || {}), ...(state.persistentStats?.flags || {}) }
+    };
     return merged;
   }
 
@@ -234,6 +252,30 @@ class StateManager {
     // Deep copy to avoid shared references and clear timers
     try { clearTimeout(this.saveDebounce); } catch {}
     try { clearInterval(this.playtimeInterval); } catch {}
+
+    // ── Persist achievement & ending data before reset ──
+    const ps = this.state.persistentStats || { unlockedEndings: [], readArticles: [], darkFileCount: 0, whatsappSentCount: 0, searchHistoryCount: 0, flags: {} };
+    // Merge endings into persistent unlockedEndings
+    ps.unlockedEndings = [...new Set([...(ps.unlockedEndings || []), ...(this.state.endings || [])])];
+    // Merge readArticles
+    ps.readArticles = [...new Set([...(ps.readArticles || []), ...(this.state.readArticles || [])])];
+    // Max darknet file count
+    const darkCount = (this.state.discoveredFiles || []).filter(f => f.startsWith('/darknet')).length;
+    ps.darkFileCount = Math.max(ps.darkFileCount || 0, darkCount);
+    // Max whatsapp sent count
+    ps.whatsappSentCount = Math.max(ps.whatsappSentCount || 0, this.state.whatsappSentCount || 0);
+    // Max search history count
+    const searchCount = (this.state.searchHistory || []).length;
+    ps.searchHistoryCount = Math.max(ps.searchHistoryCount || 0, searchCount);
+    // Merge achievement-driving flags
+    ps.flags = { ...(ps.flags || {}) };
+    if (this.state.flags.portal_simple_entered) ps.flags.portal_simple_entered = true;
+    if (this.state.flags.portal_hash_entered) ps.flags.portal_hash_entered = true;
+    if (this.state.flags.sawyer_abuse_sent) ps.flags.sawyer_abuse_sent = true;
+
+    // Save a snapshot of persistent stats before resetting
+    const savedPersistentStats = JSON.parse(JSON.stringify(ps));
+
     this.state = JSON.parse(JSON.stringify(defaultState));
     // Ensure unlockedInterfaces is a fresh copy
     this.state.unlockedInterfaces = [...defaultState.unlockedInterfaces];
@@ -250,6 +292,10 @@ class StateManager {
     this.state.jiraTicketsData = null;
     this.state.vscodeState = null;
     this.state.playtime = 0;
+
+    // Restore persistent stats
+    this.state.persistentStats = savedPersistentStats;
+
     this.save(true);
     this.emit('reset', this.state);
     // Restart playtime tracking

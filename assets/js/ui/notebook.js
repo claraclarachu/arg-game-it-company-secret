@@ -30,8 +30,14 @@ function formatPlaytime(sec) {
 function getAchievements() {
   const readArticles = state.get('readArticles') || [];
   const discovered = state.get('discoveredFiles') || [];
-  const endings = state.get('endings') || [];
+  const endings = state.get('unlockedEndings') || [];
   const sent = state.get('whatsappSentCount') || 0;
+  const ps = state.get('persistentStats') || {};
+  const psReadArticles = ps.readArticles || [];
+  const psDarkFileCount = ps.darkFileCount || 0;
+  const psWhatsappSentCount = ps.whatsappSentCount || 0;
+  const psSearchHistoryCount = ps.searchHistoryCount || 0;
+  const psFlags = ps.flags || {};
 
   const sawyerBlogs = [
     'https://sawyer-blog.example/2001-10-18',
@@ -78,10 +84,19 @@ function getAchievements() {
   ]; // 29
 
   const darkTotal = 10;
-  const darkCurrent = discovered.filter(p => p.startsWith('/darknet')).length;
+  const darkCurrent = Math.max(
+    discovered.filter(p => p.startsWith('/darknet')).length,
+    psDarkFileCount
+  );
 
-  const portalSimple = state.hasFlag('portal_simple_entered') ? 1 : 0;
-  const portalHash = state.hasFlag('portal_hash_entered') ? 1 : 0;
+  const portalSimple = Math.max(state.hasFlag('portal_simple_entered') ? 1 : 0, psFlags.portal_simple_entered ? 1 : 0);
+  const portalHash = Math.max(state.hasFlag('portal_hash_entered') ? 1 : 0, psFlags.portal_hash_entered ? 1 : 0);
+
+  // Merge read articles for boss_whisper and reader achievements
+  const allReadArticles = [...new Set([...readArticles, ...psReadArticles])];
+  const mergedSent = Math.max(sent, psWhatsappSentCount);
+  const mergedSearchCount = Math.max((state.get('searchHistory') || []).length, psSearchHistoryCount);
+  const mergedEndings = [...new Set([...endings, ...(ps.unlockedEndings || [])])];
 
   const all = [
     {
@@ -97,7 +112,7 @@ function getAchievements() {
       title: '老闆知音',
       desc: '已了解老闆的一切',
       total: 20,
-      current: bossUrls.filter(u => readArticles.includes(u)).length,
+      current: bossUrls.filter(u => allReadArticles.includes(u)).length,
       isSecret: false,
     },
     {
@@ -113,7 +128,7 @@ function getAchievements() {
       title: '作者感謝您',
       desc: '解鎖全結局',
       total: 5,
-      current: endings.length,
+      current: mergedEndings.length,
       isSecret: false,
     },
     {
@@ -121,7 +136,7 @@ function getAchievements() {
       title: '社牛',
       desc: '在 WhatUp 發送超過 10 條訊息',
       total: 10,
-      current: Math.min(sent, 10),
+      current: Math.min(mergedSent, 10),
       isSecret: true,
     },
     {
@@ -129,7 +144,7 @@ function getAchievements() {
       title: '閱讀達人',
       desc: '閱讀 BlogWorld 上的所有部落格',
       total: 29,
-      current: allBlogUrls.filter(u => readArticles.includes(u)).length,
+      current: allBlogUrls.filter(u => allReadArticles.includes(u)).length,
       isSecret: true,
     },
     {
@@ -137,7 +152,7 @@ function getAchievements() {
       title: '你沒有被解僱是奇蹟',
       desc: '向 Sawyer 發送帶有「垃圾」「蠢」等字眼的訊息',
       total: 1,
-      current: state.hasFlag('sawyer_abuse_sent') ? 1 : 0,
+      current: Math.max(state.hasFlag('sawyer_abuse_sent') ? 1 : 0, psFlags.sawyer_abuse_sent ? 1 : 0),
       isSecret: true,
     },
     {
@@ -145,7 +160,7 @@ function getAchievements() {
       title: '網路成癮',
       desc: '在搜尋引擎搜尋超過 50 次',
       total: 50,
-      current: Math.min((state.get('searchHistory') || []).length, 50),
+      current: Math.min(mergedSearchCount, 50),
       isSecret: true,
     },
   ];
@@ -194,7 +209,7 @@ function renderNotebook() {
   const ch = state.get('currentChapter') ?? 0;
   const ach = getAchievements();
   const doneAch = ach.filter(a=>a.done).length;
-  const endings = state.get('endings') || [];
+  const endings = state.get('unlockedEndings') || [];
   // Build endings grid — 2 columns × 5 rows, larger cards to show full title
   const endingsCarouselHtml = (() => {
     const cards = endingsMeta.map(meta => {

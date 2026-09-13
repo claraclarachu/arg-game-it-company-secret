@@ -86,13 +86,11 @@ function bindIntranet() {
   function isDarkUrl(val) {
     if (!val) return false;
     const v = val.trim();
-    // Only the full hash URL triggers dark web; simple portal without hash should NOT trigger
+    // Only the full URL with ?hash= (query parameter) triggers dark web
+    // /hash= (path segment) must NOT trigger
     if (v === darkFullUrl) return true;
-    if (v.includes('hash=' + darkHash) && v.includes('nori-intranet/internal/portal')) {
-      const route = vfs.getLegacyRoute ? vfs.getLegacyRoute('nori-portal-2023') : null;
-      if (route && route.domain === darkDomain) return true;
-      return v === darkFullUrl;
-    }
+    // Strict: must start with the correct domain and use ?hash=
+    if (v.startsWith('https://nori-intranet/internal/portal?hash=' + darkHash)) return true;
     return false;
   }
   function handleSearchTrigger() {
