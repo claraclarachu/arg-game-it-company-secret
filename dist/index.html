@@ -6,8 +6,8 @@
   <meta name="theme-color" content="#0078d4" />
   <title>聽日辭職 — ARG</title>
   <link rel="manifest" href="/arg-game-it-company-secret/manifest.json" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
-  <script type="module" crossorigin src="/arg-game-it-company-secret/assets/main-D1agUOeP.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+  <script type="module" crossorigin src="/arg-game-it-company-secret/assets/main-DoTnPBqi.js"></script>
   <link rel="stylesheet" crossorigin href="/arg-game-it-company-secret/assets/main-Bzrrc_Yq.css">
 </head>
 <body>
@@ -35,6 +35,9 @@
         <label>主題
           <select id="settingTheme" class="select"><option value="dark">Dark</option><option value="light">Light</option></select>
         </label>
+        <div style="display:flex;align-items:center;gap:8px">
+          <button id="settingFullscreenBtn" class="btn" style="min-width:80px">開啟全螢幕</button>
+        </div>
         <div style="display:flex;align-items:center;gap:8px">
           <button id="bgmMuteBtn" class="btn" style="min-width:36px">🔊</button>
           <input id="bgmVolumeSlider" type="range" min="0" max="100" value="25" style="flex:1" />
@@ -121,6 +124,34 @@
     </div>
   </div>
 
+  <!-- Welcome Dialog (first open) -->
+  <dialog id="welcomeDialog" style="background:var(--bg-secondary);color:var(--fg-primary);border:1px solid var(--border);border-radius:12px;padding:0;max-width:460px;width:90%">
+    <div style="padding:24px">
+      <h3 style="margin:0 0 16px;text-align:center">歡迎遊玩「聽日辭職」</h3>
+      <p class="small muted" style="text-align:center;margin:0 0 20px">為獲得最佳體驗，建議您進行以下設定：</p>
+      <div style="display:grid;gap:16px">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:12px;border:1px solid var(--border);border-radius:8px">
+          <div>
+            <div style="font-weight:600;font-size:14px">全螢幕模式</div>
+            <div class="small muted">沉浸式遊戲體驗</div>
+          </div>
+          <button id="welcomeFullscreenBtn" class="btn" style="min-width:80px">開啟</button>
+        </div>
+        <div style="padding:12px;border:1px solid var(--border);border-radius:8px">
+          <div style="font-weight:600;font-size:14px;margin-bottom:8px">背景音樂</div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <button id="welcomeMuteBtn" class="btn" style="min-width:36px">🔊</button>
+            <input id="welcomeVolumeSlider" type="range" min="0" max="100" value="25" style="flex:1" />
+            <span class="small" id="welcomeVolumePct">25%</span>
+          </div>
+        </div>
+      </div>
+      <div style="text-align:right;margin-top:20px">
+        <button id="welcomeStartBtn" class="btn primary" style="padding:8px 24px">開始遊戲</button>
+      </div>
+    </div>
+  </dialog>
+
   <!-- Ending Screen - black screen + typing dialog -->
   <div id="endingScreen" style="display:none;position:fixed;inset:0;background:#000;z-index:1300;align-items:center;justify-content:center;padding:20px">
     <div style="background:var(--bg-secondary);border:1px solid var(--border);border-radius:12px;padding:24px;max-width:580px;width:100%;box-shadow:0 16px 48px rgba(0,0,0,.5);position:relative;min-height:220px;display:flex;flex-direction:column">
@@ -131,7 +162,7 @@
       </div>
     </div>
   </div>
-
+
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {

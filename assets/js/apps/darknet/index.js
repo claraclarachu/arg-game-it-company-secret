@@ -7,6 +7,7 @@ let darkClickTimer = null;
 let darkEntered = false;
 let currentDarkPath = '/darknet';
 let darkViewMode = 'secret'; // 'secret' or 'files'
+let isFromPortal = false; // true only when triggered via intranet portal URL
 
 function buildDarkTree() {
   return vfs.buildDarkTree ? vfs.buildDarkTree() : vfs.buildTree();
@@ -40,27 +41,45 @@ export function mountDarknet() {
   render();
 }
 
+function hideDock() {
+  const d = document.getElementById('dock');
+  if (d) d.style.display = 'none';
+  import('../../ui/dock.js').then(m => { if (m.setDockVisible) m.setDockVisible(false); }).catch(()=>{});
+}
+function showDock() {
+  const d = document.getElementById('dock');
+  if (d) d.style.display = '';
+  import('../../ui/dock.js').then(m => { if (m.setDockVisible) m.setDockVisible(true); }).catch(()=>{});
+}
 function render() {
   const root = document.getElementById('view-darknet');
   if (!root) return;
   if (darkViewMode === 'secret') {
     const isSimple = darkIsSimplePortal;
+    const hideByFlag = state.hasFlag('dark_secret_active');
+    // Hide Windows taskbar on SECRET page entered via hash — immersive mode until 「退回內網」
+    if ((!isSimple && isFromPortal) || hideByFlag) {
+      hideDock();
+    } else {
+      showDock();
+    }
     root.innerHTML = `
       <div class="darknet">
-        <button id="darkBackBtn" class="btn" style="position:absolute;top:12px;left:12px;z-index:5">← 返回內網</button>
+        <button id="darkBackBtn" class="btn" style="position:absolute;top:12px;left:12px;z-index:5">← 退回內網</button>
         <div class="darknet__secret" id="darkSecretView">
           <div class="darknet__title" id="darkTitle" style="cursor:default">SECRET</div>
           <div class="darknet__subtitle">Keep Quiet · File System</div>
           <div class="darknet__search">
             <span style="color:#722F37">🔍</span>
-            <input id="darkSearchInput" placeholder="輸入暗網路徑..." value="" autocomplete="off" readonly />
+            <input id="darkSearchInput" value="" disabled style="pointer-events:none;opacity:.5" />
           </div>
         </div>
       </div>
     `;
     bindSecret();
   } else {
-    // Files view - same as VFS but dark
+    // Files view - show dock again
+    showDock();
     const children = getDarkChildren(currentDarkPath);
     const dirs = children.filter(c => c.type === 'dir');
     const files = children.filter(c => c.type === 'file');
@@ -97,7 +116,9 @@ function bindSecret() {
   const backBtn = document.getElementById('darkBackBtn');
   if (backBtn) {
     backBtn.addEventListener('click', () => {
-      // Return to intranet
+      // Return to intranet — restore Windows taskbar
+      showDock();
+      try { state.setFlag('dark_secret_active', false); } catch {}
       import('../../ui/dock.js').then(dock => {
         if (dock.setActiveView) {
           dock.setActiveView('intranet');
@@ -106,6 +127,7 @@ function bindSecret() {
       });
       darkViewMode = 'secret';
       darkIsSimplePortal = false;
+      isFromPortal = false;
       const root = document.getElementById('view-darknet');
       if (root) root.innerHTML = '';
     });
@@ -125,15 +147,6 @@ function bindSecret() {
     if (darkClickCount >= 6) {
       darkClickCount = 0;
       enterDarkFiles();
-    }
-  });
-  // Input on SECRET page does nothing (as per spec: 無點擊不會有反應)
-  // But we can allow Enter on input to also not react, only title clicks matter
-  input?.addEventListener('keydown', e => {
-    if (e.key === 'Enter') {
-      // No reaction
-      input.placeholder = '請點擊上方標題六下';
-      setTimeout(() => input.placeholder = '輸入暗網路徑...', 1500);
     }
   });
 }
@@ -249,6 +262,10 @@ function bindDark() {
   document.getElementById('darkExitBtn')?.addEventListener('click', () => {
     // Exit darknet back to normal intranet
     darkViewMode = 'secret';
+    isFromPortal = false;
+    try { state.setFlag('dark_secret_active', false); } catch {}
+    // Show dock again
+    showDock();
     // Trigger Ch4 completion check before exit
     checkCh4(true);
     // Switch to intranet view
@@ -315,6 +332,12 @@ export function triggerDarknetFromIntranet(opts = {}) {
   if (!root) return;
   // Whether this is simple portal without hash (title should have no effect)
   darkIsSimplePortal = !!opts.simple;
+  isFromPortal = true;
+  if (!opts.simple) {
+    try { state.setFlag('dark_secret_active', true); } catch {}
+  } else {
+    try { state.setFlag('dark_secret_active', false); } catch {}
+  }
   // Always go to SECRET page first, even if already entered (per latest requirement)
   darkViewMode = 'secret';
   darkClickCount = 0;

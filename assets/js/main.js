@@ -20,6 +20,23 @@ function applyTheme() {
   document.documentElement.setAttribute('data-theme', theme);
 }
 
+function isFullscreen() {
+  return !!document.fullscreenElement;
+}
+
+function toggleFullscreen() {
+  if (isFullscreen()) {
+    document.exitFullscreen().catch(() => {});
+  } else {
+    document.documentElement.requestFullscreen().catch(() => {});
+  }
+}
+
+function updateFullscreenBtn(btn) {
+  if (!btn) return;
+  btn.textContent = isFullscreen() ? '關閉全螢幕' : '開啟全螢幕';
+}
+
 function closeAllModals(){
   document.querySelectorAll('dialog[open]').forEach(d=>{
     try{ d.close(); }catch{}
@@ -87,7 +104,7 @@ function showMaggieNotification() {
   if (state.hasFlag('ch0_maggie_notified')) return;
   if (state.hasFlag('ch0_vip_fixed')) return;
   if ((state.get('currentChapter') ?? 0) !== 0) return;
-  if (isChatMutedForNotify('dev-team')) return;
+  if (isChatMutedForNotify('maggie')) return;
   // avoid duplicate if already shown this session
   if (document.getElementById('wa-win-notification')) return;
 
@@ -99,7 +116,7 @@ function showMaggieNotification() {
     <div class="win-notif__app">
       <img src="${import.meta.env.BASE_URL}icon/whatsup.svg" alt="WhatUp" width="20" height="20" style="width:20px;height:20px;object-fit:contain" />
       <span class="win-notif__app-name">WhatUp</span>
-      <span class="win-notif__app-sub">Dev Team</span>
+      <span class="win-notif__app-sub">主管 - Maggie</span>
       <button class="win-notif__close" aria-label="關閉">✕</button>
     </div>
     <div class="win-notif__body">
@@ -119,7 +136,7 @@ function showMaggieNotification() {
     if (e.target.closest('.win-notif__close')) return;
     dismissNotification();
     // Ensure WhatUp is mounted then switch
-    try { openWhatsAppChat('dev-team'); } catch (_) {}
+    try { openWhatsAppChat('maggie'); } catch (_) {}
     switchView('whatsapp');
   });
 
@@ -375,10 +392,72 @@ function bindEnding() {
   });
 }
 
+function showWelcomeDialog() {
+  const dlg = document.getElementById('welcomeDialog');
+  if (!dlg) return;
+  const fsBtn = document.getElementById('welcomeFullscreenBtn');
+  const muteBtn = document.getElementById('welcomeMuteBtn');
+  const slider = document.getElementById('welcomeVolumeSlider');
+  const pctEl = document.getElementById('welcomeVolumePct');
+  const startBtn = document.getElementById('welcomeStartBtn');
+
+  updateFullscreenBtn(fsBtn);
+
+  fsBtn?.addEventListener('click', () => {
+    toggleFullscreen();
+    updateFullscreenBtn(fsBtn);
+  });
+
+  document.addEventListener('fullscreenchange', () => {
+    updateFullscreenBtn(fsBtn);
+    // Also update settings fullscreen button if visible
+    const sFsBtn = document.getElementById('settingFullscreenBtn');
+    updateFullscreenBtn(sFsBtn);
+  });
+
+  if (muteBtn) {
+    muteBtn.addEventListener('click', () => {
+      const muted = bgm.toggleMute();
+      muteBtn.textContent = muted ? '🔇' : '🔊';
+      if (pctEl) pctEl.textContent = muted ? '靜音' : Math.round(bgm.getVolume() * 100) + '%';
+    });
+  }
+  if (slider) {
+    slider.addEventListener('input', (e) => {
+      const v = parseInt(e.target.value) / 100;
+      bgm.setVolume(v);
+      bgm.setMuted(false);
+      if (muteBtn) muteBtn.textContent = '🔊';
+      if (pctEl) pctEl.textContent = Math.round(v * 100) + '%';
+    });
+  }
+
+  startBtn?.addEventListener('click', () => {
+    dlg.close();
+  });
+
+  if (typeof dlg.showModal === 'function') {
+    dlg.showModal();
+  } else {
+    dlg.show();
+  }
+}
+
+function bindSettingsFullscreen() {
+  const btn = document.getElementById('settingFullscreenBtn');
+  if (!btn) return;
+  updateFullscreenBtn(btn);
+  btn.addEventListener('click', () => {
+    toggleFullscreen();
+    updateFullscreenBtn(btn);
+  });
+}
+
 function init() {
   applyTheme();
   renderDock({ onSwitch: switchView, onOpenSettings: openSettings, onOpenNotebook: openNotebook, t });
   bindSettings();
+  bindSettingsFullscreen();
   mountAll();
   const last = localStorage.getItem('cc_active_view') || 'vscode';
   switchView(state.get('unlockedInterfaces').includes(last) ? last : 'vscode');
@@ -387,10 +466,16 @@ function init() {
   bgm.play('default');
   // Mark onboarding done immediately (no dialog) so engine progresses
   if (!state.hasFlag('onboarding_done')) state.setFlag('onboarding_done', true);
+  // Show welcome dialog on first open (never again after reset/refresh)
+  if (!state.hasFlag('welcome_dialog_shown')) {
+    state.setFlag('welcome_dialog_shown', true);
+    setTimeout(() => showWelcomeDialog(), 400);
+  }
   // Show Windows-style WhatUp notification shortly after load
   setTimeout(() => showMaggieNotification(), 800);
   events.on('puzzle:solved', p => { toast('✓ ' + p.title); });
-  events.on('interfaceUnlocked', id => { toast(t('toast.unlocked') + ': ' + id); renderDock({ onSwitch: switchView, onOpenSettings: openSettings, onOpenNotebook: openNotebook, t }); });
+  events.on('interfaceUnlocked', id => { toast(t('toast.unlocked') + ': ' + id); renderDock({ onSwitch: switchView, onOpenSettings: openSettings, onOpenNotebook: openNotebook, t   });
+});
   events.on('evidence', e => { toast(t('toast.evidence') + ': ' + e.title); });
   state.on('change', () => applyTheme());
   // Auto-popup email after ch4 (darknet all files opened and exited)

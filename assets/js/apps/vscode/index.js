@@ -994,10 +994,10 @@ function handleCommit() {
           const sys = chats.find(x=>x.id==='system-alert');
           if (sys) {
             const text = `⚠️ 警告 #${alertCount}: 系統異常 — 檢測到異常，請檢查最近變更`;
-            sys.messages.push({ id: 'alert-'+Date.now()+'-'+alertCount, from: 'system', text, time: new Date().toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'}), read: 'delivered', type: 'text' });
+            sys.messages.push({ id: 'alert-'+Date.now()+'-'+alertCount, from: 'system', text, time: '今天', ts: Date.now(), read: 'delivered', type: 'text' });
             sys.preview = `⚠️ 警告 #${alertCount}: 系統異常`;
             sys.unread = (sys.unread||0)+1;
-            sys.lastTime = '剛剛';
+            sys.lastTime = '今天';
             window.dispatchEvent(new CustomEvent('whatsapp:newMessage', {detail:{chatId:'system-alert'}}));
           }
           // Show Windows notification for this System Alert - holds 4s
@@ -1019,8 +1019,9 @@ function handleCommit() {
               const chats = m.getChats ? m.getChats() : [];
               const dev = chats.find(x=>x.id==='dev-team');
               if (dev) {
-                dev.messages.push({ id: 'sawyer-dev-'+Date.now(), from: 'Sawyer', text: '各位，系統怎麼一直在告警？發生什麼事了？是誰剛才改了什麼？', time: '剛剛', read: 'delivered', type: 'text' });
+                dev.messages.push({ id: 'sawyer-dev-'+Date.now(), from: 'Sawyer', text: '各位，系統怎麼一直在告警？發生什麼事了？是誰剛才改了什麼？', time: '今天', ts: Date.now(), read: 'delivered', type: 'text' });
                 dev.preview = 'Sawyer: 系統怎麼一直在告警？';
+                dev.lastTime = '今天';
                 dev.unread = (dev.unread||0)+1;
                 window.dispatchEvent(new CustomEvent('whatsapp:newMessage', {detail:{chatId:'dev-team'}}));
                 showWhatUpWinNotif({
@@ -1041,8 +1042,9 @@ function handleCommit() {
               const chats = m.getChats ? m.getChats() : [];
               const dev = chats.find(x=>x.id==='dev-team');
               if (dev) {
-                dev.messages.push({ id: 'maggie-dev-'+Date.now(), from: 'Maggie', text: '好像是剛才 INV-2024-0043 的修改，應該是最後一次變更就是這個任務', time: '剛剛', read: 'delivered', type: 'text' });
+                dev.messages.push({ id: 'maggie-dev-'+Date.now(), from: 'Maggie', text: '好像是剛才 INV-2024-0043 的修改，應該是最後一次變更就是這個任務', time: '今天', ts: Date.now(), read: 'delivered', type: 'text' });
                 dev.preview = 'Maggie: 好像是 0043 的修改...';
+                dev.lastTime = '今天';
                 dev.unread = (dev.unread||0)+1;
                 window.dispatchEvent(new CustomEvent('whatsapp:newMessage', {detail:{chatId:'dev-team'}}));
                 showWhatUpWinNotif({
@@ -1063,8 +1065,9 @@ function handleCommit() {
               const chats = m.getChats ? m.getChats() : [];
               const sawyer = chats.find(x=>x.id==='sawyer');
               if (sawyer) {
-                sawyer.messages.push({ id: 'sawyer-pm-'+Date.now(), from: 'Sawyer', text: 'Casey，麻煩你先把 0043 的改動 revert 吧，系統要緊，先回滾再說', time: '剛剛', read: 'delivered', type: 'text' });
+                sawyer.messages.push({ id: 'sawyer-pm-'+Date.now(), from: 'Sawyer', text: 'Casey，麻煩你先把 0043 的改動 revert 吧，系統要緊，先回滾再說', time: '今天', ts: Date.now(), read: 'delivered', type: 'text' });
                 sawyer.preview = 'Sawyer: 麻煩你先把 0043 revert';
+                sawyer.lastTime = '今天';
                 sawyer.unread = (sawyer.unread||0)+1;
                 window.dispatchEvent(new CustomEvent('whatsapp:newMessage', {detail:{chatId:'sawyer'}}));
                 showWhatUpWinNotif({

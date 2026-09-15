@@ -189,3 +189,8 @@ export function setActiveView(id) {
     v.classList.toggle('active', v.id === `view-${id}`);
   });
 }
+
+export function setDockVisible(visible) {
+  const dock = document.getElementById('dock');
+  if (dock) dock.style.display = visible ? '' : 'none';
+}

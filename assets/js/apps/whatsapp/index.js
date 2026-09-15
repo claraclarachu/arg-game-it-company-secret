@@ -43,9 +43,9 @@ const chats = [
     muted: false,
     archived: false,
     unread: 0,
-    lastTime: '剛剛',
+    lastTime: '今天',
     messages: [
-      { id: 'm1', from: 'system', text: '✅ 系統健康 — 所有服務正常', time: '剛剛', read: 'read', type: 'text' },
+      { id: 'm1', from: 'system', text: '✅ 系統健康 — 所有服務正常', time: '今天', read: 'read', type: 'text' },
     ]
   },
   {
@@ -71,16 +71,16 @@ const chats = [
     avatar: '🥑',
     desc: 'Maggie · IT主管',
     phone: '+852 6111 4220',
-    preview: '',
+    preview: 'Maggie: Hi @Casey, 有新的工單INV-2024-0042, 請協助處理一下',
     locked: false,
     pinned: false,
     muted: false,
     archived: false,
-    unread: 0,
-    lastTime: '2024-07-15',
+    unread: 1,
+    lastTime: '今天',
     messages: [
       { id: 'm1', from: 'Maggie', text: 'Hi Casey, 歡迎來到Nori, 我是你的直屬主管, 接下來會由我來指派工作給你。但首先我知道這是你的第一份工作，我會先跟你講解一下我們的工作流程，還有常用工具。', time: '2024-07-15', read: 'read', type: 'text' },
-      { id: 'm2', from: 'Maggie', text: '當有新的工作時，我會在Dev Team通知你，然後會附上工單資訊', time: '2024-07-15', read: 'read', type: 'text' },
+      { id: 'm2', from: 'Maggie', text: '當有新的工作時，我會在私訊通知你，然後會附上工單資訊', time: '2024-07-15', read: 'read', type: 'text' },
       { id: 'm3', from: 'Maggie', text: '然後請根據工單號，到Jiua系統查看詳細資訊', time: '2024-07-15', read: 'read', type: 'text' },
       { id: 'm4', from: 'Maggie', text: '', media: `${import.meta.env.BASE_URL}assets/data/files/wts/jiuaPage.png`, time: '2024-07-15', read: 'read', type: 'image' },
       { id: 'm5', from: 'Maggie', text: '通常Jiua都會詳細的告訴你要處理的事情是什麼', time: '2024-07-15', read: 'read', type: 'text' },
@@ -94,6 +94,7 @@ const chats = [
       { id: 'm13', from: 'Maggie', text: '', media: `${import.meta.env.BASE_URL}assets/data/files/wts/sourceControlPage.png`, time: '2024-07-15', read: 'read', type: 'image' },
       { id: 'm14', from: 'Maggie', text: '', media: `${import.meta.env.BASE_URL}assets/data/files/wts/sourceControlPage-revert.png`, time: '2024-07-15', read: 'read', type: 'image' },
       { id: 'm15', from: 'Maggie', text: '如果修改有誤的話，提交時結果會經過檢查，然後報錯，這時候就要重新修改', time: '2024-07-15', read: 'read', type: 'text' },
+      { id: 'm0', from: 'Maggie', text: 'Hi @Casey, 有新的工單INV-2024-0042, 請協助處理一下。詳細資訊在Jiua可以找到, 有問題再找我。', time: '今天', read: 'delivered', type: 'text' },
     ]
   },
   {
@@ -102,16 +103,14 @@ const chats = [
     avatar: '👩‍💻',
     desc: 'Nori網站和內網的開發團隊群組',
     members: ['Maggie', 'Casey', 'pm', 'Taylor', 'ops'],
-    preview: 'Maggie: Hi @Casey, 有新的工單INV-2024-0042, 請協助處理一下。詳細資訊在Jiua可以找到, 有問題再找我。',
+    preview: '',
     locked: false,
     pinned: true,
     muted: false,
     archived: false,
-    unread: 1,
-    lastTime: '剛剛',
-    messages: [
-      { id: 'm1', from: 'Maggie', text: 'Hi @Casey, 有新的工單INV-2024-0042, 請協助處理一下。詳細資訊在Jiua可以找到, 有問題再找我。', time: '剛剛', read: 'delivered', type: 'text' },
-    ]
+    unread: 0,
+    lastTime: '2024-07-15',
+    messages: []
   },
   {
     id: 'lunch-team',
@@ -205,6 +204,30 @@ function isChatMuted(id){
   }catch{ return false; }
 }
 
+function normalizeMessageTime(m) {
+  if (m.time === '剛剛') m.time = '今天';
+  return m;
+}
+function ensureMessageTs(chat) {
+  // Assign deterministic ts for messages lacking it; respect insertion order
+  const now = Date.now();
+  chat.messages.forEach((m, i) => {
+    normalizeMessageTime(m);
+    if (typeof m.ts !== 'number') {
+      if (/^\d{4}-\d{2}-\d{2}$/.test(m.time)) {
+        m.ts = new Date(m.time + 'T00:00:00').getTime() + i * 10;
+      } else if (m.time && m.time.includes(':')) {
+        const today = new Date().toISOString().slice(0, 10);
+        const parsed = new Date(today + 'T' + m.time).getTime();
+        m.ts = Number.isNaN(parsed) ? (now - (chat.messages.length - i) * 1000) : parsed + i;
+      } else {
+        // '今天' or other — place after historic dates, ordered by insertion, slightly before now
+        m.ts = now - (chat.messages.length - i + 10) * 1000;
+      }
+    }
+  });
+  if (chat.lastTime === '剛剛') chat.lastTime = '今天';
+}
 function restoreWhatsAppState() {
   try {
     const saved = state.get('whatsappChats');
@@ -239,12 +262,16 @@ function restoreWhatsAppState() {
       ch1Event1Triggered = true;
       if (!state.hasFlag('ch1_event1_triggered')) state.setFlag('ch1_event1_triggered', true);
     }
-    const dev = chats.find(x=>x.id==='dev-team');
-    if (dev && dev.messages.some(m=> m.text && m.text.includes('INV-2024-0043'))) {
+    const maggie = chats.find(x=>x.id==='maggie');
+    if (maggie && maggie.messages.some(m=> m.text && m.text.includes('INV-2024-0043'))) {
       ch1Event2Triggered = true;
     }
+    // Normalize times and ensure ts for correct ordering (fixes 剛剛 vs 今天 ordering bug)
+    for (const c of chats) ensureMessageTs(c);
   } catch {}
   if (ch1Event1Triggered && !state.hasFlag('ch1_event1_triggered')) state.setFlag('ch1_event1_triggered', true);
+  // Also normalize for fresh chats not yet persisted
+  try { for (const c of chats) ensureMessageTs(c); } catch {}
 }
 
 export function openChat(id) {
@@ -449,7 +476,14 @@ function renderChat(id) {
     const q = msgSearch.toLowerCase();
     msgs = msgs.filter(m => (m.text||'').toLowerCase().includes(q) || (m.fileName||'').toLowerCase().includes(q));
   }
-  // group by day (here all same day for demo, split by time)
+  // Sort chronologically before grouping — prefer explicit ts for stable ordering
+  msgs = [...msgs].map((m, idx) => ({ m, idx })).sort((a, b) => {
+    const av = typeof a.m.ts === 'number' ? a.m.ts : timeSortValue(a.m.time);
+    const bv = typeof b.m.ts === 'number' ? b.m.ts : timeSortValue(b.m.time);
+    if (av !== bv) return av - bv;
+    return a.idx - b.idx;
+  }).map(x => x.m);
+  // group by day
   const groups = {};
   msgs.forEach(m => {
     const day = m.time.includes(':') ? '今天' : m.time;
@@ -578,6 +612,22 @@ function getInitial(name) {
   if (name === 'you' || name === '你') return '你';
   return name.trim().charAt(0).toUpperCase();
 }
+
+// Parse a chat time string into a sortable number (lower = older)
+function timeSortValue(t) {
+  if (!t) return 0;
+  if (t === '剛剛' || t === '今天') return Number.MAX_SAFE_INTEGER;
+  // "2024-07-15" → date
+  if (/^\d{4}-\d{2}-\d{2}$/.test(t)) return new Date(t + 'T00:00:00').getTime();
+  // "11/04" style → 2024 prefix
+  if (/^\d{1,2}\/\d{1,2}$/.test(t)) return new Date('2024/' + t + 'T00:00:00').getTime();
+  // "3:42 PM" or "15:42" → today
+  const today = new Date().toISOString().slice(0, 10);
+  try {
+    const parsed = new Date(today + 'T' + t).getTime();
+    return Number.isNaN(parsed) ? Number.MAX_SAFE_INTEGER : parsed;
+  } catch { return Number.MAX_SAFE_INTEGER; }
+}
 function getAvatarColor(name) {
   const palette = ['#1f7aec','#e542a3','#00a884','#ff8c00','#6a5acd','#d93025','#0d9488','#7c3aed'];
   let h = 0;
@@ -616,9 +666,9 @@ function sendMessage(chat) {
   // Sawyer forced dialogue sequence - handle locked stages
   if (chat.id === 'sawyer' && sawyerSeq === 1) {
     const lockedText = "但是我查過這段code已經沒在用才對，所以不是這個問題影響的啊";
-    chat.messages.push({ id: 'm'+Date.now(), from: 'you', text: lockedText, time: '剛剛', read: 'sent', type: 'text' });
+    chat.messages.push({ id: 'm'+Date.now(), from: 'you', text: lockedText, time: '今天', ts: Date.now(), read: 'sent', type: 'text' });
     chat.preview = lockedText;
-    chat.lastTime = '剛剛';
+    chat.lastTime = '今天';
     chat.unread = 0;
     sawyerSeq = 2;
     trackWhatsappSent(chat.id, lockedText);
@@ -629,7 +679,7 @@ function sendMessage(chat) {
     setTimeout(() => {
       // remove typing and add Sawyer reply
       sawyerSeq = 3;
-      chat.messages.push({ id: 'sawyer-reply2-'+Date.now(), from: 'Sawyer', text: '先別管，肯定是這段的影響，已經在影響我工作了', time: '剛剛', read: 'delivered', type: 'text' });
+      chat.messages.push({ id: 'sawyer-reply2-'+Date.now(), from: 'Sawyer', text: '先別管，肯定是這段的影響，已經在影響我工作了', time: '今天', ts: Date.now(), read: 'delivered', type: 'text' });
       chat.preview = 'Sawyer: 先別管，肯定是這段的影響...';
       chat.unread = (chat.unread||0)+1;
       persistWhatsApp();
@@ -638,6 +688,8 @@ function sendMessage(chat) {
       renderList();
       // also show win notification for this Sawyer message
       if (isChatMuted('sawyer')) return;
+      // Don't show notification if player is already viewing Sawyer's chat
+      if (activeId === 'sawyer') return;
       const container = document.createElement('div');
       container.id = 'wa-win-notif-sawyer-seq2-'+Date.now();
       container.setAttribute('role','alert');
@@ -657,9 +709,9 @@ function sendMessage(chat) {
   }
   if (chat.id === 'sawyer' && sawyerSeq === 3) {
     const lockedText = "但是";
-    chat.messages.push({ id: 'm'+Date.now(), from: 'you', text: lockedText, time: '剛剛', read: 'sent', type: 'text' });
+    chat.messages.push({ id: 'm'+Date.now(), from: 'you', text: lockedText, time: '今天', ts: Date.now(), read: 'sent', type: 'text' });
     chat.preview = lockedText;
-    chat.lastTime = '剛剛';
+    chat.lastTime = '今天';
     chat.unread = 0;
     trackWhatsappSent(chat.id, lockedText);
     persistWhatsApp();
@@ -667,7 +719,7 @@ function sendMessage(chat) {
     renderList();
     // Sawyer immediately sends 趕快revert！
     setTimeout(() => {
-      chat.messages.push({ id: 'sawyer-reply3-'+Date.now(), from: 'Sawyer', text: '趕快revert！', time: '剛剛', read: 'delivered', type: 'text' });
+      chat.messages.push({ id: 'sawyer-reply3-'+Date.now(), from: 'Sawyer', text: '趕快revert！', time: '今天', ts: Date.now(), read: 'delivered', type: 'text' });
       chat.preview = 'Sawyer: 趕快revert！';
       chat.unread = (chat.unread||0)+1;
       sawyerSeq = 4;
@@ -677,6 +729,8 @@ function sendMessage(chat) {
       renderChat(chat.id);
       renderList();
       if (isChatMuted('sawyer')) return;
+      // Don't show notification if player is already viewing Sawyer's chat
+      if (activeId === 'sawyer') return;
       const container = document.createElement('div');
       container.id = 'wa-win-notif-sawyer-seq3-'+Date.now();
       container.setAttribute('role','alert');
@@ -696,9 +750,9 @@ function sendMessage(chat) {
   if (!val) return;
   // Block Sawyer chat after seq 4? allow free send but Sawyer won't answer
   const isSawyerPostSeq = chat.id === 'sawyer' && sawyerSeq === 4;
-  chat.messages.push({ id: 'm'+Date.now(), from: 'you', text: val, time: new Date().toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'}), read: 'sent', type: 'text' });
+  chat.messages.push({ id: 'm'+Date.now(), from: 'you', text: val, time: '今天', ts: Date.now(), read: 'sent', type: 'text' });
   chat.preview = val;
-  chat.lastTime = '剛剛';
+  chat.lastTime = '今天';
   chat.unread = 0;
   inp.value = '';
   trackWhatsappSent(chat.id, val);
@@ -723,9 +777,9 @@ export function triggerCh1Event1() {
   if (!c) return;
   // Add tree message from Sawyer after 10 sec
   setTimeout(() => {
-    c.messages.push({ id: 'm-tree-' + Date.now(), from: 'Sawyer', text: '聽從風水師建議，已在 Lobby 擺放一棵發財樹擋災，請大家切勿觸碰，否則運氣會散。', time: '剛剛', read: 'delivered', type: 'text' });
+    c.messages.push({ id: 'm-tree-' + Date.now(), from: 'Sawyer', text: '聽從風水師建議，已在 Lobby 擺放一棵發財樹擋災，請大家切勿觸碰，否則運氣會散。', time: '今天', ts: Date.now(), read: 'delivered', type: 'text' });
     c.preview = 'Sawyer: 聽從風水師建議，已在 Lobby 擺放';
-    c.lastTime = '剛剛';
+    c.lastTime = '今天';
     c.unread = (c.unread || 0) + 1;
     persistWhatsApp();
     window.dispatchEvent(new CustomEvent('whatsapp:newMessage', { detail: { chatId: 'nori-all' } }));
@@ -735,9 +789,9 @@ export function triggerCh1Event1() {
     }
     // Add follow-up image message from Sawyer under the text (office.png)
     setTimeout(() => {
-      c.messages.push({ id: 'm-tree-img-' + Date.now(), from: 'Sawyer', text: '', media: `${import.meta.env.BASE_URL}assets/data/files/office.png`, type: 'image', time: '剛剛', read: 'delivered' });
+      c.messages.push({ id: 'm-tree-img-' + Date.now(), from: 'Sawyer', text: '', media: `${import.meta.env.BASE_URL}assets/data/files/office.png`, type: 'image', time: '今天', ts: Date.now(), read: 'delivered' });
       c.preview = 'Sawyer: [圖片]';
-      c.lastTime = '剛剛';
+      c.lastTime = '今天';
       c.unread = (c.unread || 0) + 1;
       persistWhatsApp();
       window.dispatchEvent(new CustomEvent('whatsapp:newMessage', { detail: { chatId: 'nori-all' } }));
@@ -796,15 +850,15 @@ export function triggerCh1Event2() {
   if (ch1Event2Triggered) return;
   ch1Event2Triggered = true;
   persistWhatsApp();
-  const c = chats.find(x => x.id === 'dev-team');
+  const c = chats.find(x => x.id === 'maggie');
   if (!c) return;
   setTimeout(() => {
-    c.messages.push({ id: 'm-0043-' + Date.now(), from: 'Maggie', text: 'Hi @Casey, 有新的工單 INV-2024-0043, 請協助處理一下', time: '剛剛', read: 'delivered', type: 'text' });
+    c.messages.push({ id: 'm-0043-' + Date.now(), from: 'Maggie', text: 'Hi @Casey, 有新的工單 INV-2024-0043, 請協助處理一下', time: '今天', ts: Date.now(), read: 'delivered', type: 'text' });
     c.preview = 'Hi @Casey, 有新的工單 INV-2024-0043';
-    c.lastTime = '剛剛';
+    c.lastTime = '今天';
     c.unread = (c.unread || 0) + 1;
     persistWhatsApp();
-    window.dispatchEvent(new CustomEvent('whatsapp:newMessage', { detail: { chatId: 'dev-team' } }));
+    window.dispatchEvent(new CustomEvent('whatsapp:newMessage', { detail: { chatId: 'maggie' } }));
     // Add Jira ticket
     import('../jira/index.js').then(m => {
       if (m.addTicket0043) m.addTicket0043();
@@ -818,7 +872,9 @@ export function triggerCh1Event2() {
       renderList();
     }
     // Pop up at right bottom like initial ch0 — respect mute
-    if (isChatMuted('dev-team')) return;
+    if (isChatMuted('maggie')) return;
+    // Don't show notification if player is already viewing Maggie's private chat
+    if (activeId === 'maggie') return;
     const container = document.createElement('div');
     container.id = 'wa-win-notification-maggie-0043';
     container.setAttribute('role', 'alert');
@@ -826,7 +882,7 @@ export function triggerCh1Event2() {
       <div class="win-notif__app">
         <img src="${import.meta.env.BASE_URL}icon/whatsup.svg" alt="WhatUp" width="20" height="20" style="width:20px;height:20px;object-fit:contain" />
         <span class="win-notif__app-name">WhatUp</span>
-        <span class="win-notif__app-sub">Dev Team</span>
+        <span class="win-notif__app-sub">主管 - Maggie</span>
         <button class="win-notif__close" aria-label="關閉">✕</button>
       </div>
       <div class="win-notif__body">
@@ -846,7 +902,7 @@ export function triggerCh1Event2() {
       import('../../ui/dock.js').then(dock => {
         if (dock.setActiveView) { dock.setActiveView('whatsapp'); localStorage.setItem('cc_active_view', 'whatsapp'); }
       });
-      openChat('dev-team');
+      openChat('maggie');
     });
     container.querySelector('.win-notif__close')?.addEventListener('click', (e) => { e.stopPropagation(); container.remove(); });
     document.body.appendChild(container);
