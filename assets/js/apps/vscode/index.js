@@ -11,6 +11,20 @@ let termHistory = [];
 let termHistIdx = -1;
 let termDraft = '';
 
+// 無關謎題的檔案（INV-2024-0017 / INV-2024-0033 / INV-2024-0039）從 Vizual 隱藏，避免玩家誤追
+const EXCLUDED_TICKET_FILES = new Set([
+  // INV-2024-0017 官網首頁文案顯示錯誤
+  '/customer-portal/src/frontend/src/pages/Home.jsx',
+  // INV-2024-0033 報表顯示金額錯誤
+  '/customer-portal/src/main/java/com/nori/controller/OrderController.java',
+  '/customer-portal/scripts/reconcile.py',
+  // INV-2024-0039 Payment Gateway Integration v3
+  '/customer-portal/src/payment/gateway.js',
+  '/customer-portal/src/main/java/com/nori/service/PaymentService.java',
+  '/customer-portal/src/main/java/com/nori/controller/PaymentController.java',
+]);
+function isExcludedFromVzcode(p) { return EXCLUDED_TICKET_FILES.has(p); }
+
 // Editable tracking
 const editedFiles = new Map(); // path -> edited content string
 let originalSearchBarSnapshot = null; // captured at mount to allow revert via git graph
@@ -538,7 +552,10 @@ function renderTree(filter = '') {
   const tree = vfs.buildTree();
   // Vizual Studio Code 僅顯示公司官網系統（/customer-portal 與 /file-system），隱藏內網 /intranet
   const VISIBLE_ROOTS = ['/file-system', '/customer-portal'];
-  function isVisiblePath(p) { return VISIBLE_ROOTS.some(r => p === r || p.startsWith(r + '/')); }
+  function isVisiblePath(p) {
+    if (isExcludedFromVzcode(p)) return false;
+    return VISIBLE_ROOTS.some(r => p === r || p.startsWith(r + '/'));
+  }
   function renderNode(node, depth = 0) {
     if (!isVisiblePath(node.path) && node.path !== '/file-system' && node.path !== '/customer-portal') {
       // 過濾非 file-system/customer-portal 的頂層節點由外層 map 已處理，此處僅處理子節點遞迴
@@ -575,7 +592,7 @@ function renderTree(filter = '') {
 function renderTabs() {
   const tabs = document.getElementById('vsTabs');
   if (!tabs) return;
-  const files = vfs.listFiles('/customer-portal').slice(0, 8);
+  const files = vfs.listFiles('/customer-portal').filter(f => !isExcludedFromVzcode(f.path)).slice(0, 8);
   if (!files.some(f => f.path === currentFile) && currentFile !== GIT_GRAPH_PATH) {
     const cur = vfs.getFile(currentFile);
     if (cur) files.unshift({ path: currentFile, ...cur });
@@ -744,6 +761,12 @@ function renderCSVTableHTML(path, content) {
 
 // --- Editor: editable textarea ---
 function openFile(path) {
+  // 隱藏的無關票據檔案不應被開啟
+  if (isExcludedFromVzcode(path)) {
+    const editor = document.getElementById('vsEditor');
+    if (editor) editor.innerHTML = '<div class="editor__lines" style="padding:16px;color:var(--fg-muted)">檔案不存在或尚未解鎖 — 嘗試 Search 搜尋 "Sawyer" 或觸發隱藏邏輯</div>';
+    return;
+  }
   // Git Graph virtual file
   if (path === GIT_GRAPH_PATH) {
     currentFile = path;
@@ -1250,7 +1273,7 @@ function handleTerminalKey(e) {
 }
 function tabComplete(prefix) {
   const cmds = ['help','ls','cat ','grep ','git log','git diff','git blame','clear','echo '];
-  const files = vfs.listFiles('/customer-portal').map(f=>f.path);
+  const files = vfs.listFiles('/customer-portal').filter(f => !isExcludedFromVzcode(f.path)).map(f=>f.path);
   const all = [...cmds, ...files, ...files.map(f=>f.split('/').pop())];
   if (!prefix) return prefix;
   const hit = all.find(c => c.startsWith(prefix));
@@ -1272,11 +1295,11 @@ function runTerminalCmd(raw) {
       appendTerminal('範例: cat /customer-portal/src/main/java/com/nori/OrderService.java');
       break;
     case 'ls': {
-      // Vizual Studio Code 僅顯示公司官網系統（/customer-portal + /file-system），過濾內網資料
+      // Vizual Studio Code 僅顯示公司官網系統（/customer-portal + /file-system），過濾內網資料及無關票據檔案
       const p = args[0] || '/customer-portal';
       if (p.startsWith('/intranet') || p === '/intranet') { appendTerminal(`ls: ${p}: 權限不足（內網資料已從 Vizual Studio Code 隱藏）`); break; }
       const raw = vfs.listFiles(p);
-      const list = raw.filter(f => f.path.startsWith('/customer-portal'));
+      const list = raw.filter(f => f.path.startsWith('/customer-portal') && !isExcludedFromVzcode(f.path));
       if (!list.length) appendTerminal(`ls: ${p}: No such directory`);
       else list.slice(0, 20).forEach(f => appendTerminal(f.path));
       if (list.length > 20) appendTerminal(`... ${list.length-20} more`);
@@ -1286,6 +1309,7 @@ function runTerminalCmd(raw) {
       const p = args[0];
       if (!p) { appendTerminal('cat: 缺少檔案路徑'); break; }
       if (p.startsWith('/intranet')) { appendTerminal(`cat: ${p}: 權限不足（內網資料已從 Vizual Studio Code 隱藏，僅顯示官網系統）`); break; }
+      if (isExcludedFromVzcode(p) || isExcludedFromVzcode('/customer-portal' + (p.startsWith('/')?'':'/') + p)) { appendTerminal(`cat: ${p}: 檔案不存在或尚未解鎖`); break; }
       const c = vfs.readFile(p) || vfs.readFile('/customer-portal' + (p.startsWith('/')?'':'/') + p);
       if (c == null) appendTerminal(`cat: ${p}: 檔案不存在或尚未解鎖`);
       else c.split('\n').slice(0, 80).forEach(l => appendTerminal(l));
@@ -1294,7 +1318,7 @@ function runTerminalCmd(raw) {
     case 'grep': {
       const q = argStr || args[0];
       if (!q) { appendTerminal('grep: 缺少關鍵字'); break; }
-      const hits = vfs.searchContent(q).filter(h => h.path.startsWith('/customer-portal'));
+      const hits = vfs.searchContent(q).filter(h => h.path.startsWith('/customer-portal') && !isExcludedFromVzcode(h.path));
       if (!hits.length) appendTerminal(`grep: "${q}" 無結果（僅搜尋 customer-portal/file-system 官網系統）`);
       else { appendTerminal(`grep "${q}" 找到 ${hits.length} 筆:`); hits.slice(0, 10).forEach(h => appendTerminal(`${h.path}: ${h.snippet.slice(0,80)}...`)); }
       // 420.69 hint 已移除，現由暗網 hash 觸發
@@ -1377,7 +1401,7 @@ function renderQuickOpen(query) {
   const list = document.getElementById('quickOpenList');
   if (!list) return;
   const q = (query || '').trim().toLowerCase();
-  let files = vfs.listFiles('/customer-portal');
+  let files = vfs.listFiles('/customer-portal').filter(f => !isExcludedFromVzcode(f.path));
   let lineJump = null;
   if (q.includes(':')) {
     const [fq, ln] = q.split(':');
