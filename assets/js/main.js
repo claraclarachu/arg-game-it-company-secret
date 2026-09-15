@@ -365,9 +365,32 @@ function showEnding(ending) {
 function bindEnding() {
   document.getElementById('endingRestart')?.addEventListener('click', async () => {
     bgm.stop(false);
+    // Preserve achievement / persistentStats across replay — do NOT wipe localStorage after reset
+    // state.reset() already merges current endings into persistentStats.unlockedEndings and saves
+    let savedPersistent = null;
+    try { savedPersistent = JSON.parse(JSON.stringify(state.get('persistentStats') || {})); } catch {}
     try { state.reset(); } catch {}
-    try { localStorage.removeItem('code_conspiracy_state'); } catch {}
-    try { localStorage.clear(); } catch {}
+    // state.reset() already saved persistentStats; ensure it is not cleared by stale remove/clear calls
+    // re-assert persistentStats in case any legacy clear logic runs (keep for safety)
+    try {
+      if (savedPersistent) {
+        const cur = state.get('persistentStats') || {};
+        // merge saved into current (in case reset was called before we captured)
+        const merged = {
+          unlockedEndings: [...new Set([...(cur.unlockedEndings||[]), ...(savedPersistent.unlockedEndings||[])])],
+          readArticles: [...new Set([...(cur.readArticles||[]), ...(savedPersistent.readArticles||[])])],
+          darkFileCount: Math.max(cur.darkFileCount||0, savedPersistent.darkFileCount||0),
+          whatsappSentCount: Math.max(cur.whatsappSentCount||0, savedPersistent.whatsappSentCount||0),
+          searchHistoryCount: Math.max(cur.searchHistoryCount||0, savedPersistent.searchHistoryCount||0),
+          flags: { ...(cur.flags||{}), ...(savedPersistent.flags||{}) }
+        };
+        state.set('persistentStats', merged);
+        // legacy mirror for old notebook reads
+        state.set('unlockedEndings', merged.unlockedEndings);
+      }
+    } catch {}
+    // Do NOT clear code_conspiracy_state — it now contains persistentStats. Only clear unrelated keys if needed.
+    // Remove the previous destructive clears that wiped achievements.
     const screen = document.getElementById('endingScreen');
     if (screen) screen.style.display = 'none';
     // Close any open dialogs

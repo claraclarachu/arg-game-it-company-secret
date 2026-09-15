@@ -1,4 +1,5 @@
 import { state } from '../core/state.js';
+import { vfs } from '../core/vfs.js';
 
 // REVAMP_PLAN §4: 5 chapters + onboarding
 const chapterNames = ['教學', '異常發現', '自由探索', '暗網入口', '秘密曝光', '抉擇'];
@@ -30,7 +31,8 @@ function formatPlaytime(sec) {
 function getAchievements() {
   const readArticles = state.get('readArticles') || [];
   const discovered = state.get('discoveredFiles') || [];
-  const endings = state.get('unlockedEndings') || [];
+  // endings are stored as `endings` (main.js), legacy `unlockedEndings` kept for migration
+  const endings = state.get('endings') || state.get('unlockedEndings') || [];
   const sent = state.get('whatsappSentCount') || 0;
   const ps = state.get('persistentStats') || {};
   const psReadArticles = ps.readArticles || [];
@@ -83,7 +85,12 @@ function getAchievements() {
     'https://david-blog.example/livehouse-map',
   ]; // 29
 
-  const darkTotal = 10;
+  // dynamic total so sidebar / file changes auto-sync (currently 10 files, but fallback 10)
+  let darkTotal = 10;
+  try {
+    const allDark = vfs.listDarkFiles ? vfs.listDarkFiles('/darknet') : [];
+    if (allDark.length) darkTotal = allDark.length;
+  } catch {}
   const darkCurrent = Math.max(
     discovered.filter(p => p.startsWith('/darknet')).length,
     psDarkFileCount
@@ -96,7 +103,7 @@ function getAchievements() {
   const allReadArticles = [...new Set([...readArticles, ...psReadArticles])];
   const mergedSent = Math.max(sent, psWhatsappSentCount);
   const mergedSearchCount = Math.max((state.get('searchHistory') || []).length, psSearchHistoryCount);
-  const mergedEndings = [...new Set([...endings, ...(ps.unlockedEndings || [])])];
+  const mergedEndings = [...new Set([...endings, ...(state.get('unlockedEndings') || []), ...(ps.unlockedEndings || [])])];
 
   const all = [
     {
@@ -209,7 +216,10 @@ function renderNotebook() {
   const ch = state.get('currentChapter') ?? 0;
   const ach = getAchievements();
   const doneAch = ach.filter(a=>a.done).length;
-  const endings = state.get('unlockedEndings') || [];
+  // use merged endings so progress survives replay and legacy key
+  const psUnlocked = (state.get('persistentStats')?.unlockedEndings) || [];
+  const rawEndings = state.get('endings') || state.get('unlockedEndings') || [];
+  const endings = [...new Set([...rawEndings, ...psUnlocked])];
   // Build endings grid — 2 columns × 5 rows, larger cards to show full title
   const endingsCarouselHtml = (() => {
     const cards = endingsMeta.map(meta => {
@@ -321,9 +331,26 @@ function renderNotebook() {
         dlg.style.removeProperty('display');
         dlg.removeAttribute('open');
       }
+      // Preserve achievement / persistentStats — state.reset() already merges and saves them
+      let savedPersistentNb = null;
+      try { savedPersistentNb = JSON.parse(JSON.stringify(state.get('persistentStats') || {})); } catch {}
       try { state.reset(); } catch {}
-      try { localStorage.removeItem('code_conspiracy_state'); } catch {}
-      try { localStorage.clear(); } catch {}
+      try {
+        if (savedPersistentNb) {
+          const cur = state.get('persistentStats') || {};
+          const merged = {
+            unlockedEndings: [...new Set([...(cur.unlockedEndings||[]), ...(savedPersistentNb.unlockedEndings||[])])],
+            readArticles: [...new Set([...(cur.readArticles||[]), ...(savedPersistentNb.readArticles||[])])],
+            darkFileCount: Math.max(cur.darkFileCount||0, savedPersistentNb.darkFileCount||0),
+            whatsappSentCount: Math.max(cur.whatsappSentCount||0, savedPersistentNb.whatsappSentCount||0),
+            searchHistoryCount: Math.max(cur.searchHistoryCount||0, savedPersistentNb.searchHistoryCount||0),
+            flags: { ...(cur.flags||{}), ...(savedPersistentNb.flags||{}) }
+          };
+          state.set('persistentStats', merged);
+          state.set('unlockedEndings', merged.unlockedEndings);
+        }
+      } catch {}
+      // Do NOT wipe code_conspiracy_state — it contains persistentStats. Only clear caches.
       // Clear service worker cache to prevent stale assets on reload
       try {
         if ('caches' in window) {

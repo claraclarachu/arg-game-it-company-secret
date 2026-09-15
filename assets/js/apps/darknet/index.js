@@ -5,7 +5,7 @@ import { escapeHtml } from '../../utils/helpers.js';
 let darkClickCount = 0;
 let darkClickTimer = null;
 let darkEntered = false;
-let currentDarkPath = '/darknet';
+let currentDarkPath = '/darknet/全結構圖';
 let darkViewMode = 'secret'; // 'secret' or 'files'
 let isFromPortal = false; // true only when triggered via intranet portal URL
 
@@ -32,6 +32,8 @@ function getDarkChildren(path) {
 export function mountDarknet() {
   const root = document.getElementById('view-darknet');
   if (!root) return;
+  // remove /darknet root view, default to 全結構圖
+  if (currentDarkPath === '/darknet') currentDarkPath = '/darknet/全結構圖';
   // Always start with SECRET page when triggered via intranet search, even if already entered
   // The check for dark_entered is only for direct view switch, not for search trigger
   // For normal mount (via taskbar), show files if already entered, otherwise secret
@@ -78,8 +80,15 @@ function render() {
     `;
     bindSecret();
   } else {
-    // Files view - show dock again
-    showDock();
+    // Files view - keep dock hidden while portal session active (until 退回內網 / 退出暗網)
+    // remove /darknet root view, default to 全結構圖
+    if (currentDarkPath === '/darknet') currentDarkPath = '/darknet/全結構圖';
+    const hideByFlagFiles = state.hasFlag('dark_secret_active');
+    if ((!darkIsSimplePortal && isFromPortal) || hideByFlagFiles) {
+      hideDock();
+    } else {
+      showDock();
+    }
     const children = getDarkChildren(currentDarkPath);
     const dirs = children.filter(c => c.type === 'dir');
     const files = children.filter(c => c.type === 'file');
@@ -154,6 +163,8 @@ function bindSecret() {
 function enterDarkFiles() {
   darkEntered = true;
   darkViewMode = 'files';
+  // default to 全結構圖, remove /darknet root view
+  if (currentDarkPath === '/darknet') currentDarkPath = '/darknet/全結構圖';
   state.setFlag('dark_entered', true);
   state.setFlag('ch3_entered_secret', true);
   // Also set the original portal flags for compatibility
@@ -167,12 +178,14 @@ function renderDarkNav() {
   const el = document.getElementById('darkNav');
   if (!el) return;
   const items = [
-    { path: '/darknet', label: '機密首頁', icon: '🕶️' },
     { path: '/darknet/全結構圖', label: '全結構圖', icon: '🗺️' },
     { path: '/darknet/交易列表', label: '交易列表', icon: '📋' },
     { path: '/darknet/合作公司列表', label: '合作公司', icon: '🏢' },
     { path: '/darknet/流量', label: '流量', icon: '📦' },
     { path: '/darknet/月結單', label: '月結單', icon: '💰' },
+    { path: '/darknet/Sawyer支出', label: 'Sawyer支出', icon: '💸' },
+    { path: '/darknet/出差紀錄', label: '出差紀錄', icon: '✈️' },
+    { path: '/darknet/會議紀錄', label: '會議記錄', icon: '📝' },
   ];
   el.innerHTML = items.map(it => {
     const active = currentDarkPath === it.path || currentDarkPath.startsWith(it.path + '/') ? 'active' : '';

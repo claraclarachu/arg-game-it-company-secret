@@ -179,8 +179,24 @@ let gitGraphCommits = [
   { hash: '4c2a1e0', branch: 'main', author: 'dev', date: '2024-08-01', msg: '(INV-2024-0020) chore: init billing service', diff: `+ export function calculateAmount(items, opts) {}\n+ export function computeFee(amount, opts) {}` },
   { hash: 'c8d3e9f', branch: 'develop', author: 'ops-li', date: '2024-07-28', msg: '(INV-2023-0040) chore: scaffold workspace & payment stubs', diff: `+ workspace/src/payment/gateway.js\n+ workspace/src/payment/mixer.js` },
   { hash: '3f2a9c1', branch: 'feature/home-copyfix', author: 'Parker', date: '2024-02-14', msg: '(INV-2024-0017) fix: correct homepage hero slogan and founded year (2018→2019)', diff: `M /customer-portal/src/frontend/src/pages/Home.jsx\n- <h1>Nori 飲品供應 — 用一杯冰釀茶酒，連結人與希望</h1>\n+ <h1>Nori 飲品供應 — 用一杯冰釀茶酒，連結人與風味</h1>\n- <p>創辦人 蔡梓掦 · 2018 創立</p>\n+ <p>創辦人 蔡梓掦 · 2019 創立</p>` },
-  { hash: 'd4e5f6a', branch: 'main', author: 'dev-chen', date: '2023-11-20', msg: '(INV-2023-0039) refactor: simplify portal auth (remove dynamic generator)', diff: `- function generateInternalPortalPath(internalPortalDomain){ \n-     const cid = redis.get('companyId'); \n-     const y = redis.get('year'); \n-     const k = import.meta.env.MD5_KEY; \n-     return internalPortalDomain + '?hash=' + md5(\`companyId=\${cid}&year=\${y}&key=\${k}\`); \n-     }` },
+  { hash: 'd4e5f6a', branch: 'main', author: 'dev-chen', date: '2023-11-20', msg: '(INV-2023-0039) refactor: simplify portal auth (remove dynamic generator)', diff: `- function generateInternalPortalPath(internalPortalDomain){ \n-     const cid = redis.get('companyId'); \n-     const y = redis.get('year'); \n-     const k = import.meta.env.MD5_KEY; \n-     return internalPortalDomain + '?hash=' + md5(\`companyId=\${cid}&year=\${y}&key=\${k}\`); // e.g. https://google.com/internal?hash=be78e7542cd6d04e31e80fa8b741aad4\n-     }` },
 ];
+// Ensure git graph d4e5f6a always shows e.g. hash comment even if restored from old localStorage
+function ensureGitGraphExampleComment() {
+  const c = gitGraphCommits.find(x => x.hash === 'd4e5f6a');
+  if (c && !c.diff.includes('e.g. https://google.com/internal?hash=')) {
+    c.diff = c.diff.replace(
+      "md5(`companyId=${cid}&year=${y}&key=${k}`);",
+      "md5(`companyId=${cid}&year=${y}&key=${k}`); // e.g. https://google.com/internal?hash=be78e7542cd6d04e31e80fa8b741aad4"
+    );
+  }
+  const c2 = gitCommits.find(x => x.hash === 'd4e5f6a');
+  if (c2 && c2.diff && !c2.diff.includes('e.g. https://google.com')) {
+    // keep gitCommits in sync if present
+    c2.diff = c.diff;
+  }
+}
+ensureGitGraphExampleComment();
 
 function persistVSCode() {
   try {
@@ -228,6 +244,8 @@ function restoreVSCode() {
       gitGraphCommits.length = 0;
       for (const gc of vs.gitGraphCommits) gitGraphCommits.push(gc);
     }
+    // migrate old saved graph without example comment
+    try { ensureGitGraphExampleComment(); } catch {}
     if (typeof vs.currentFile === 'string' && vs.currentFile) currentFile = vs.currentFile;
     if (typeof vs.activeActivity === 'string') activeActivity = vs.activeActivity;
     if (typeof vs.gitGraphOpen === 'boolean') gitGraphOpen = vs.gitGraphOpen;

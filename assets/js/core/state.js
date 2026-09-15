@@ -100,15 +100,20 @@ class StateManager {
     if (typeof state.whatsappSentCount === 'number') merged.whatsappSentCount = state.whatsappSentCount;
     if (typeof state.currentChapter === 'number') merged.currentChapter = state.currentChapter;
     if (typeof state.playtime === 'number') merged.playtime = state.playtime;
-    // Ensure persistentStats exists and merge
+    // Ensure persistentStats exists and merge — also sync current endings into persistent so achievement shows before first replay
+    const baseUnlocked = Array.isArray(state.persistentStats?.unlockedEndings) ? [...state.persistentStats.unlockedEndings] : [...defaultState.persistentStats.unlockedEndings];
+    const curEndings = Array.isArray(state.endings) ? state.endings : Array.isArray(state.unlockedEndings) ? state.unlockedEndings : [];
+    const mergedUnlocked = [...new Set([...baseUnlocked, ...curEndings])];
     merged.persistentStats = {
-      unlockedEndings: Array.isArray(state.persistentStats?.unlockedEndings) ? [...state.persistentStats.unlockedEndings] : [...defaultState.persistentStats.unlockedEndings],
+      unlockedEndings: mergedUnlocked,
       readArticles: Array.isArray(state.persistentStats?.readArticles) ? [...state.persistentStats.readArticles] : [...defaultState.persistentStats.readArticles],
       darkFileCount: typeof state.persistentStats?.darkFileCount === 'number' ? state.persistentStats.darkFileCount : 0,
       whatsappSentCount: typeof state.persistentStats?.whatsappSentCount === 'number' ? state.persistentStats.whatsappSentCount : 0,
       searchHistoryCount: typeof state.persistentStats?.searchHistoryCount === 'number' ? state.persistentStats.searchHistoryCount : 0,
       flags: { ...(defaultState.persistentStats.flags || {}), ...(state.persistentStats?.flags || {}) }
     };
+    // keep legacy unlockedEndings in sync for old notebook reads
+    if (mergedUnlocked.length) merged.unlockedEndings = [...mergedUnlocked];
     return merged;
   }
 
@@ -145,9 +150,22 @@ class StateManager {
       return obj[key];
     }, this.state);
     target[lastKey] = value;
+    // keep persistent ending unlocks in sync so notebook shows progress immediately and survives replay
+    if (path === 'endings' && Array.isArray(value)) {
+      if (!this.state.persistentStats) this.state.persistentStats = JSON.parse(JSON.stringify(defaultState.persistentStats));
+      const ps = this.state.persistentStats;
+      ps.unlockedEndings = [...new Set([...(ps.unlockedEndings || []), ...value])];
+      // legacy mirror
+      this.state.unlockedEndings = [...ps.unlockedEndings];
+    }
+    if (path === 'unlockedEndings' && Array.isArray(value)) {
+      if (!this.state.persistentStats) this.state.persistentStats = JSON.parse(JSON.stringify(defaultState.persistentStats));
+      const ps = this.state.persistentStats;
+      ps.unlockedEndings = [...new Set([...(ps.unlockedEndings || []), ...value])];
+    }
     this.emit('change', { path, value, state: this.state });
     // Critical paths should persist immediately to survive refresh
-    const critical = path.startsWith('flags.') || path === 'currentChapter' || path === 'endings' || path.startsWith('endings') || path === 'readArticles' || path.startsWith('readArticles') || path === 'whatsappSentCount';
+    const critical = path.startsWith('flags.') || path === 'currentChapter' || path === 'endings' || path.startsWith('endings') || path === 'unlockedEndings' || path.startsWith('unlockedEndings') || path === 'persistentStats' || path.startsWith('persistentStats') || path === 'readArticles' || path.startsWith('readArticles') || path === 'whatsappSentCount';
     if (critical) this.save(true);
     else this.save();
   }
