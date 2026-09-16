@@ -1,6 +1,7 @@
 import { state } from '../../core/state.js';
 import { events } from '../../core/events.js';
 import { escapeHtml } from '../../utils/helpers.js';
+import { trackWhatsappSend } from '../../core/analytics.js';
 
 const chats = [
   {
@@ -727,6 +728,7 @@ function sendMessage(chat) {
     chat.unread = 0;
     sawyerSeq = 2;
     trackWhatsappSent(chat.id, lockedText);
+    try{ trackWhatsappSend({ chatId: chat.id, chatName: chat.name, text: lockedText, to: 'Sawyer' }); }catch{}
     persistWhatsApp();
     renderChat(chat.id);
     renderList();
@@ -769,6 +771,7 @@ function sendMessage(chat) {
     chat.lastTime = '今天';
     chat.unread = 0;
     trackWhatsappSent(chat.id, lockedText);
+    try{ trackWhatsappSend({ chatId: chat.id, chatName: chat.name, text: lockedText, to: 'Sawyer' }); }catch{}
     persistWhatsApp();
     renderChat(chat.id);
     renderList();
@@ -811,6 +814,7 @@ function sendMessage(chat) {
   chat.unread = 0;
   inp.value = '';
   trackWhatsappSent(chat.id, val);
+  try{ trackWhatsappSend({ chatId: chat.id, chatName: chat.name, text: val, to: chat.name }); }catch{}
   persistWhatsApp();
   renderChat(chat.id);
   renderList();

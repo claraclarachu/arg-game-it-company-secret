@@ -7,7 +7,7 @@
   <title>聽日辭職 — ARG</title>
   <link rel="manifest" href="/arg-game-it-company-secret/manifest.json" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
-  <script type="module" crossorigin src="/arg-game-it-company-secret/assets/main-DAj_aoFV.js"></script>
+  <script type="module" crossorigin src="/arg-game-it-company-secret/assets/main-Cav9IA6Z.js"></script>
   <link rel="stylesheet" crossorigin href="/arg-game-it-company-secret/assets/main-Bzrrc_Yq.css">
 </head>
 <body>
@@ -48,6 +48,21 @@
           <button id="btnExport" class="btn">匯出存檔</button>
           <label class="btn" style="cursor:pointer">匯入存檔 <input id="btnImport" type="file" accept=".json" hidden /></label>
           <button id="btnReset" class="btn" style="color:var(--error)">重置進度</button>
+        </div>
+        <div style="margin-top:10px;border:1px solid var(--border);border-radius:8px;padding:10px;background:var(--bg-primary)">
+          <div style="font-weight:600;font-size:13px">數據追蹤（Google Sheets）</div>
+          <div class="small muted" style="margin-top:4px;line-height:1.6">同意後才會上報 WhatUp/Email/結局/章節至你的 GAS。1 per month 免費。可在 gas/README.md 查看部署。</div>
+          <label style="display:flex;align-items:center;gap:8px;margin-top:8px;font-size:13px"><input id="analyticsConsentToggle" type="checkbox" /> 同意匿名收集</label>
+          <label style="display:block;margin-top:8px;font-size:12px">GAS Web App URL
+            <input id="analyticsGasUrl" class="input" placeholder="https://script.google.com/macros/s/.../exec" style="margin-top:4px;width:100%" />
+          </label>
+          <div style="display:flex;gap:8px;margin-top:8px">
+            <button id="analyticsSaveBtn" class="btn small">儲存</button>
+            <button id="analyticsTestBtn" class="btn small">測試發送</button>
+            <button id="analyticsFlushBtn" class="btn small">補送佇列</button>
+            <span id="analyticsStatus" class="small muted" style="align-self:center"></span>
+          </div>
+          <div class="small muted" style="margin-top:6px">佇列: <span id="analyticsQueueCount">0</span> 筆 · Session: <span id="analyticsSessionId">-</span></div>
         </div>
         <details style="margin-top:8px;border:1px solid var(--border);border-radius:8px;padding:8px;background:var(--bg-primary)">
           <summary style="cursor:pointer;font-weight:600;font-size:13px">鍵盤快捷鍵映射</summary>
@@ -151,6 +166,18 @@
       </div>
     </div>
   </dialog>
+
+  <!-- Analytics consent banner -->
+  <div id="analyticsBanner" style="display:none;position:fixed;left:12px;right:12px;bottom:72px;max-width:560px;margin:0 auto;background:var(--bg-secondary);color:var(--fg-primary);border:1px solid var(--border);border-radius:12px;box-shadow:0 12px 32px rgba(0,0,0,.4);z-index:1250;padding:14px 16px;gap:12px;align-items:center">
+    <div style="flex:1;min-width:0">
+      <div style="font-weight:700;font-size:13px">是否同意匿名收集遊戲數據？</div>
+      <div class="small muted" style="margin-top:4px;line-height:1.6">用於改善遊戲體驗，僅收集 WhatUp 發送內容预览/去識別hash、Email 標題與內文預覽、解鎖結局與章節。資料寫入你的 Google Sheets，不含 IP。1 per month 免費。可在設定中隨時開關。</div>
+    </div>
+    <div style="display:flex;gap:8px;flex-shrink:0">
+      <button id="analyticsDecline" class="btn">不同意</button>
+      <button id="analyticsAccept" class="btn primary">同意</button>
+    </div>
+  </div>
 
   <!-- Ending Screen - black screen + typing dialog -->
   <div id="endingScreen" style="display:none;position:fixed;inset:0;background:#000;z-index:1300;align-items:center;justify-content:center;padding:20px">

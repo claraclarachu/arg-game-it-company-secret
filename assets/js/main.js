@@ -14,6 +14,7 @@ import { mountSearch } from './apps/search/index.js';
 import { mountIntranet } from './apps/intranet/index.js';
 import '../css/blog.css';
 import { mountDarknet } from './apps/darknet/index.js';
+import { initAnalytics, getConsent, setConsent, hasConsentChoice, getGasUrl, setGasUrl, isGasConfigured, flushQueue, track as analyticsTrack, trackEmailSubmit, trackEnding, trackChapter, getSessionId } from './core/analytics.js';
 
 function applyTheme() {
   const theme = state.get('settings.theme') || 'dark';
@@ -196,6 +197,9 @@ function bindMail() {
   send?.addEventListener('click', () => {
     const v = title?.value;
     const body = document.getElementById('mailBody')?.value || '';
+    const toVal = document.getElementById('mailTo')?.value || '';
+    // 數據追蹤：Email 提交（完整去識別後寫入 Sheets）
+    try{ trackEmailSubmit({ title: v, to: toVal, body }); }catch{}
     let ending = null;
     if (v === 'Report') ending = 'report';
     else if (v === 'Coperation') ending = 'cooperate';
@@ -207,6 +211,9 @@ function bindMail() {
         state.set('endings', endings);
         state.setFlag('ending_' + ending, true);
       }
+      try{ trackEnding(ending); }catch{}
+    } else {
+      try{ analyticsTrack('email_submit_no_ending', { email_title: v, email_body_preview: body.slice(0,80) }); }catch{}
     }
     dialog?.close();
     renderDock({ onSwitch: switchView, onOpenSettings: openSettings, onOpenNotebook: openNotebook, t });
@@ -269,6 +276,7 @@ function handleShutdown(action) {
     allEndings.push(ending);
     state.set('endings', allEndings);
   }
+  try{ trackEnding(ending); analyticsTrack('shutdown', { action, ending }); }catch{}
   showEnding(ending);
 }
 
@@ -476,11 +484,73 @@ function bindSettingsFullscreen() {
   });
 }
 
+function bindAnalytics(){
+  const banner = document.getElementById('analyticsBanner');
+  const accept = document.getElementById('analyticsAccept');
+  const decline = document.getElementById('analyticsDecline');
+  const toggle = document.getElementById('analyticsConsentToggle');
+  const gasInput = document.getElementById('analyticsGasUrl');
+  const saveBtn = document.getElementById('analyticsSaveBtn');
+  const testBtn = document.getElementById('analyticsTestBtn');
+  const flushBtn = document.getElementById('analyticsFlushBtn');
+  const status = document.getElementById('analyticsStatus');
+  const queueEl = document.getElementById('analyticsQueueCount');
+  const sidEl = document.getElementById('analyticsSessionId');
+
+  // Banner: show only if no choice yet
+  try{
+    if(banner && !hasConsentChoice()){
+      banner.style.display = 'flex';
+    }
+  }catch{}
+
+  const refreshStatus = () => {
+    try{
+      const q = JSON.parse(localStorage.getItem('cc_analytics_queue') || '[]');
+      if(queueEl) queueEl.textContent = String(q.length);
+      if(sidEl) sidEl.textContent = getSessionId().slice(0,8);
+      if(status){
+        if(!isGasConfigured()) status.textContent = '尚未設定 GAS URL';
+        else if(!getConsent()) status.textContent = '已設定，等待同意';
+        else status.textContent = '就緒';
+      }
+      if(toggle) toggle.checked = getConsent();
+      if(gasInput) gasInput.value = getGasUrl().includes('REPLACE') ? '' : getGasUrl();
+    }catch{}
+  };
+  refreshStatus();
+
+  accept?.addEventListener('click', ()=>{ setConsent(true); if(banner) banner.style.display='none'; refreshStatus(); toast('已啟用匿名數據收集'); flushQueue(); });
+  decline?.addEventListener('click', ()=>{ setConsent(false); if(banner) banner.style.display='none'; refreshStatus(); toast('已拒絕數據收集'); });
+  toggle?.addEventListener('change', (e)=>{ setConsent(e.target.checked); refreshStatus(); toast(e.target.checked ? '已啟用' : '已停用'); });
+  saveBtn?.addEventListener('click', ()=>{
+    const v = gasInput?.value.trim() || '';
+    if(v && !v.startsWith('https://script.google.com/')){ if(status) status.textContent='URL 需為 https://script.google.com/.../exec'; return; }
+    setGasUrl(v);
+    refreshStatus();
+    toast('已儲存 GAS URL');
+  });
+  testBtn?.addEventListener('click', ()=>{
+    if(!isGasConfigured()){ toast('請先設定 GAS URL'); return; }
+    if(!getConsent()){ toast('請先同意收集'); return; }
+    analyticsTrack('test_ping', { payload_json: JSON.stringify({test:true}) });
+    setTimeout(()=>{ refreshStatus(); toast('已發送測試，查看 Sheets'); }, 600);
+  });
+  flushBtn?.addEventListener('click', ()=>{ flushQueue(); refreshStatus(); toast('已嘗試補送'); setTimeout(refreshStatus, 800); });
+
+  // Keep queue count live
+  setInterval(refreshStatus, 2000);
+  // Expose for debug
+  try{ window.__analyticsRefresh = refreshStatus; }catch{}
+}
+
 function init() {
   applyTheme();
   renderDock({ onSwitch: switchView, onOpenSettings: openSettings, onOpenNotebook: openNotebook, t });
   bindSettings();
   bindSettingsFullscreen();
+  try{ initAnalytics(); }catch{}
+  bindAnalytics();
   mountAll();
   const last = localStorage.getItem('cc_active_view') || 'vscode';
   switchView(state.get('unlockedInterfaces').includes(last) ? last : 'vscode');
@@ -496,10 +566,10 @@ function init() {
   }
   // Show Windows-style WhatUp notification shortly after load
   setTimeout(() => showMaggieNotification(), 800);
-  events.on('puzzle:solved', p => { toast('✓ ' + p.title); });
-  events.on('interfaceUnlocked', id => { toast(t('toast.unlocked') + ': ' + id); renderDock({ onSwitch: switchView, onOpenSettings: openSettings, onOpenNotebook: openNotebook, t   });
+  events.on('puzzle:solved', p => { toast('✓ ' + p.title); try{ analyticsTrack('puzzle_solved', { puzzle: p.id, chapter: p.chapter }); }catch{} });
+  events.on('interfaceUnlocked', id => { toast(t('toast.unlocked') + ': ' + id); renderDock({ onSwitch: switchView, onOpenSettings: openSettings, onOpenNotebook: openNotebook, t   }); try{ analyticsTrack('interface_unlocked', { iface: id }); }catch{}
 });
-  events.on('evidence', e => { toast(t('toast.evidence') + ': ' + e.title); });
+  events.on('evidence', e => { toast(t('toast.evidence') + ': ' + e.title); try{ analyticsTrack('evidence_collected', { evidence: e.id }); }catch{} });
   state.on('change', () => applyTheme());
   // Auto-popup email after ch4 (darknet all files opened and exited)
   window.addEventListener('ch4:complete', () => {
@@ -567,6 +637,13 @@ function init() {
           if (m.triggerCh2LunchSequence) m.triggerCh2LunchSequence();
         });
       }, 600);
+    }
+    // 數據追蹤：章節 / 暗網入口
+    if (e && e.path === 'currentChapter') {
+      try{ trackChapter(e.value); analyticsTrack('chapter_progress', { chapter: e.value }); }catch{}
+    }
+    if (e && e.path && e.path.includes('ch4_all_opened') && e.value) {
+      try{ analyticsTrack('ch4_all_opened', { chapter: 4 }); }catch{}
     }
   });
   // Also check on load if ch0 already done but Event1 not yet triggered (for reload case)
