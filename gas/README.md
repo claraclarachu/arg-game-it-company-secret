@@ -17,14 +17,33 @@
 5. 具有存取權的使用者：`所有人`（**必須**，否則 GitHub Pages 會被擋 CORS）
 6. 按「部署」→ 授權 → 複製 `https://script.google.com/macros/s/AKf.../exec` 即 `GAS_URL`
 
-## 4. 前端設定
-- **方式 A (推薦) — Vite 環境變數**：在 GitHub Repo Settings → Secrets → `VITE_GAS_URL` 貼上 exec URL；`vite.config.js` 已讀 `import.meta.env.VITE_GAS_URL`
-- **方式 B — 手動貼上**：在遊戲內 Settings 底部「數據追蹤」輸入框貼上，或瀏覽器 Console 執行：
+## 4. 前端設定（三選一，優先度 B > C > A）
+
+- **方式 B — 遊戲內設定面板（最快，無需重新部署）**：部署後打開遊戲 → 右下齒輪 設定 → 底部「數據追蹤」輸入框貼上 exec URL → 儲存 → 按「測試發送」→ Sheets 立刻多一列。此方式寫入 `localStorage cc_gas_url`，優先於建置變數。
   ```js
+  // 或在瀏覽器 Console 執行：
   localStorage.setItem('cc_gas_url','https://script.google.com/macros/s/.../exec')
   location.reload()
   ```
-- 檢查：Console 執行 `__analytics.isGasConfigured()` 應回 `true`，`__analytics.getGasUrl()` 顯示你的 URL
+
+- **方式 C — 執行時全域變數**：在 `index.html` `<head>` 內加入（適合不重建就換 URL）：
+  ```html
+  <script>window.__GAS_URL='https://script.google.com/macros/s/.../exec'</script>
+  ```
+
+- **方式 A — Vite 環境變數 + GitHub Secrets（推薦用於正式部署，建置時注入）**：
+  1. GitHub Repo → Settings → Secrets and variables → Actions → New repository secret
+  2. 名稱 **必須** 輸入 `VITE_GAS_URL`（`VITE_` 前綴是 Vite 規定，少一個字都不會注入）
+  3. 值貼上 `https://script.google.com/macros/s/.../exec`
+  4. 本專案已附 `.github/workflows/deploy.yml`，推送到 `master` 時會以 `VITE_GAS_URL: ${{ secrets.VITE_GAS_URL }}` 執行 `npm run build`，自動部署到 `gh-pages`
+  5. **注意**：若你本地執行 `npm run deploy`（`gh-pages -d dist`），Secrets **不會**自動生效，必須本地 `VITE_GAS_URL=https://... npm run build && npm run deploy`；或改用推送觸發 Actions
+
+- 檢查（三種方式皆可用 Console 驗證）：
+  ```js
+  __analytics.getGasUrl()        // 應顯示你的 exec URL，而非 REPLACE_WITH_YOUR_DEPLOY_ID
+  __analytics.isGasConfigured()  // 應回 true
+  __analytics.ENV_GAS_URL        // 若用方式 A，此處會有值；若只用 B/C，此處為 (empty) 屬正常
+  ```
 
 ## 5. 驗證
 ```bash

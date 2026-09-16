@@ -510,12 +510,30 @@ function bindAnalytics(){
       if(queueEl) queueEl.textContent = String(q.length);
       if(sidEl) sidEl.textContent = getSessionId().slice(0,8);
       if(status){
-        if(!isGasConfigured()) status.textContent = '尚未設定 GAS URL';
-        else if(!getConsent()) status.textContent = '已設定，等待同意';
-        else status.textContent = '就緒';
+        if(!isGasConfigured()) status.textContent = '尚未設定 GAS URL（需部署時設定 VITE_GAS_URL，其他玩家才會自動生效）';
+        else if(!getConsent()) status.textContent = '已設定，等待玩家同意';
+        else status.textContent = '就緒（所有玩家自動共用此 URL，無需各自輸入）';
       }
       if(toggle) toggle.checked = getConsent();
-      if(gasInput) gasInput.value = getGasUrl().includes('REPLACE') ? '' : getGasUrl();
+      if(gasInput){
+        // 若由建置時 VITE_GAS_URL 注入，所有玩家共用，玩家無需各自輸入
+        let envHas = false;
+        try{ envHas = !!import.meta.env.VITE_GAS_URL; }catch{}
+        if(isGasConfigured()){
+          gasInput.value = getGasUrl();
+          gasInput.disabled = false;
+          if(envHas){
+            try{ if(!localStorage.getItem('cc_gas_url')) gasInput.title = '已由 GitHub Secrets VITE_GAS_URL 注入，所有玩家共用，無需各自輸入'; }catch{}
+            gasInput.placeholder = '已由部署設定（所有玩家自動共用）';
+          } else {
+            gasInput.placeholder = 'https://script.google.com/macros/s/.../exec';
+          }
+        } else {
+          gasInput.value = '';
+          gasInput.disabled = false;
+          gasInput.placeholder = 'https://script.google.com/macros/s/.../exec';
+        }
+      }
     }catch{}
   };
   refreshStatus();

@@ -1,0 +1,37 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      - name: Build
+        run: npm run build
+        env:
+          # 必須命名為 VITE_GAS_URL（Vite 只有 VITE_ 前綴才會注入前端）
+          # 在 GitHub Repo → Settings → Secrets and variables → Actions → New repository secret
+          # 名稱輸入 VITE_GAS_URL，值貼上 https://script.google.com/macros/s/.../exec
+          VITE_GAS_URL: ${{ secrets.VITE_GAS_URL }}
+
+      - name: Deploy to gh-pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./dist
+          # 若你曾用 gh-pages 手動部署，此 action 會覆蓋同分支，無需額外設定

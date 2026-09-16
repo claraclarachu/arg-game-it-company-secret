@@ -5,30 +5,48 @@ import { state } from './state.js';
 // 2. 也可透過 Vite 環境變數 VITE_GAS_URL 注入 (建議用於 GitHub Pages Secrets)
 // 使用 text/plain 避免 CORS 預檢，GAS 以 LockService + appendRow 保證寫入
 
-// 優先順序: 環境變數 > localStorage > 預設佔位
+// 優先順序: localStorage (設定面板) > 執行時 window.__GAS_URL > 環境變數 (建置時) > 預設佔位
 let ENV_GAS_URL = '';
 try { ENV_GAS_URL = import.meta.env.VITE_GAS_URL || ''; } catch {}
-const DEFAULT_PLACEHOLDER = 'https://script.google.com/macros/s/AKfycbwjzxPakm5HKw4hJGJWw7AZmNZSpVR28QCcxmJr7KPKCSjLcG2_Da7LgBuuGJwVruSU/exec';
+// 也支援執行時全域覆蓋，方便在 GitHub Pages 不重新建置就更新
+try { if (typeof window !== 'undefined' && window.__GAS_URL) ENV_GAS_URL = window.__GAS_URL; } catch {}
+const DEFAULT_PLACEHOLDER = 'https://script.google.com/macros/s/REPLACE_WITH_YOUR_DEPLOY_ID/exec';
+const PLACEHOLDER_MARKER = 'REPLACE_WITH_YOUR_DEPLOY_ID';
+// 舊版佔位符（已部署到線上的範例 URL，需視為未設定）
+const LEGACY_PLACEHOLDER = 'AKfycbwjzxPakm5HKw4hJGJWw7AZmNZSpVR28QCcxmJr7KPKCSjLcG2_Da7LgBuuGJwVruSU';
+function isPlaceholderUrl(url){
+  if(!url) return true;
+  return url.includes(PLACEHOLDER_MARKER) || url.includes(LEGACY_PLACEHOLDER);
+}
 
 export function getGasUrl(){
+  // 1. 使用者透過遊戲內設定面板存的 localStorage 最高優先，方便即時測試
   try{
     const ls = localStorage.getItem('cc_gas_url') || '';
-    if(ls && ls.startsWith('https://')) return ls;
+    if(ls && ls.startsWith('https://') && !isPlaceholderUrl(ls)) return ls.trim();
   }catch{}
-  if(ENV_GAS_URL && ENV_GAS_URL.startsWith('https://')) return ENV_GAS_URL;
+  // 2. 執行時全域 (可由 index.html 內聯 script 注入)
+  try{
+    if (typeof window !== 'undefined' && window.__GAS_URL && window.__GAS_URL.startsWith('https://') && !isPlaceholderUrl(window.__GAS_URL)) return window.__GAS_URL.trim();
+  }catch{}
+  // 3. 建置時 Vite 注入 (需在 build 時有 VITE_GAS_URL)
+  if(ENV_GAS_URL && ENV_GAS_URL.startsWith('https://') && !isPlaceholderUrl(ENV_GAS_URL)) return ENV_GAS_URL.trim();
   return DEFAULT_PLACEHOLDER;
 }
 
 export function setGasUrl(url){
   try{
-    if(!url) localStorage.removeItem('cc_gas_url');
-    else localStorage.setItem('cc_gas_url', url);
+    const v = (url || '').trim();
+    if(!v) localStorage.removeItem('cc_gas_url');
+    else localStorage.setItem('cc_gas_url', v);
+    // 同步到全域方便立即生效
+    try{ if(typeof window !== 'undefined') window.__GAS_URL = v; }catch{}
   }catch{}
 }
 
 export function isGasConfigured(){
   const u = getGasUrl();
-  return u && u.startsWith('https://') && !u.includes('AKfycbwjzxPakm5HKw4hJGJWw7AZmNZSpVR28QCcxmJr7KPKCSjLcG2_Da7LgBuuGJwVruSU');
+  return u && u.startsWith('https://') && !isPlaceholderUrl(u);
 }
 
 const CONSENT_KEY = 'cc_analytics_consent';
@@ -228,8 +246,27 @@ export function trackChapter(ch){
 }
 
 export function initAnalytics(){
+  // 清理舊佔位符（避免設定面板顯示範例 URL 卻顯示未設定）
+  try{
+    const ls = localStorage.getItem('cc_gas_url') || '';
+    if(ls && isPlaceholderUrl(ls)) localStorage.removeItem('cc_gas_url');
+  }catch{}
   // 暴露給 console 除錯
-  try{ window.__analytics = { track, getConsent, setConsent, getGasUrl, setGasUrl, isGasConfigured, flushQueue, hashText }; }catch{}
+  try{ window.__analytics = { track, getConsent, setConsent, getGasUrl, setGasUrl, isGasConfigured, flushQueue, hashText, ENV_GAS_URL: ENV_GAS_URL || '(empty)' }; }catch{}
+  // 除錯日誌：幫你判斷為何 secrets 沒生效
+  try{
+    console.log('[analytics] init', {
+      hasConsent: getConsent(),
+      hasChoice: hasConsentChoice(),
+      gasConfigured: isGasConfigured(),
+      gasUrl: getGasUrl().slice(0, 60) + (getGasUrl().length>60?'...':''),
+      envGasUrl: ENV_GAS_URL ? ENV_GAS_URL.slice(0,30)+'...' : '(empty - 需要在 build 時注入 VITE_GAS_URL)',
+      localStorageUrl: (typeof localStorage!=='undefined' && localStorage.getItem('cc_gas_url')) ? '已設定' : '(empty)'
+    });
+    if(!isGasConfigured()){
+      console.warn('[analytics] GAS_URL 未設定 → 請用以下任一方式設定:\n  1) 遊戲內 設定 → 數據追蹤 貼上 URL (立即生效)\n  2) 瀏覽器 Console: localStorage.setItem("cc_gas_url","你的exec URL"); location.reload()\n  3) GitHub Secrets VITE_GAS_URL (需透過 workflow 在 build 時注入，見 gas/README.md)');
+    }
+  }catch{}
   // 啟動時嘗試補送
   setTimeout(()=> flushQueue(), 1500);
   // 監聽 online 恢復
