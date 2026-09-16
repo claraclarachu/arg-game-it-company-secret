@@ -6,9 +6,29 @@
 
 const SHEET_NAME = 'game_events';
 
+function getSpreadsheet_(){
+  // 優先容器綁定（擴充功能 → Apps Script），若為獨立專案則嘗試用 ScriptProperties 的 SHEET_ID
+  let ss = null;
+  try{ ss = SpreadsheetApp.getActiveSpreadsheet(); }catch(e){}
+  if(ss) return ss;
+  try{
+    const props = PropertiesService.getScriptProperties();
+    const id = props.getProperty('SHEET_ID');
+    if(id) return SpreadsheetApp.openById(id);
+  }catch(e){}
+  // 最後嘗試：若此專案曾綁定過，先拋出明確錯誤
+  throw new Error('找不到試算表：請務必在「Sheets → 擴充功能 → Apps Script」內建立專案，而非在 script.google.com 獨立建立。或在 ScriptProperties 設定 SHEET_ID');
+}
+
 function doGet(e) {
-  return ContentService.createTextOutput(JSON.stringify({ok:true, ping: Date.now(), sheet: SHEET_NAME}))
-    .setMimeType(ContentService.MimeType.JSON);
+  try{
+    const ss = getSpreadsheet_();
+    return ContentService.createTextOutput(JSON.stringify({ok:true, ping: Date.now(), sheet: SHEET_NAME, spreadsheet: ss.getName()}))
+      .setMimeType(ContentService.MimeType.JSON);
+  }catch(err){
+    return ContentService.createTextOutput(JSON.stringify({ok:false, error: String(err), hint: '請確認專案是綁定到試算表的容器專案'}))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
 }
 
 function doOptions(e){
@@ -22,13 +42,13 @@ function doPost(e) {
   } catch(err){}
   try {
     if (!e || !e.postData || !e.postData.contents) {
-      return jsonResponse({ok:false, error:'empty body'}, 400);
+      return jsonResponse({ok:false, error:'empty body: 請用 Content-Type: text/plain 發送 JSON'}, 400);
     }
     let body;
     try {
       body = JSON.parse(e.postData.contents);
     } catch(err){
-      return jsonResponse({ok:false, error:'invalid json'}, 400);
+      return jsonResponse({ok:false, error:'invalid json: ' + String(err)}, 400);
     }
     // 限長保護 (單筆 8KB 內)
     const rawLen = e.postData.contents.length;
@@ -36,8 +56,7 @@ function doPost(e) {
       body._truncated = true;
       if (body.payload_json) body.payload_json = String(body.payload_json).slice(0, 4000);
     }
-    // 限頻簡易 (同 session 1 秒內重複去重可在此加 PropertiesService)
-    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const ss = getSpreadsheet_();
     let sheet = ss.getSheetByName(SHEET_NAME);
     if (!sheet) {
       sheet = ss.insertSheet(SHEET_NAME);

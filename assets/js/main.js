@@ -548,13 +548,34 @@ function bindAnalytics(){
     refreshStatus();
     toast('已儲存 GAS URL');
   });
-  testBtn?.addEventListener('click', ()=>{
-    if(!isGasConfigured()){ toast('請先設定 GAS URL'); return; }
-    if(!getConsent()){ toast('請先同意收集'); return; }
-    analyticsTrack('test_ping', { payload_json: JSON.stringify({test:true}) });
-    setTimeout(()=>{ refreshStatus(); toast('已發送測試，查看 Sheets'); }, 600);
+  testBtn?.addEventListener('click', async ()=>{
+    if(!isGasConfigured()){ toast('請先設定 GAS URL'); if(status) status.textContent='未設定：請貼上你部署的 exec URL'; return; }
+    if(!getConsent()){ toast('請先勾選 同意匿名收集'); if(status) status.textContent='等待同意：請先勾選同意'; return; }
+    if(status) status.textContent = '發送中...';
+    const url = getGasUrl();
+    const payload = { timestamp: new Date().toISOString(), session_id: getSessionId(), event_type: 'test_ping', chapter: 0, payload_json: JSON.stringify({test:true, from:'settings_test_btn'}) };
+    try{
+      const res = await fetch(url, { method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body: JSON.stringify(payload), redirect:'follow', mode:'cors' });
+      const text = await res.text();
+      let data = null; try{ data = JSON.parse(text); }catch{}
+      if(data && data.ok){
+        toast('測試成功！Sheets 已新增一列');
+        if(status) status.textContent = '成功：Sheets 已寫入 test_ping';
+      } else {
+        toast('GAS 回應異常：' + text.slice(0,120));
+        if(status) status.textContent = 'GAS 回應：' + (data?.error || text.slice(0,80));
+        console.warn('[analytics] test response', text);
+      }
+    }catch(err){
+      console.warn('[analytics] test fetch 失敗', err);
+      // fallback 仍走 analyticsTrack 入隊，稍後 flush
+      analyticsTrack('test_ping', { payload_json: JSON.stringify({test:true, fallback:true}) });
+      if(status) status.textContent = '網路錯誤，已入隊（查看 Console）';
+      toast('網路錯誤，已入隊重試');
+    }
+    refreshStatus();
   });
-  flushBtn?.addEventListener('click', ()=>{ flushQueue(); refreshStatus(); toast('已嘗試補送'); setTimeout(refreshStatus, 800); });
+  flushBtn?.addEventListener('click', ()=>{ flushQueue(); refreshStatus(); toast('已嘗試補送，查看 Console 與 Sheets'); setTimeout(refreshStatus, 800); });
 
   // Keep queue count live
   setInterval(refreshStatus, 2000);
