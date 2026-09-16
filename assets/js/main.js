@@ -560,6 +560,14 @@ function init() {
         });
       }, 10000);
     }
+    // Ch2 init: 午餐小隊爆炸對話 — when currentChapter becomes 2 (after revert)
+    if (e && e.path === 'currentChapter' && e.value === 2 && !state.hasFlag('ch2_lunch_seq_done')) {
+      setTimeout(() => {
+        import('./apps/whatsapp/index.js').then(m => {
+          if (m.triggerCh2LunchSequence) m.triggerCh2LunchSequence();
+        });
+      }, 600);
+    }
   });
   // Also check on load if ch0 already done but Event1 not yet triggered (for reload case)
   if (state.hasFlag('ch0_vip_fixed') && !state.hasFlag('ch1_event1_triggered')) {
@@ -570,6 +578,24 @@ function init() {
       });
     }, 10000);
   }
+  // Also check on load if already ch2 but lunch sequence not yet done (reload case)
+  if (state.get('currentChapter') === 2 && !state.hasFlag('ch2_lunch_seq_done')) {
+    setTimeout(() => {
+      import('./apps/whatsapp/index.js').then(m => {
+        if (m.triggerCh2LunchSequence) m.triggerCh2LunchSequence();
+      });
+    }, 900);
+  }
+  // Also listen for chapter:changed event (engine) for ch2 — redundant safety
+  events.on('chapter:changed', (ch) => {
+    if (ch === 2 && !state.hasFlag('ch2_lunch_seq_done')) {
+      setTimeout(() => {
+        import('./apps/whatsapp/index.js').then(m => {
+          if (m.triggerCh2LunchSequence) m.triggerCh2LunchSequence();
+        });
+      }, 600);
+    }
+  });
   // Listen for Jira ticket added to re-render board
   window.addEventListener('jira:ticketAdded', () => {
     // Force re-render Jira board if visible

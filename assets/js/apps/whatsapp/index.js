@@ -1,4 +1,5 @@
 import { state } from '../../core/state.js';
+import { events } from '../../core/events.js';
 import { escapeHtml } from '../../utils/helpers.js';
 
 const chats = [
@@ -151,6 +152,9 @@ let listTab = 'all'; // all | unread | archived
 let infoOpen = false;
 let msgSearch = '';
 let sidebarTab = 'chat'; // chat | account
+// Scroll memory — tracks whether user was at bottom before last render, survives double-render stale captures
+let waLastWasAtBottom = true;
+let waLastScrollTop = 0;
 
 // Sawyer revert forced dialogue sequence (ch1)
 let sawyerSeq = 0; // 0 idle, 1 wait first send (long text), 2 typing, 3 wait second send ("但是"), 4 done unlocked
@@ -322,6 +326,15 @@ export function mountWhatsApp() {
   bindSidebar();
   renderLeftPane();
   renderChat(activeId);
+  // Fallback: if already ch2 on mount (e.g. after refresh), trigger sequence if not yet done
+  try {
+    if (state.get('currentChapter') === 2 && !state.hasFlag('ch2_lunch_seq_done')) {
+      const c = chats.find(x => x.id === 'lunch-team');
+      const hasFirstLine = c && c.messages.some(m => m.text && m.text.includes('剛剛嚇壞了吧'));
+      if (!hasFirstLine) setTimeout(() => { try { triggerCh2LunchSequence(); } catch {} }, 900);
+      else if (!state.hasFlag('ch2_lunch_seq_done')) state.setFlag('ch2_lunch_seq_done', true);
+    }
+  } catch {}
 }
 
 function bindSidebar() {
@@ -460,7 +473,15 @@ function renderChat(id) {
   const prevMessagesEl = document.getElementById('waMessages');
   const prevTop = prevMessagesEl ? prevMessagesEl.scrollTop : null;
   const prevHeight = prevMessagesEl ? prevMessagesEl.scrollHeight : null;
-  const wasAtBottom = prevMessagesEl ? (prevHeight - prevTop - prevMessagesEl.clientHeight < 80) : true;
+  const computedWasAtBottom = prevMessagesEl ? (prevHeight - prevTop - prevMessagesEl.clientHeight < 80) : true;
+  // Guard against stale capture from a double-render (new waMessages with scrollTop=0 right after previous render's rAF hasn't fired)
+  const isStaleCapture = prevTop === 0 && waLastWasAtBottom && prevMessagesEl && prevHeight > prevMessagesEl.clientHeight + 80;
+  const wasAtBottom = isStaleCapture ? true : computedWasAtBottom;
+  // Update memory for next call / scroll listener
+  if (prevMessagesEl) {
+    waLastWasAtBottom = wasAtBottom;
+    if (prevTop !== null) waLastScrollTop = prevTop;
+  }
   const c = chats.find(x => x.id === id);
   const el = document.getElementById('waChat');
   if (!c || !el) return;
@@ -597,13 +618,47 @@ function renderChat(id) {
     img.addEventListener('click', () => openWaLightbox(img.src));
   });
   ensureWaLightbox();
+  // Attach scroll listener to keep waLastWasAtBottom in sync with user manual scrolling
+  try {
+    const _newMs = document.getElementById('waMessages');
+    if (_newMs && !_newMs._waScrollBound) {
+      _newMs._waScrollBound = true;
+      _newMs.addEventListener('scroll', () => {
+        const h = _newMs.scrollHeight;
+        const t = _newMs.scrollTop;
+        const ch = _newMs.clientHeight;
+        waLastWasAtBottom = (h - t - ch < 80);
+        waLastScrollTop = t;
+      });
+    }
+  } catch {}
   // restore scroll — stay where user was (or at bottom if was at bottom), instead of jumping to top
+  // Use double rAF to ensure layout is complete after innerHTML replacement; also guard against double-render stale capture (prevTop===0)
+  const prevWasAtBottom = wasAtBottom;
+  const prevTopStored = prevTop;
   requestAnimationFrame(()=>{
-    const elMs = document.getElementById('waMessages');
-    if(!elMs) return;
-    if(wasAtBottom) elMs.scrollTop = elMs.scrollHeight;
-    else if(prevTop !== null) elMs.scrollTop = prevTop;
-    else elMs.scrollTop = elMs.scrollHeight;
+    requestAnimationFrame(()=>{
+      const elMs = document.getElementById('waMessages');
+      if(!elMs) return;
+      // If we are viewing the same chat where a new message was just appended, and user was previously at bottom, always stay at bottom — even if a second rapid render saw stale scrollTop=0
+      const shouldStayAtBottom = prevWasAtBottom || (prevTopStored === 0 && elMs.scrollHeight > elMs.clientHeight + 20 && waLastWasAtBottom);
+      if(shouldStayAtBottom) {
+        elMs.scrollTop = elMs.scrollHeight;
+        waLastWasAtBottom = true;
+        waLastScrollTop = elMs.scrollTop;
+      } else if(prevTopStored !== null) {
+        // Clamp to valid range (in case content grew, prevTop may be beyond new max but we want to stay)
+        const maxTop = Math.max(0, elMs.scrollHeight - elMs.clientHeight);
+        elMs.scrollTop = Math.min(prevTopStored, maxTop);
+        waLastScrollTop = elMs.scrollTop;
+        // Update memory based on final position
+        waLastWasAtBottom = (elMs.scrollHeight - elMs.scrollTop - elMs.clientHeight < 80);
+      } else {
+        elMs.scrollTop = elMs.scrollHeight;
+        waLastWasAtBottom = true;
+        waLastScrollTop = elMs.scrollTop;
+      }
+    });
   });
 }
 
@@ -921,6 +976,95 @@ export function markNoriAllRead() {
   }
 }
 
+// ── Chapter 2 — 午餐小隊爆炸後對話 (Ch2 init) ──
+const CH2_LUNCH_MESSAGES = [
+  { from: 'Parker', text: '@Casey 剛剛嚇壞了吧 哈哈 估計是你進來以來第一次遇到系統爆炸了' },
+  { from: 'Parker', text: '不過說來也奇怪 這個入口應該搬移了才對' },
+  { from: 'Parker', text: '啊對了 這裡應該也沒多少人知道 那個原本是HR系統的入口' },
+  { from: 'Hugo', text: '對！！那個超難用的 系統不完善沒有適當防呆 他們又常常笨手笨腳刪掉資料 要找我們恢復' },
+  { from: 'Parker', text: '對啊 浪費我們人力 老闆就乾脆換系統了' },
+  { from: 'Hugo', text: '那為什麼代碼沒有隱藏入口？' },
+  { from: 'Parker', text: '不知道欸 這個不能動 一動就會大爆炸' },
+  { from: 'Hugo', text: '難不成有人偷用這個系統來偷藏色色的東西！' },
+  { from: 'Parker', text: '什麼鬼' },
+];
+
+function showCh2LunchNotification(from, text) {
+  // Respect mute — same as other win notifications
+  if (isChatMuted('lunch-team')) return;
+  // Don't show popup if currently viewing 午餐小隊
+  if (activeId === 'lunch-team') return;
+  const color = getAvatarColor(from);
+  const initial = getInitial(from);
+  const container = document.createElement('div');
+  container.className = 'win-notif';
+  container.id = 'wa-win-notif-lunch-' + Date.now() + '-' + Math.random().toString(36).slice(2, 6);
+  container.setAttribute('role', 'alert');
+  container.innerHTML = `
+      <div class="win-notif__app">
+        <img src="${import.meta.env.BASE_URL}icon/whatsup.svg" alt="WhatUp" width="20" height="20" style="width:20px;height:20px;object-fit:contain" />
+        <span class="win-notif__app-name">WhatUp</span>
+        <span class="win-notif__app-sub">午餐小隊</span>
+        <button class="win-notif__close" aria-label="關閉">✕</button>
+      </div>
+      <div class="win-notif__body">
+        <div class="win-notif__avatar" style="background:${color}">${escapeHtml(initial)}</div>
+        <div class="win-notif__text">
+          <div class="win-notif__sender">${escapeHtml(from)}</div>
+          <div class="win-notif__msg">${escapeHtml(text)}</div>
+          <div class="win-notif__time">剛剛 · 點擊開啟對話</div>
+        </div>
+      </div>
+      <div class="win-notif__progress" style="animation: winNotifShrink 4000ms linear forwards"></div>
+  `;
+  container.style.cssText = 'position:fixed;right:16px;bottom:60px;width:360px;background:#2d2d2d;color:#f0f0f0;border:1px solid rgba(255,255,255,.12);border-radius:8px;box-shadow:0 8px 28px rgba(0,0,0,.45);z-index:1100;overflow:hidden;cursor:pointer;opacity:0;transform:translateY(12px);transition:opacity .28s,transform .28s;';
+  container.addEventListener('click', (e) => {
+    if (e.target.closest('.win-notif__close')) return;
+    container.remove();
+    import('../../ui/dock.js').then(dock => {
+      if (dock.setActiveView) { dock.setActiveView('whatsapp'); localStorage.setItem('cc_active_view', 'whatsapp'); }
+    });
+    openChat('lunch-team');
+  });
+  container.querySelector('.win-notif__close')?.addEventListener('click', (e) => { e.stopPropagation(); container.remove(); });
+  document.body.appendChild(container);
+  requestAnimationFrame(() => { container.style.opacity = '1'; container.style.transform = 'none'; });
+  setTimeout(() => { container.style.opacity = '0'; container.style.transform = 'translateY(8px)'; setTimeout(() => container.remove(), 300); }, 4000);
+}
+
+export function triggerCh2LunchSequence() {
+  if (state.hasFlag('ch2_lunch_seq_done')) return;
+  // Also guard via persisted message check — if last message already contains 什麼鬼 from Parker, consider done
+  const chat = chats.find(x => x.id === 'lunch-team');
+  if (!chat) return;
+  // Quick dedup: if already contains the first line, don't replay
+  if (chat.messages.some(m => m.text && m.text.includes('剛剛嚇壞了吧'))) {
+    if (!state.hasFlag('ch2_lunch_seq_done')) state.setFlag('ch2_lunch_seq_done', true);
+    return;
+  }
+  state.setFlag('ch2_lunch_seq_done', true);
+  // Persist flag immediately
+  persistWhatsApp();
+  let idx = 0;
+  const sendNext = () => {
+    if (idx >= CH2_LUNCH_MESSAGES.length) return;
+    const { from, text } = CH2_LUNCH_MESSAGES[idx];
+    const now = Date.now();
+    chat.messages.push({ id: 'lunch-ch2-' + now + '-' + idx, from, text, time: '今天', ts: now + idx, read: 'delivered', type: 'text' });
+    chat.preview = `${from}: ${text.slice(0, 20)}`;
+    chat.lastTime = '今天';
+    if (activeId !== 'lunch-team') chat.unread = (chat.unread || 0) + 1;
+    else chat.unread = 0;
+    persistWhatsApp();
+    window.dispatchEvent(new CustomEvent('whatsapp:newMessage', { detail: { chatId: 'lunch-team' } }));
+    showCh2LunchNotification(from, text);
+    idx += 1;
+    if (idx < CH2_LUNCH_MESSAGES.length) setTimeout(sendNext, 5000);
+  };
+  // Small delay before first message so revert healthy toast doesn't overlap
+  setTimeout(sendNext, 800);
+}
+
 function exportChat(chat) {
   const text = `WhatUp 匯出 — ${chat.name}\n${chat.messages.map(m=>`[${m.time}] ${m.from}: ${m.text || m.fileName || m.type}`).join('\n')}`;
   const blob = new Blob([text], {type:'text/plain'});
@@ -1067,6 +1211,18 @@ export function closeWaLightbox() {
   lb.classList.remove('open');
   lb.setAttribute('aria-hidden', 'true');
 }
+
+// ── Chapter 2 auto-trigger: listen for chapter:changed → 2 ──
+try {
+  events.on('chapter:changed', (ch) => {
+    if (ch === 2) {
+      // defer slightly so state.currentChapter is committed and UI has settled after revert
+      setTimeout(() => {
+        try { triggerCh2LunchSequence(); } catch {}
+      }, 600);
+    }
+  });
+} catch {}
 
 // Central listener: when any module pushes a message and dispatches whatsapp:newMessage, re-render list/chat
 if (typeof window !== 'undefined' && !window.__waListenerBound) {
