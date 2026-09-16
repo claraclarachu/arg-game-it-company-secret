@@ -8,7 +8,7 @@ import { state } from './state.js';
 // 優先順序: 環境變數 > localStorage > 預設佔位
 let ENV_GAS_URL = '';
 try { ENV_GAS_URL = import.meta.env.VITE_GAS_URL || ''; } catch {}
-const DEFAULT_PLACEHOLDER = 'https://script.google.com/macros/s/REPLACE_WITH_YOUR_DEPLOY_ID/exec';
+const DEFAULT_PLACEHOLDER = 'https://script.google.com/macros/s/AKfycbwjzxPakm5HKw4hJGJWw7AZmNZSpVR28QCcxmJr7KPKCSjLcG2_Da7LgBuuGJwVruSU/exec';
 
 export function getGasUrl(){
   try{
@@ -28,7 +28,7 @@ export function setGasUrl(url){
 
 export function isGasConfigured(){
   const u = getGasUrl();
-  return u && u.startsWith('https://') && !u.includes('REPLACE_WITH_YOUR_DEPLOY_ID');
+  return u && u.startsWith('https://') && !u.includes('AKfycbwjzxPakm5HKw4hJGJWw7AZmNZSpVR28QCcxmJr7KPKCSjLcG2_Da7LgBuuGJwVruSU');
 }
 
 const CONSENT_KEY = 'cc_analytics_consent';
