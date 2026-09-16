@@ -168,7 +168,7 @@ const blogComments = {
   ],
 };
 
-const trends = ['switch', 'h1', 'HTML 標籤', 'md5'];
+const trends = ['switch', 'h1', 'HTML 標籤'];
 let activeTab = 'all'; // all | image | news | academic
 let lastQuery = '';
 let lastResults = [];
@@ -453,7 +453,7 @@ function renderMD5Tool(initialValue) {
     <button id="md5BackBtn" class="btn detail__back" style="margin-bottom:12px">← 上一頁</button>
     <div class="md5-tool__header">
       <div class="md5-tool__title"><i class="fa-solid fa-hashtag" style="color:var(--accent)"></i> MD5 加密工具</div>
-      <div class="small muted">輸入任意字串，一鍵轉換為 MD5（32 位小寫）</div>
+      <div class="small muted">輸入任意字串，一鍵轉換為 32 位小寫 MD5。支援即時轉換、複製與清空。</div>
     </div>
     <div class="md5-tool__body">
       <div class="md5-panel">
@@ -496,9 +496,11 @@ function renderMD5Tool(initialValue) {
     c.innerHTML = '';
     const layout2 = document.getElementById('searchLayout');
     if (layout2) layout2.style.display = '';
-    // restore last non-md5 search if available
+    const detail = document.getElementById('searchDetail');
+    if (detail) { detail.style.display = 'none'; detail.innerHTML = ''; detail.classList.remove('open'); }
+    // keep query so results remain
     const inp = document.getElementById('searchInput');
-    if (inp) { inp.value = ''; }
+    if (inp && lastQuery) { inp.value = lastQuery; }
   });
   // Auto convert if initial value provided
   if (v) { input.value = v; doConvert(); }
@@ -534,7 +536,6 @@ export function mountSearch() {
         <span class="chip" data-q="h1">h1</span>
         <span class="chip" data-q="<h1>">&lt;h1&gt;</span>
         <span class="chip" data-q="HTML 標籤">HTML 標籤</span>
-        <span class="chip" data-q="md5">md5</span>
       </div>
       <div class="search__tabs" role="tablist">
         <button class="search__tab active" data-tab="all">全部</button>
@@ -642,20 +643,11 @@ function doSearch(q) {
     }
     // For other hash queries, treat as normal search (don't trigger md5 tool)
   }
-  // MD5 tool: show when query contains md5 — hide history/trends/portal like entering other pages
+  // MD5 tool: no longer auto-show — show as search result + blog instead
   const md5Container = document.getElementById('md5Tool');
-  if (isMD5Query(raw)) {
-    renderMD5Tool(raw);
-    state.push('searchHistory', { q: raw, at: new Date().toISOString() });
-    renderHistory();
-    // Hide normal results layout is already handled in renderMD5Tool, return early to avoid showing results below tool
-    return;
-  } else {
-    if (md5Container) { md5Container.style.display = 'none'; md5Container.innerHTML = ''; }
-    // Ensure normal layout is visible when not md5
-    const layout = document.getElementById('searchLayout');
-    if (layout) layout.style.display = '';
-  }
+  if (md5Container) { md5Container.style.display = 'none'; md5Container.innerHTML = ''; }
+  const _layoutReset = document.getElementById('searchLayout');
+  if (_layoutReset) _layoutReset.style.display = '';
   state.push('searchHistory', { q: raw, at: new Date().toISOString() });
   // Phase 6 flags via search behavior
   if (raw.toLowerCase().includes('package') || raw.toLowerCase().includes('image')) state.setFlag('reverse_image_done', true);
@@ -731,6 +723,29 @@ function doSearch(q) {
     // if no image results, fallback to show web image placeholder
     if (!results.some(r=>r.image)) {
       // keep as is, will show empty
+    }
+  }
+
+  // When query contains md5, show MD5 tool as first search result + MD5 blog, instead of auto-opening tool
+  if (isMD5Query(raw)) {
+    const md5ToolEntry = {
+      title: 'MD5 加密工具 — 線上 MD5 產生器 / 轉換器',
+      url: 'md5-tool',
+      snippet: '輸入任意字串，一鍵轉換為 32 位小寫 MD5。支援即時轉換、複製與清空。',
+      type: 'tool',
+      image: null,
+      isMD5Tool: true
+    };
+    if (!results.some(r => r.isMD5Tool || r.url === 'md5-tool')) {
+      results.unshift(md5ToolEntry);
+    }
+    const md5BlogUrl = 'https://peter-blog.example/md5-for-beginners';
+    if (!results.some(r => r.url === md5BlogUrl)) {
+      const blog = webIndex.find(r => r.url === md5BlogUrl);
+      if (blog && (activeTab === 'all' || blog.type === activeTab)) {
+        const toolIdx = results.findIndex(r => r.url === 'md5-tool');
+        results.splice(toolIdx + 1, 0, blog);
+      }
     }
   }
 
@@ -1623,6 +1638,11 @@ function openStackOverflow(url){
 function openDetail(idx) {
   const item = lastResults[idx];
   if (!item) return;
+  // MD5 tool entry — open the convertor tool instead of generic detail
+  if (item.isMD5Tool || item.url === 'md5-tool') {
+    renderMD5Tool(lastQuery);
+    return;
+  }
   const md5C = document.getElementById('md5Tool');
   if (md5C) { md5C.style.display = 'none'; md5C.innerHTML = ''; }
   // StackOverflow 詳細頁優先
