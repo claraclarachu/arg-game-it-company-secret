@@ -14,7 +14,7 @@ import { mountSearch } from './apps/search/index.js';
 import { mountIntranet } from './apps/intranet/index.js';
 import '../css/blog.css';
 import { mountDarknet } from './apps/darknet/index.js';
-import { initAnalytics, getConsent, setConsent, hasConsentChoice, getGasUrl, setGasUrl, isGasConfigured, flushQueue, track as analyticsTrack, trackEmailSubmit, trackEnding, trackChapter, getSessionId } from './core/analytics.js';
+import { initAnalytics, getConsent, setConsent, hasConsentChoice, getGasUrl, setGasUrl, isGasConfigured, flushQueue, track as analyticsTrack, trackEmailSubmit, trackEnding, trackChapter, getSessionId, getGameSession } from './core/analytics.js';
 
 function applyTheme() {
   const theme = state.get('settings.theme') || 'dark';
@@ -508,7 +508,13 @@ function bindAnalytics(){
     try{
       const q = JSON.parse(localStorage.getItem('cc_analytics_queue') || '[]');
       if(queueEl) queueEl.textContent = String(q.length);
-      if(sidEl) sidEl.textContent = getSessionId().slice(0,8);
+      if(sidEl){
+        const gs = (()=>{ try{ return getGameSession(); }catch{ return null; }})();
+        const sid = getSessionId().slice(0,8);
+        const gid = gs ? gs.id.slice(0,12) : '-';
+        sidEl.textContent = sid + ' / ' + gid;
+        sidEl.title = 'SID: ' + getSessionId() + '\nGameSession: ' + (gs ? gs.id + ' (' + gs.startAt + ')' : '-');
+      }
       if(status){
         if(!isGasConfigured()) status.textContent = '尚未設定 GAS URL（需部署時設定 VITE_GAS_URL，其他玩家才會自動生效）';
         else if(!getConsent()) status.textContent = '已設定，等待玩家同意';
