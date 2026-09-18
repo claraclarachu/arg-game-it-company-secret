@@ -1,14 +1,14 @@
 import { state } from './state.js';
 
 // ── Google Apps Script + Sheets 追蹤 ──
-// 1. 在 Google Sheets 建立後，部署 GAS Web App，複製 exec URL 貼到下方或寫入 localStorage cc_gas_url
-// 2. 也可透過 Vite 環境變數 VITE_GAS_URL 注入 (建議用於 GitHub Pages Secrets)
-// 使用 text/plain 避免 CORS 預檢，GAS 以 LockService + appendRow 保證寫入
+// 核心規則：每個 session 最多 2 次寫入 Spreadsheet，1 列 = 1 session
+//  - 流程：首次打開 => session_start 建立一列 (start_date, session_id, lang, ua)
+//         行為期間 whatsapp/email/chapter 時間僅寫入 localStorage (cc_game_session)
+//         達成結局 => session_end 以 session_id 為 key 更新同一列，填滿 end_date, total_play_time, chp0-4, ending, inputted_content, archievement_list
+//  - Spreadsheet 唯一表頭（14 欄）：start_date | end_date | session_id | total_play_time | lang | ua | chp0_play_time | chp1_play_time | chp2_play_time | chp3_play_time | chp4_play_time | ending | inputted_content | archievement_list
 
-// 優先順序: localStorage (設定面板) > 執行時 window.__GAS_URL > 環境變數 (建置時) > 預設佔位
 let ENV_GAS_URL = '';
 try { ENV_GAS_URL = import.meta.env.VITE_GAS_URL || ''; } catch {}
-// 也支援執行時全域覆蓋，方便在 GitHub Pages 不重新建置就更新
 try { if (typeof window !== 'undefined' && window.__GAS_URL) ENV_GAS_URL = window.__GAS_URL; } catch {}
 const DEFAULT_PLACEHOLDER = 'https://script.google.com/macros/s/REPLACE_WITH_YOUR_DEPLOY_ID/exec';
 const PLACEHOLDER_MARKER = 'REPLACE_WITH_YOUR_DEPLOY_ID';
@@ -18,16 +18,13 @@ function isPlaceholderUrl(url){
 }
 
 export function getGasUrl(){
-  // 1. 使用者透過遊戲內設定面板存的 localStorage 最高優先，方便即時測試
   try{
     const ls = localStorage.getItem('cc_gas_url') || '';
     if(ls && ls.startsWith('https://') && !isPlaceholderUrl(ls)) return ls.trim();
   }catch{}
-  // 2. 執行時全域 (可由 index.html 內聯 script 注入)
   try{
     if (typeof window !== 'undefined' && window.__GAS_URL && window.__GAS_URL.startsWith('https://') && !isPlaceholderUrl(window.__GAS_URL)) return window.__GAS_URL.trim();
   }catch{}
-  // 3. 建置時 Vite 注入 (需在 build 時有 VITE_GAS_URL)
   if(ENV_GAS_URL && ENV_GAS_URL.startsWith('https://') && !isPlaceholderUrl(ENV_GAS_URL)) return ENV_GAS_URL.trim();
   return DEFAULT_PLACEHOLDER;
 }
@@ -37,7 +34,6 @@ export function setGasUrl(url){
     const v = (url || '').trim();
     if(!v) localStorage.removeItem('cc_gas_url');
     else localStorage.setItem('cc_gas_url', v);
-    // 同步到全域方便立即生效
     try{ if(typeof window !== 'undefined') window.__GAS_URL = v; }catch{}
   }catch{}
 }
@@ -51,7 +47,7 @@ const CONSENT_KEY = 'cc_analytics_consent';
 const SID_KEY = 'cc_sid';
 const QUEUE_KEY = 'cc_analytics_queue';
 
-// ── Game Session（每個遊玩週期獨立統計）──
+// ── Game Session（每個遊玩週期獨立統計，僅 localStorage）──
 const GAME_SESSION_KEY = 'cc_game_session';
 const GAME_SESSION_HISTORY_KEY = 'cc_game_session_history';
 
@@ -76,8 +72,9 @@ function genGameSessionId(){
 export function getGameSession(){
   return loadGameSession();
 }
+
+// ── 對外：建立 / 確保 session ──
 export function createNewGameSession(){
-  console.log('[analytics] createNewGameSession');
   const now = new Date();
   const playtime = (()=>{ try{ return state.get('playtime') ?? 0; }catch{ return 0; }})();
   const ch = (()=>{ try{ return state.get('currentChapter') ?? 0; }catch{ return 0; }})();
@@ -93,18 +90,23 @@ export function createNewGameSession(){
     whatsappLog: [],
     emailLog: [],
     ended: false,
-    endedAt: null
+    endedAt: null,
+    sessionStartSent: false,
+    sessionEndSent: false
   };
   saveGameSession(sess);
-  // 同步到 state 方便除錯（非必要）
   try{ state.set('__gameSessionId', sess.id); }catch{}
-  try{ track('session_start', { game_session_id: sess.id, game_session_start: sess.startAt, chapter: ch, playtime }); }catch{}
+  // 首次打開立即寫入一列（start_date + session_id + lang/ua），之後僅在結局時更新
+  try{ sendSessionStart(sess); }catch(e){ console.warn('[analytics] sendSessionStart failed', e); }
   return sess;
 }
 export function ensureGameSession(){
   let s = loadGameSession();
   if(!s || s.ended){
     s = createNewGameSession();
+  } else if(!s.sessionStartSent){
+    // 既有 session 但尚未發過 start（例如舊版升上來），補發一次
+    try{ sendSessionStart(s); }catch{}
   }
   return s;
 }
@@ -141,7 +143,6 @@ function finalizeChapterTimesForEnd(sess){
       const k = String(prevCh);
       sess.chapterTimes[k] = (sess.chapterTimes[k] || 0) + deltaPlay;
     }
-    // also wall-time per chapter could be derived from ms deltas if needed, but we keep playtime-based
     sess.lastChapterEnterAtPlaytime = curPlaytime;
     sess.lastChapterEnterAtMs = nowMs;
   }catch{}
@@ -158,13 +159,11 @@ export function recordWhatsappForSession({ chatId, chatName, text, to }){
       preview: (text || '').slice(0,80),
       hash: hashText(text || ''),
       len: (text || '').length,
-      // 為避免 Sheets 單格過長，完整內文截斷至 500 字，實際分析可由 preview+hash 還原
       body: (text || '').slice(0,500),
       ts: new Date().toISOString(),
       playtime
     };
     sess.whatsappLog.push(entry);
-    // 限制長度避免 localStorage 爆掉
     if(sess.whatsappLog.length > 100) sess.whatsappLog = sess.whatsappLog.slice(-100);
     saveGameSession(sess);
   }catch{}
@@ -189,8 +188,15 @@ export function recordEmailForSession({ title, to, body }){
     saveGameSession(sess);
   }catch{}
 }
+const ENDING_ZH_MAP = {
+  flee: '平凡的日常',
+  cooperate: '合作',
+  report: '舉報',
+  resign: '離職',
+  fried: '做對了嗎？'
+};
+
 function computeAchievementsForSession(){
-  // 與 notebook.js#getAchievements 保持一致的分數邏輯，但僅回傳已獲得者
   try{
     const readArticles = state.get('readArticles') || [];
     const discovered = state.get('discoveredFiles') || [];
@@ -202,17 +208,14 @@ function computeAchievementsForSession(){
     const psWhatsappSentCount = ps.whatsappSentCount || 0;
     const psSearchHistoryCount = ps.searchHistoryCount || 0;
     const psFlags = ps.flags || {};
-    // 動態 dark 總數
     let darkTotal = 10;
     try{
-      // 動態載入 vfs，若失敗則用預設
       const vfsMod = window.__vfs || null;
       if(vfsMod && vfsMod.listDarkFiles){
         const allDark = vfsMod.listDarkFiles('/darknet');
         if(allDark.length) darkTotal = allDark.length;
       }
     }catch{}
-    // 簡化：若無法取得 vfs，則用 10
     const allReadArticles = [...new Set([...readArticles, ...psReadArticles])];
     const mergedSent = Math.max(sent, psWhatsappSentCount);
     const mergedSearchCount = Math.max((state.get('searchHistory') || []).length, psSearchHistoryCount);
@@ -239,21 +242,45 @@ function computeAchievementsForSession(){
     ];
     const gained = defs.filter(a=> a.current >= a.total).map(a=> ({ id:a.id, title:a.title }));
     const all = defs.map(a=> ({ id:a.id, title:a.title, done: a.current>=a.total, progress:`${a.current}/${a.total}`, pct: Math.round(a.current/a.total*100)}));
-    return { gained, all, gainedIds: gained.map(g=>g.id) };
+    const archMap = {};
+    all.forEach(a => { archMap[a.title] = a.progress; });
+    return { gained, all, gainedIds: gained.map(g=>g.id), archMap };
   }catch(e){
-    return { gained:[], all:[], gainedIds:[] };
+    return { gained:[], all:[], gainedIds:[], archMap:{} };
   }
 }
+
+export function getEndingZh(endingId){
+  return ENDING_ZH_MAP[endingId] || endingId || '';
+}
+
+export function buildInputtedContent(whatsappRecords, emailRecords){
+  const whatsup = (whatsappRecords || []).map(r => ({
+    to: r.to || r.chatName || r.chatId || '',
+    content: r.body != null ? r.body : (r.preview || '')
+  }));
+  const email = (emailRecords || []).map(r => ({
+    to: r.to || '',
+    title: r.title || '',
+    content: r.body != null ? r.body : (r.preview || '')
+  }));
+  return { whatsup, email };
+}
+
+export function buildArchievementJson(){
+  const ach = computeAchievementsForSession();
+  return ach.archMap || {};
+}
+
+// ── 收集 session 彙總資料（僅在結局時呼叫，前期僅 buffered 在 localStorage）──
 export function collectSessionData(ending){
   const sess = loadGameSession() || ensureGameSession();
   finalizeChapterTimesForEnd(sess);
   const now = new Date();
   const playtime = (()=>{ try{ return state.get('playtime') ?? 0; }catch{ return 0; }})();
   const totalSec = Math.max(0, playtime - (sess.startPlaytime||0));
-  const wallSec = Math.max(0, Math.floor((now.getTime() - (sess.startAtMs||now.getTime()))/1000));
   const ach = computeAchievementsForSession();
   const endings = (()=>{ try{ return state.get('endings')||[]; }catch{ return []; }})();
-  // fallback：若 whatsappLog 為空，嘗試從 state.whatsappChats 補齊本 session 期間的 from='you'
   let whatsappRecords = Array.isArray(sess.whatsappLog) ? [...sess.whatsappLog] : [];
   if(!whatsappRecords.length){
     try{
@@ -262,82 +289,147 @@ export function collectSessionData(ending){
         const youMsgs = [];
         for(const c of chats){
           for(const m of (c.messages||[])){
-            if(m.from==='you') youMsgs.push({ chatId:c.id, chatName:c.name, preview:(m.text||'').slice(0,80), len:(m.text||'').length, ts: m.ts ? new Date(m.ts).toISOString() : new Date().toISOString(), body:(m.text||'').slice(0,500) });
+            if(m.from==='you') youMsgs.push({ chatId:c.id, chatName:c.name, preview:(m.text||'').slice(0,80), len:(m.text||'').length, ts: m.ts ? new Date(m.ts).toISOString() : new Date().toISOString(), body:(m.text||'').slice(0,500), to: c.name || c.id });
           }
         }
         if(youMsgs.length) whatsappRecords = youMsgs.slice(-100);
       }
     }catch{}
   }
+  const emailRecords = Array.isArray(sess.emailLog) ? [...sess.emailLog] : [];
+  const ct = sess.chapterTimes || {};
+  const chpTimes = {
+    chp0_play_time: Number(ct['0'] || 0),
+    chp1_play_time: Number(ct['1'] || 0),
+    chp2_play_time: Number(ct['2'] || 0),
+    chp3_play_time: Number(ct['3'] || 0),
+    chp4_play_time: Number(ct['4'] || 0),
+  };
+  const endingZh = getEndingZh(ending);
+  const inputtedContent = buildInputtedContent(whatsappRecords, emailRecords);
+  const archMap = ach.archMap || {};
+  const lang = (()=>{ try{ return state.get('settings.language')||'zh-TW'; }catch{ return 'zh-TW'; }})();
+  const ua = (typeof navigator !== 'undefined' ? navigator.userAgent.slice(0,200) : '');
   const data = {
-    game_session_id: sess.id,
-    game_session_start: sess.startAt,
-    game_session_end: now.toISOString(),
-    ending: ending || '',
-    endings: endings.join(','),
-    total_time_sec: totalSec,
-    wall_time_sec: wallSec,
-    playtime,
-    chapter_times_sec: sess.chapterTimes || {},
-    whatsapp_records: whatsappRecords,
-    whatsapp_count: whatsappRecords.length,
-    email_records: Array.isArray(sess.emailLog) ? [...sess.emailLog] : [],
-    email_count: (sess.emailLog||[]).length,
-    achievements_gained: ach.gained,
-    achievements_gained_ids: ach.gainedIds,
-    achievements_all: ach.all,
-    lang: (()=>{ try{ return state.get('settings.language')||'zh-TW'; }catch{ return 'zh-TW'; }})(),
-    chapter: (()=>{ try{ return state.get('currentChapter')??0; }catch{ return 0; }})(),
+    start_date: sess.startAt,
+    end_date: now.toISOString(),
+    session_id: sess.id,
+    total_play_time: totalSec,
+    lang,
+    ua,
+    ...chpTimes,
+    ending: endingZh || ending || '',
+    inputted_content: JSON.stringify(inputtedContent),
+    archievement_list: JSON.stringify(archMap),
+    // 內部除錯用（不寫入 sheets，僅放 payload_json）
+    _debug: {
+      game_session_id: sess.id,
+      startAt: sess.startAt,
+      playtime,
+      chapterTimes: sess.chapterTimes,
+      whatsapp_count: whatsappRecords.length,
+      email_count: emailRecords.length,
+      ach,
+      endings
+    }
   };
   return data;
 }
+
+// ── 僅 2 次寫入：session_start（打開）與 session_end（結局）──
+function getCommonLangUa(){
+  let lang='zh-TW', ua='';
+  try{ lang = state.get('settings.language')||'zh-TW'; }catch{}
+  try{ ua = (typeof navigator!=='undefined'? navigator.userAgent.slice(0,200):''); }catch{}
+  return { lang, ua };
+}
+
+export function sendSessionStart(sess){
+  try{
+    const s = sess || loadGameSession();
+    if(!s) return;
+    if(s.sessionStartSent) return; // 防止重複 start
+    const { lang, ua } = getCommonLangUa();
+    // 標記已發送，避免刷新重複
+    s.sessionStartSent = true;
+    saveGameSession(s);
+    const payload = {
+      action: 'session_start',
+      start_date: s.startAt,
+      end_date: '',
+      session_id: s.id,
+      total_play_time: 0,
+      lang, ua,
+      chp0_play_time: 0,
+      chp1_play_time: 0,
+      chp2_play_time: 0,
+      chp3_play_time: 0,
+      chp4_play_time: 0,
+      ending: '',
+      inputted_content: JSON.stringify({whatsup:[], email:[]}),
+      archievement_list: JSON.stringify(buildArchievementJson())
+    };
+    trackSession(payload);
+  }catch(e){ console.warn('[analytics] sendSessionStart failed', e); }
+}
+
 export function sendSessionEnd(ending){
   try{
     const sess = loadGameSession();
     if(!sess) return;
-    if(sess.ended) return; // 避免重複發送
+    if(sess.sessionEndSent) return;
+    if(sess.ended && sess.sessionEndSent) return;
     const data = collectSessionData(ending);
     const now = new Date();
-    // 標記已結束，避免重複
     sess.ended = true;
     sess.endedAt = now.toISOString();
     sess.lastEnding = ending || '';
-    // 暫存至 history 供除錯
+    sess.sessionEndSent = true;
     try{
       const histRaw = localStorage.getItem(GAME_SESSION_HISTORY_KEY);
       const hist = histRaw ? JSON.parse(histRaw) : [];
-      hist.push({ id: sess.id, ending, endedAt: sess.endedAt, total_time_sec: data.total_time_sec });
+      hist.push({ id: sess.id, ending, endedAt: sess.endedAt, total_play_time: data.total_play_time });
       localStorage.setItem(GAME_SESSION_HISTORY_KEY, JSON.stringify(hist.slice(-20)));
     }catch{}
     saveGameSession(sess);
-    // 以獨立 event_type 上報，payload_json 承載完整 JSON（GAS 會寫入同一列）
-    const payloadJson = JSON.stringify(data);
-    track('session_end', {
-      game_session_id: data.game_session_id,
-      game_session_start: data.game_session_start,
-      game_session_end: data.game_session_end,
+    const payload = {
+      action: 'session_end',
+      start_date: data.start_date,
+      end_date: data.end_date,
+      session_id: data.session_id,
+      total_play_time: data.total_play_time,
+      lang: data.lang,
+      ua: data.ua,
+      chp0_play_time: data.chp0_play_time,
+      chp1_play_time: data.chp1_play_time,
+      chp2_play_time: data.chp2_play_time,
+      chp3_play_time: data.chp3_play_time,
+      chp4_play_time: data.chp4_play_time,
       ending: data.ending,
-      endings: data.endings,
-      total_time_sec: data.total_time_sec,
-      wall_time_sec: data.wall_time_sec,
-      chapter_times_sec: JSON.stringify(data.chapter_times_sec),
-      whatsapp_count: data.whatsapp_count,
-      email_count: data.email_count,
-      achievements_gained: data.achievements_gained_ids.join(','),
-      payload_json: payloadJson.slice(0, 4000)
-    });
-    // 若 payload 超長，分段補送第二列（避免截斷遺失 email/whatsapp 細節）
-    if(payloadJson.length > 4000){
-      const extra = {
-        game_session_id: data.game_session_id,
-        part: 2,
-        whatsapp_records: JSON.stringify(data.whatsapp_records).slice(0,3800),
-        email_records: JSON.stringify(data.email_records).slice(0,3800)
-      };
-      // 延遲 800ms 再送，避免併發鎖衝突
-      setTimeout(()=> track('session_end_part2', { game_session_id: data.game_session_id, payload_json: JSON.stringify(extra).slice(0,4000) }), 800);
-    }
+      inputted_content: data.inputted_content,
+      archievement_list: data.archievement_list
+    };
+    trackSession(payload);
   }catch(e){ console.warn('[analytics] sendSessionEnd failed', e); }
+}
+
+// ── 底層發送（僅 session_start / session_end 會走到）──
+function trackSession(payload){
+  // payload 已含 14 欄 + action，所有發送皆經此唯一通道
+  const body = {
+    timestamp: new Date().toISOString(),
+    ...payload
+  };
+  if(!getConsent()){
+    const q = loadQueue(); q.push(body); saveQueue(q);
+    return;
+  }
+  if(!isGasConfigured()){
+    const q = loadQueue(); q.push(body); saveQueue(q);
+    console.warn('[analytics] 已記錄至本地隊列（待設定 GAS_URL 後補送）', body);
+    return;
+  }
+  sendPayload(body);
 }
 
 export function getConsent(){
@@ -348,7 +440,6 @@ export function setConsent(v){
     if(v) localStorage.setItem(CONSENT_KEY, '1');
     else localStorage.setItem(CONSENT_KEY, '0');
   }catch{}
-  // 若剛同意，立即嘗試補送佇列
   if(v) setTimeout(()=> flushQueue(), 500);
 }
 
@@ -369,20 +460,11 @@ export function getSessionId(){
   }
 }
 
-// 簡易 hash (djb2) 用於去識別，非加密
 export function hashText(s){
   if(!s) return '';
   let h = 5381;
   for(let i=0;i<s.length;i++) h = ((h << 5) + h) ^ s.charCodeAt(i);
   return (h >>> 0).toString(16).padStart(8,'0');
-}
-
-function getCommonMeta(){
-  let chapter = 0; let playtime = 0; let lang = 'zh-TW';
-  try{ chapter = state.get('currentChapter') ?? 0; }catch{}
-  try{ playtime = state.get('playtime') ?? 0; }catch{}
-  try{ lang = state.get('settings.language') || 'zh-TW'; }catch{}
-  return { chapter, playtime, lang };
 }
 
 function loadQueue(){
@@ -402,30 +484,25 @@ export function flushQueue(){
   if(!getConsent()) return;
   const q = loadQueue();
   if(!q.length) return;
-  // 一次補送最多 10 筆，避免配額爆掉
   const batch = q.slice(0, 10);
   const remaining = q.slice(10);
-  // 先清空已取的 batch，重試失敗會再 push 回
   saveQueue(remaining);
   batch.forEach(payload => sendPayload(payload, true));
 }
 
 function sendPayload(payload, isRetry = false){
   const url = getGasUrl();
-  console.log(`url : ${url}`)
   if(!isGasConfigured()){
     console.warn('[analytics] GAS_URL 未設定，跳過上報', payload);
     return;
   }
   if(!getConsent()){
-    // 未同意，入隊但不發送
     if(!isRetry){
       const q = loadQueue(); q.push(payload); saveQueue(q);
     }
     return;
   }
   const body = JSON.stringify(payload);
-  // 優先 sendBeacon (keepalive, 無需 CORS 讀取)
   try{
     if(navigator.sendBeacon){
       const blob = new Blob([body], {type: 'text/plain;charset=utf-8'});
@@ -433,7 +510,6 @@ function sendPayload(payload, isRetry = false){
       if(ok) return;
     }
   }catch{}
-  // Fallback fetch
   try{
     fetch(url, {
       method: 'POST',
@@ -444,14 +520,12 @@ function sendPayload(payload, isRetry = false){
       mode: 'cors'
     }).then(res => {
       if(!res.ok) throw new Error('GAS status ' + res.status);
-      // 成功後嘗試再清一次隊列
       if(!isRetry) setTimeout(()=> flushQueue(), 1000);
     }).catch(err => {
       console.warn('[analytics] 發送失敗，已入隊重試', err);
       if(!isRetry){
         const q = loadQueue(); q.push(payload); saveQueue(q);
       } else {
-        // 重試仍失敗，放回隊首
         const q = loadQueue(); q.unshift(payload); saveQueue(q);
       }
     });
@@ -460,100 +534,37 @@ function sendPayload(payload, isRetry = false){
   }
 }
 
+// ── 為兼容舊呼叫：僅 buffer 到 localStorage，不再直接發送至 sheets ──
 export function track(event_type, extra = {}){
-  // 未設定 GAS 也允許本地隊列（待設定後補送），但不阻塞遊戲
-  const meta = getCommonMeta();
-  const session_id = getSessionId();
-  const payload = {
-    timestamp: new Date().toISOString(),
-    session_id,
-    event_type,
-    chapter: meta.chapter,
-    playtime: meta.playtime,
-    lang: meta.lang,
-    ua: (typeof navigator !== 'undefined' ? navigator.userAgent.slice(0,200) : ''),
-    url: (typeof location !== 'undefined' ? location.href.slice(0,300) : ''),
-    ...extra
-  };
-  // 限制總長，GAS 單列 5000 字以內
-  if(payload.payload_json && typeof payload.payload_json === 'string' && payload.payload_json.length > 4000){
-    payload.payload_json = payload.payload_json.slice(0,4000);
-  }
-  // 若尚未同意，先入隊
-  if(!getConsent()){
-    const q = loadQueue(); q.push(payload); saveQueue(q);
-    return;
-  }
-  // 若 GAS 未設定，也先入隊（待管理員貼上 URL 後可手動 flush）
-  if(!isGasConfigured()){
-    const q = loadQueue(); q.push(payload); saveQueue(q);
-    console.warn('[analytics] 已記錄至本地隊列，待設定 GAS_URL 後自動上報', payload);
-    return;
-  }
-  sendPayload(payload);
+  // 已廢棄：為避免舊程式碼誤發多餘列，僅在 console 提示，不再寫入 sheets（除非是 session_* 透過 trackSession）
+  console.debug('[analytics] track suppressed (buffer-only mode)', event_type, extra);
 }
 
-// 便捷包裝，供各模組直接呼叫
 export function trackWhatsappSend({ chatId, chatName, text, to }) {
   try{ recordWhatsappForSession({ chatId, chatName, text, to }); }catch{}
-  const preview = (text || '').slice(0, 80);
-  const hash = hashText(text || '');
-  const sess = (()=>{ try{ return getGameSession(); }catch{ return null; }})();
-  track('whatsapp_send', {
-    game_session_id: sess ? sess.id : '',
-    whatsapp_chat_id: chatId,
-    whatsapp_chat_name: chatName || chatId,
-    whatsapp_to: to || '',
-    whatsapp_preview: preview,
-    whatsapp_hash: hash,
-    whatsapp_len: (text || '').length,
-    payload_json: JSON.stringify({ chatId, preview, len: (text||'').length, game_session_id: sess ? sess.id : '' })
-  });
+  // 不再即時寫入 sheets，僅緩衝至 localStorage，待 session_end 一併上報
 }
 
 export function trackEmailSubmit({ title, to, body }){
   try{ recordEmailForSession({ title, to, body }); }catch{}
-  const preview = (body || '').slice(0, 80);
-  const hash = hashText(body || '');
-  const sess = (()=>{ try{ return getGameSession(); }catch{ return null; }})();
-  track('email_submit', {
-    game_session_id: sess ? sess.id : '',
-    email_title: title || '',
-    email_to: (to || '').slice(0,100),
-    email_body_preview: preview,
-    email_body_hash: hash,
-    email_body_len: (body || '').length,
-    payload_json: JSON.stringify({ title, preview, len: (body||'').length, game_session_id: sess ? sess.id : '' })
-  });
 }
 
 export function trackEnding(ending){
-  const sess = (()=>{ try{ return getGameSession(); }catch{ return null; }})();
-  track('ending_unlocked', {
-    game_session_id: sess ? sess.id : '',
-    ending,
-    endings: (state.get('endings') || []).join(','),
-    payload_json: JSON.stringify({ ending, all: state.get('endings'), game_session_id: sess ? sess.id : '' })
-  });
-  // 觸發 session_end：收集此輪所有數據一次性上報
+  // 結局觸發：直接走 session_end（1 session 僅一次）
   try{ sendSessionEnd(ending); }catch{}
 }
 
 export function trackChapter(ch){
   try{ onChapterChanged(ch); }catch{}
-  const sess = (()=>{ try{ return getGameSession(); }catch{ return null; }})();
-  track('chapter_changed', { game_session_id: sess ? sess.id : '', chapter: ch, payload_json: JSON.stringify({ chapter: ch, game_session_id: sess ? sess.id : '' }) });
+  // 不再發送 chapter_changed 至 sheets
 }
 
 export function initAnalytics(){
-  // 清理舊佔位符（避免設定面板顯示範例 URL 卻顯示未設定）
   try{
     const ls = localStorage.getItem('cc_gas_url') || '';
     if(ls && isPlaceholderUrl(ls)) localStorage.removeItem('cc_gas_url');
   }catch{}
-  // ── 初始化 Game Session（首次遊玩即建立）──
   try{ ensureGameSession(); }catch{}
-  // 監聽章節切換，累計各章節停留秒數
   try{
     state.on('change', (e)=>{
       if(e && e.path === 'currentChapter'){
@@ -561,33 +572,27 @@ export function initAnalytics(){
       }
     });
   }catch{}
-  // 重置後（重新遊玩）自動開啟新 Session
   try{
     state.on('reset', ()=>{
-      // 舊 session 已在 sendSessionEnd 標記 ended，這裡直接新建
       try{ createNewGameSession(); }catch{}
     });
   }catch{}
-  // 暴露給 console 除錯
-  try{ window.__analytics = { track, getConsent, setConsent, getGasUrl, setGasUrl, isGasConfigured, flushQueue, hashText, ENV_GAS_URL: ENV_GAS_URL || '(empty)', getGameSession, createNewGameSession, ensureGameSession, collectSessionData, sendSessionEnd, getSessionId }; }catch{}
-  // 除錯日誌：幫你判斷為何 secrets 沒生效
+  try{ window.__analytics = { track, getConsent, setConsent, getGasUrl, setGasUrl, isGasConfigured, flushQueue, hashText, ENV_GAS_URL: ENV_GAS_URL || '(empty)', getGameSession, createNewGameSession, ensureGameSession, collectSessionData, sendSessionEnd, sendSessionStart, getSessionId, buildInputtedContent, buildArchievementJson, getEndingZh }; }catch{}
   try{
     const gs = (()=>{ try{ return getGameSession(); }catch{ return null; }})();
-    console.log('[analytics] init', {
+    console.log('[analytics] init (buffer-only, max 2 writes/session)', {
       hasConsent: getConsent(),
       hasChoice: hasConsentChoice(),
       gasConfigured: isGasConfigured(),
       gasUrl: getGasUrl().slice(0, 60) + (getGasUrl().length>60?'...':''),
-      envGasUrl: ENV_GAS_URL ? ENV_GAS_URL.slice(0,30)+'...' : '(empty - 需要在 build 時注入 VITE_GAS_URL)',
+      envGasUrl: ENV_GAS_URL ? ENV_GAS_URL.slice(0,30)+'...' : '(empty)',
       localStorageUrl: (typeof localStorage!=='undefined' && localStorage.getItem('cc_gas_url')) ? '已設定' : '(empty)',
-      gameSession: gs ? { id: gs.id, startAt: gs.startAt, chapterTimes: gs.chapterTimes, whatsapp: (gs.whatsappLog||[]).length, email: (gs.emailLog||[]).length } : null
+      gameSession: gs ? { id: gs.id, startAt: gs.startAt, chapterTimes: gs.chapterTimes, whatsapp: (gs.whatsappLog||[]).length, email: (gs.emailLog||[]).length, startSent: gs.sessionStartSent, endSent: gs.sessionEndSent } : null
     });
     if(!isGasConfigured()){
-      console.warn('[analytics] GAS_URL 未設定 → 請用以下任一方式設定:\n  1) 遊戲內 設定 → 數據追蹤 貼上 URL (立即生效)\n  2) 瀏覽器 Console: localStorage.setItem("cc_gas_url","你的exec URL"); location.reload()\n  3) GitHub Secrets VITE_GAS_URL (需透過 workflow 在 build 時注入，見 gas/README.md)');
+      console.warn('[analytics] GAS_URL 未設定 → 1) 設定頁貼上 2) localStorage.setItem(\"cc_gas_url\",\"exec URL\") 3) GitHub Secrets VITE_GAS_URL');
     }
   }catch{}
-  // 啟動時嘗試補送
   setTimeout(()=> flushQueue(), 1500);
-  // 監聽 online 恢復
   try{ window.addEventListener('online', ()=> flushQueue()); }catch{}
 }

@@ -69,9 +69,27 @@ export function bindSettings() {
   });
   document.getElementById('btnReset')?.addEventListener('click', async () => {
     if (confirm('Reset all progress?')) {
+      // 保留 archievement（persistentStats），僅重建 session 與清空當局 whatsup/email
+      let savedPersistent = null;
+      try { savedPersistent = JSON.parse(JSON.stringify(state.get('persistentStats') || {})); } catch {}
       try { state.reset(); } catch {}
-      try { localStorage.removeItem('code_conspiracy_state'); } catch {}
-      try { localStorage.clear(); } catch {}
+      // state.reset() 已透過 analytics 的 reset 監聽自動建立全新 cc_game_session（空 whatsup/email）並送出 session_start（新一行）
+      // 確保 archievement 不被誤清（localStorage.clear() 已移除）
+      try {
+        if (savedPersistent) {
+          const cur = state.get('persistentStats') || {};
+          const merged = {
+            unlockedEndings: [...new Set([...(cur.unlockedEndings||[]), ...(savedPersistent.unlockedEndings||[])])],
+            readArticles: [...new Set([...(cur.readArticles||[]), ...(savedPersistent.readArticles||[])])],
+            darkFileCount: Math.max(cur.darkFileCount||0, savedPersistent.darkFileCount||0),
+            whatsappSentCount: Math.max(cur.whatsappSentCount||0, savedPersistent.whatsappSentCount||0),
+            searchHistoryCount: Math.max(cur.searchHistoryCount||0, savedPersistent.searchHistoryCount||0),
+            flags: { ...(cur.flags||{}), ...(savedPersistent.flags||{}) }
+          };
+          state.set('persistentStats', merged);
+          state.set('unlockedEndings', merged.unlockedEndings);
+        }
+      } catch {}
       const dlg = document.getElementById('settingsDialog');
       if (dlg && dlg.open) try { dlg.close(); } catch {}
       if (dlg) {
