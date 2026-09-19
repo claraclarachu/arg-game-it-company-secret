@@ -1,6 +1,5 @@
 import { state } from '../core/state.js';
 import { t } from '../core/i18n.js';
-import { downloadText, readFileAsText } from '../utils/storage.js';
 import { toast } from './notifications.js';
 import { bgm } from './bgm.js';
 
@@ -56,61 +55,5 @@ export function bindSettings() {
       if (pctEl) pctEl.textContent = Math.round(v * 100) + '%';
     });
   }
-  document.getElementById('btnExport')?.addEventListener('click', () => {
-    downloadText('code-conspiracy-save.json', state.exportSave());
-  });
-  document.getElementById('btnImport')?.addEventListener('change', async e => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const text = await readFileAsText(file);
-    const ok = state.importSave(text);
-    toast(ok ? t('toast.saved') : 'Import failed', { variant: ok ? undefined : 'error' });
-    if (ok) location.reload();
-  });
-  document.getElementById('btnReset')?.addEventListener('click', async () => {
-    if (confirm('Reset all progress?')) {
-      // 保留 archievement（persistentStats），僅重建 session 與清空當局 whatsup/email
-      let savedPersistent = null;
-      try { savedPersistent = JSON.parse(JSON.stringify(state.get('persistentStats') || {})); } catch {}
-      try { state.reset(); } catch {}
-      // state.reset() 已透過 analytics 的 reset 監聽自動建立全新 cc_game_session（空 whatsup/email）並送出 session_start（新一行）
-      // 確保 archievement 不被誤清（localStorage.clear() 已移除）
-      try {
-        if (savedPersistent) {
-          const cur = state.get('persistentStats') || {};
-          const merged = {
-            unlockedEndings: [...new Set([...(cur.unlockedEndings||[]), ...(savedPersistent.unlockedEndings||[])])],
-            readArticles: [...new Set([...(cur.readArticles||[]), ...(savedPersistent.readArticles||[])])],
-            darkFileCount: Math.max(cur.darkFileCount||0, savedPersistent.darkFileCount||0),
-            whatsappSentCount: Math.max(cur.whatsappSentCount||0, savedPersistent.whatsappSentCount||0),
-            searchHistoryCount: Math.max(cur.searchHistoryCount||0, savedPersistent.searchHistoryCount||0),
-            flags: { ...(cur.flags||{}), ...(savedPersistent.flags||{}) }
-          };
-          state.set('persistentStats', merged);
-          state.set('unlockedEndings', merged.unlockedEndings);
-        }
-      } catch {}
-      const dlg = document.getElementById('settingsDialog');
-      if (dlg && dlg.open) try { dlg.close(); } catch {}
-      if (dlg) {
-        dlg.style.removeProperty('display');
-        dlg.removeAttribute('open');
-      }
-      try {
-        if ('caches' in window) {
-          const keys = await caches.keys();
-          await Promise.all(keys.map(k => caches.delete(k)));
-        }
-        if ('serviceWorker' in navigator) {
-          const regs = await navigator.serviceWorker.getRegistrations();
-          await Promise.all(regs.map(r => r.unregister()));
-        }
-      } catch {}
-      setTimeout(() => {
-        window.location.href = window.location.pathname + '?reset=' + Date.now();
-        window.location.reload(true);
-      }, 150);
-    }
-  });
   document.getElementById('settingsDialog')?.addEventListener('close', () => {});
 }

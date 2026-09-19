@@ -85,10 +85,11 @@ function triggerSystemHealthy(source = 'revert') {
         // Win notification for health - hold 10 sec per spec
         const container = document.createElement('div');
         if (isChatMutedVS('system-alert')) return;
+        container.classList.add('win-notif');
         container.id = 'wa-win-notif-health-' + Date.now();
         container.setAttribute('role','alert');
         container.innerHTML = `<div class="win-notif__app"><img src="${import.meta.env.BASE_URL}icon/whatsup.svg" alt="WhatUp" width="20" height="20" style="width:20px;height:20px;object-fit:contain" /><span class="win-notif__app-name">WhatUp</span><span class="win-notif__app-sub">System Alert</span><button class="win-notif__close" aria-label="關閉">✕</button></div><div class="win-notif__body"><div class="win-notif__avatar" style="background:linear-gradient(135deg, #0d9488, #25D366)">✓</div><div class="win-notif__text"><div class="win-notif__sender">System Alert</div><div class="win-notif__msg">✅ 系統健康 — 所有服務已恢復正常</div><div class="win-notif__time">剛剛 · 點擊開啟對話</div></div></div><div class="win-notif__progress" style="animation: winNotifShrink 10000ms linear forwards"></div>`;
-        container.style.cssText = 'position:fixed;right:16px;bottom:60px;width:360px;background:#2d2d2d;color:#f0f0f0;border:1px solid rgba(255,255,255,.12);border-radius:8px;box-shadow:0 8px 28px rgba(0,0,0,.45);z-index:1100;overflow:hidden;cursor:pointer;opacity:0;transform:translateY(12px);transition:opacity .28s,transform .28s;';
+        container.style.cssText = 'opacity:0;transform:translateY(12px);transition:opacity .28s,transform .28s;';
         container.addEventListener('click', (e)=>{ if(e.target.closest('.win-notif__close')) return; container.remove(); import('../../ui/dock.js').then(d=>{ if(d.setActiveView){d.setActiveView('whatsapp'); localStorage.setItem('cc_active_view','whatsapp');} }); import('../whatsapp/index.js').then(mm=>mm.openChat('system-alert')); });
         container.querySelector('.win-notif__close')?.addEventListener('click', e=>{ e.stopPropagation(); container.remove(); });
         document.body.appendChild(container);
@@ -97,6 +98,35 @@ function triggerSystemHealthy(source = 'revert') {
       }
     });
   }, 500);
+}
+// 統一 0043 回滾完成邏輯 — Ctrl+Z + Commit 與 Git Graph Revert 按鈕共用，確保行為完全一致
+function complete0043Revert({ source, commitMsg, diff }) {
+  // 確保 SearchBar 還原為原始快照（與 Git Graph Revert 一致）
+  captureOriginalSearchBar();
+  if (originalSearchBarSnapshot) {
+    vfs.registerFile('/file-system/src/components/SearchBar.jsx', { content: originalSearchBarSnapshot, meta: { lang: 'javascript' } });
+    const e = vfs.getFile('/file-system/src/components/SearchBar.jsx');
+    if (e) e.content = originalSearchBarSnapshot;
+  }
+  // 清除髒標記（僅 SearchBar，與 Git Graph 行為一致）
+  editedFiles.delete('/file-system/src/components/SearchBar.jsx');
+  // 建立 revert commit（gitCommits + gitGraphCommits）
+  const hash = Math.random().toString(36).slice(2,8);
+  const date = new Date().toISOString().slice(0,10);
+  gitCommits.unshift({ hash, author: 'Casey', date, msg: commitMsg, diff });
+  gitGraphCommits.unshift({ hash, branch: 'main', author: 'Casey', date, msg: commitMsg, diff });
+  // 持久化並刷新 UI
+  persistVSCode();
+  renderTabs(); renderTree(); renderScmChanges();
+  if (gitGraphOpen) renderGitGraphEditor();
+  const statusEl = document.getElementById('scmCommitStatus');
+  if (statusEl) statusEl.innerHTML = `<span style="color:var(--success)">✓ Commit 成功 (revert): ${hash}</span>`;
+  appendTerminal(`✓ commit ${hash} — ${commitMsg} (revert)`);
+  // 標記 Jira 完成（與 Commit 路徑一致）
+  try { import('../jira/index.js').then(m=>{ const t=m.getTickets().find(x=>x.key==='INV-2024-0043'); if(t){ t.status='Done'; t.history.push({from:'To Do',to:'Done',by:'Casey',at:new Date().toISOString().slice(0,10)}); } }); } catch {}
+  try { import('../jira/index.js').then(m=>m.markTicketDone&&m.markTicketDone('INV-2024-0043')); } catch {}
+  // 觸發健康通知與章節推進（內部會設定 ch1_revert_done / ch1_system_down）
+  triggerSystemHealthy(source);
 }
 function handleGitGraphRevert(hash) {
   const target = gitGraphCommits.find(c=>c.hash===hash) || gitCommits.find(c=>c.hash===hash);
@@ -126,30 +156,10 @@ function handleGitGraphRevert(hash) {
   }
   // Revert button on commit row: restore SearchBar.jsx to original and create revert commit
   if (!isPortalEntryClosed()) return;
-  // Only allow revert if that hash is the 0043 removal commit (or any Casey commit while down)
-  // Restore file content
-  captureOriginalSearchBar();
-  if (originalSearchBarSnapshot) {
-    vfs.registerFile('/file-system/src/components/SearchBar.jsx', { content: originalSearchBarSnapshot, meta: { lang: 'javascript' } });
-    const e = vfs.getFile('/file-system/src/components/SearchBar.jsx');
-    if (e) e.content = originalSearchBarSnapshot;
-  }
-  editedFiles.delete('/file-system/src/components/SearchBar.jsx');
-  // Also clear any other dirty that might be SearchBar edited
-  // Create revert commit entry
-  const hash2 = Math.random().toString(36).slice(2,8);
+  // 與 Ctrl+Z + Commit 共用同一完成邏輯，確保行為完全一致
   const msg = `revert: restore SearchBar legacyRoutes (revert ${hash})`;
-  gitCommits.unshift({ hash: hash2, author: 'Casey', date: new Date().toISOString().slice(0,10), msg, diff: `M /file-system/src/components/SearchBar.jsx\n+ restored legacyRoutes / resolveLegacyPath` });
-  gitGraphCommits.unshift({ hash: hash2, branch: 'main', author: 'Casey', date: new Date().toISOString().slice(0,10), msg, diff: `M /file-system/src/components/SearchBar.jsx\n+ restored legacyRoutes` });
-  // Update UI
-  const statusEl = document.getElementById('scmCommitStatus');
-  if (statusEl) statusEl.innerHTML = `<span style="color:var(--success)">✓ Revert 成功: ${hash2} (from ${hash})</span>`;
-  appendTerminal(`✓ revert ${hash2} — ${msg}`);
-  persistVSCode();
-  renderTabs(); renderTree(); renderScmChanges();
-  if (gitGraphOpen) renderGitGraphEditor();
-  // Trigger healthy
-  triggerSystemHealthy('git-graph');
+  const diff = `M /file-system/src/components/SearchBar.jsx\n+ restored legacyRoutes / resolveLegacyPath`;
+  complete0043Revert({ source: 'git-graph', commitMsg: msg, diff });
 }
 
 const gitCommits = [
@@ -193,7 +203,7 @@ let gitGraphCommits = [
   { hash: '4c2a1e0', branch: 'main', author: 'dev', date: '2024-08-01', msg: '(INV-2024-0020) chore: init billing service', diff: `+ export function calculateAmount(items, opts) {}\n+ export function computeFee(amount, opts) {}` },
   { hash: 'c8d3e9f', branch: 'develop', author: 'ops-li', date: '2024-07-28', msg: '(INV-2023-0040) chore: scaffold workspace & payment stubs', diff: `+ workspace/src/payment/gateway.js\n+ workspace/src/payment/mixer.js` },
   { hash: '3f2a9c1', branch: 'feature/home-copyfix', author: 'Parker', date: '2024-02-14', msg: '(INV-2024-0017) fix: correct homepage hero slogan and founded year (2018→2019)', diff: `M /customer-portal/src/frontend/src/pages/Home.jsx\n- <h1>Nori 飲品供應 — 用一杯冰釀茶酒，連結人與希望</h1>\n+ <h1>Nori 飲品供應 — 用一杯冰釀茶酒，連結人與風味</h1>\n- <p>創辦人 蔡梓掦 · 2018 創立</p>\n+ <p>創辦人 蔡梓掦 · 2019 創立</p>` },
-  { hash: 'd4e5f6a', branch: 'main', author: 'dev-chen', date: '2023-11-20', msg: '(INV-2023-0039) refactor: simplify portal auth (remove dynamic generator)', diff: `- function generateInternalPortalPath(internalPortalDomain){ \n-     const cid = redis.get('companyId'); \n-     const y = redis.get('year'); \n-     const k = import.meta.env.MD5_KEY; \n-     return internalPortalDomain + '?hash=' + md5(\`companyId=\${cid}&year=\${y}&key=\${k}\`); // e.g. https://google.com/internal?hash=be78e7542cd6d04e31e80fa8b741aad4\n-     }` },
+  { hash: 'd4e5f6a', branch: 'main', author: 'dev-chen', date: '2023-11-20', msg: '(INV-2023-0039) refactor: simplify portal auth (remove dynamic generator)', diff: `- function generateInternalPortalPath(internalPortalDomain){ \n-     const cid = database.get('companyId'); \n-     const y = database.get('year'); \n-     const k = import.meta.env.MD5_KEY; \n-     return internalPortalDomain + '?hash=' + md5(\`companyId=\${cid}&year=\${y}&key=\${k}\`); // e.g. https://google.com/internal?hash=be78e7542cd6d04e31e80fa8b741aad4\n-     }` },
 ];
 // Ensure git graph d4e5f6a always shows e.g. hash comment even if restored from old localStorage
 function ensureGitGraphExampleComment() {
@@ -1004,9 +1014,10 @@ function handleCommit() {
       const container = document.createElement('div');
       const nid = 'wa-win-notif-' + Date.now() + '-' + Math.random().toString(36).slice(2,6);
       container.id = nid;
+      container.classList.add('win-notif');
       container.setAttribute('role', 'alert');
       container.innerHTML = `<div class="win-notif__app"><img src="${import.meta.env.BASE_URL}icon/whatsup.svg" alt="WhatUp" width="20" height="20" style="width:20px;height:20px;object-fit:contain" /><span class="win-notif__app-name">WhatUp</span><span class="win-notif__app-sub">${escapeHtml(appSub)}</span><button class="win-notif__close" aria-label="關閉">✕</button></div><div class="win-notif__body"><div class="win-notif__avatar" style="background:${avatarBg}">${escapeHtml(avatarText)}</div><div class="win-notif__text"><div class="win-notif__sender">${escapeHtml(sender)}</div><div class="win-notif__msg">${escapeHtml(msg)}</div><div class="win-notif__time">剛剛 · 點擊開啟對話</div></div></div><div class="win-notif__progress" style="animation: winNotifShrink ${dur}ms linear forwards"></div>`;
-      container.style.cssText = 'position:fixed;right:16px;bottom:60px;width:360px;background:#2d2d2d;color:#f0f0f0;border:1px solid rgba(255,255,255,.12);border-radius:8px;box-shadow:0 8px 28px rgba(0,0,0,.45);z-index:1100;overflow:hidden;cursor:pointer;opacity:0;transform:translateY(12px);transition:opacity .28s,transform .28s;';
+      container.style.cssText = 'opacity:0;transform:translateY(12px);transition:opacity .28s,transform .28s;';
       container.addEventListener('click', (e) => {
         if (e.target.closest('.win-notif__close')) return;
         container.remove();
@@ -1132,45 +1143,15 @@ function handleCommit() {
     }, 5000);
     return;
   }
-  // Check for revert of 0043 - either via revert keyword OR manual paste-back of legacyRoutes snippet
+  // Check for revert of 0043 - either via revert keyword OR manual paste-back of legacyRoutes snippet (Ctrl+Z)
+  // 與 Git Graph Revert 按鈕共用同一完成邏輯，確保 Ctrl+Z 回滾與按鈕回滾行為完全一致
   const isManualRestore = hasLegacyNow && hasResolveNow && state.hasFlag('ch1_system_down') && !state.hasFlag('ch1_revert_done');
   const isRevertKeyword = msg.toLowerCase().includes('revert') && state.hasFlag('ch1_system_down') && !state.hasFlag('ch1_revert_done');
   if (isManualRestore || isRevertKeyword) {
-    // Determine if this is a meaningful restore (file now contains snippet) or just keyword revert
-    const shouldPersistRestore = isManualRestore;
-    // Persist all edited files (including pasted-back SearchBar)
-    if (shouldPersistRestore) {
-      for (const [p,c] of editedFiles.entries()) {
-        vfs.registerFile(p, { content: c, meta: { lang: p.endsWith('.js')?'javascript':p.endsWith('.java')?'java':'text' } });
-        const e = vfs.getFile(p);
-        if (e) e.content = c;
-      }
-    } else {
-      // Keyword revert without paste: restore from snapshot
-      captureOriginalSearchBar();
-      if (originalSearchBarSnapshot) {
-        vfs.registerFile('/file-system/src/components/SearchBar.jsx', { content: originalSearchBarSnapshot, meta: { lang: 'javascript' } });
-        const e = vfs.getFile('/file-system/src/components/SearchBar.jsx');
-        if (e) e.content = originalSearchBarSnapshot;
-      }
-    }
-    state.setFlag('ch1_revert_done', true);
-    state.setFlag('ch1_system_down', false);
-    const hash2 = Math.random().toString(36).slice(2,8);
     const isPasteBack = isManualRestore;
-    const diffMsg = isPasteBack ? `M /file-system/src/components/SearchBar.jsx\n+ restored legacyRoutes / resolveLegacyPath (paste back)` : `M revert 0043`;
-    gitCommits.unshift({ hash: hash2, author: 'Casey', date: new Date().toISOString().slice(0,10), msg, diff: diffMsg });
-    gitGraphCommits.unshift({ hash: hash2, branch: 'main', author: 'Casey', date: new Date().toISOString().slice(0,10), msg, diff: diffMsg });
-    editedFiles.clear();
-    if (statusEl) statusEl.innerHTML = `<span style="color:var(--success)">✓ Commit 成功 (revert): ${hash2}</span>`;
-    appendTerminal(`✓ commit ${hash2} — ${msg} (revert)`);
-    persistVSCode();
-    renderTabs(); renderTree(); renderScmChanges();
-    if (gitGraphOpen) renderGitGraphEditor();
-    // Send system health message via WhatUp + win notification 10s per spec (both revert methods)
-    triggerSystemHealthy(isPasteBack ? 'paste-back' : 'keyword');
-    // Mark 0043 as Done (keep)
-    try { import('../jira/index.js').then(m=>{ const t=m.getTickets().find(x=>x.key==='INV-2024-0043'); if(t){ t.status='Done'; t.history.push({from:'To Do',to:'Done',by:'Casey',at:new Date().toISOString().slice(0,10)}); } }); } catch {}
+    // 統一使用共用 helper，與 Git Graph Revert 完全一致（還原檔案、建立 commit、標記 Jira、觸發健康通知）
+    const diffMsg = isPasteBack ? `M /file-system/src/components/SearchBar.jsx\n+ restored legacyRoutes / resolveLegacyPath` : `M /file-system/src/components/SearchBar.jsx\n+ restored legacyRoutes / resolveLegacyPath`;
+    complete0043Revert({ source: isPasteBack ? 'paste-back' : 'keyword', commitMsg: msg, diff: diffMsg });
     return;
   }
   // Success: create commit for VIP fix

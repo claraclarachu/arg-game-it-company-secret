@@ -306,10 +306,12 @@ button{font:inherit}
 /* Toast */
 .toasts{position:fixed;right:12px;bottom:64px;display:flex;flex-direction:column;gap:8px;z-index:1000;pointer-events:none}
 .toast{padding:10px 12px;border-radius:8px;background:#323232;color:#fff;box-shadow:var(--shadow);font-size:13px;opacity:0;transform:translateY(6px);animation:toastIn .25s forwards}
+:root[data-theme="light"] .toast{background:#ffffff;color:#1f2428;border:1px solid #e1e4e8;box-shadow:0 8px 28px rgba(0,0,0,.18), 0 0 0 1px rgba(0,0,0,.06);}
 @keyframes toastIn{to{opacity:1;transform:none}}
 
 /* Windows-style WhatUp notification (bottom-right, above taskbar) */
-#wa-win-notification{
+#wa-win-notification,
+.win-notif{
   position:fixed;
   right:16px;
   bottom:60px;
@@ -329,14 +331,15 @@ button{font:inherit}
   user-select:none;
   font-family: var(--font-ui);
 }
-:root[data-theme="light"] #wa-win-notification{
+:root[data-theme="light"] #wa-win-notification,
+:root[data-theme="light"] .win-notif{
   background:#ffffff;
   color:#1f2428;
   border-color:#e1e4e8;
   box-shadow: 0 8px 28px rgba(0,0,0,.18), 0 0 0 1px rgba(0,0,0,.06);
 }
-#wa-win-notification.show{ opacity:1; transform:none; }
-#wa-win-notification.hide{ opacity:0; transform: translateY(8px) scale(.98); }
+#wa-win-notification.show, .win-notif.show{ opacity:1; transform:none; }
+#wa-win-notification.hide, .win-notif.hide{ opacity:0; transform: translateY(8px) scale(.98); }
 .win-notif__app{
   display:flex;align-items:center;gap:8px;
   padding:8px 12px 6px;
@@ -379,7 +382,7 @@ button{font:inherit}
 }
 @keyframes winNotifShrink{ from{ transform:scaleX(1)} to{ transform:scaleX(0)} }
 @media (max-width: 480px){
-  #wa-win-notification{ right:8px; bottom:56px; }
+  #wa-win-notification, .win-notif{ right:8px; bottom:56px; }
 }
 
 /* Legacy topbar hidden - kept for compat if needed */

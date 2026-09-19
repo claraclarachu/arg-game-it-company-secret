@@ -748,10 +748,11 @@ function sendMessage(chat) {
       // Don't show notification if player is already viewing Sawyer's chat
       if (activeId === 'sawyer') return;
       const container = document.createElement('div');
+      container.classList.add('win-notif');
       container.id = 'wa-win-notif-sawyer-seq2-'+Date.now();
       container.setAttribute('role','alert');
       container.innerHTML = `<div class="win-notif__app"><img src="${import.meta.env.BASE_URL}icon/whatsup.svg" alt="WhatUp" width="20" height="20" style="width:20px;height:20px;object-fit:contain" /><span class="win-notif__app-name">WhatUp</span><span class="win-notif__app-sub">Sawyer</span><button class="win-notif__close" aria-label="關閉">✕</button></div><div class="win-notif__body"><div class="win-notif__avatar" style="background:linear-gradient(135deg, #722F37, #8B1A1A)">S</div><div class="win-notif__text"><div class="win-notif__sender">Sawyer</div><div class="win-notif__msg">先別管，肯定是這段的影響，已經在影響我工作了</div><div class="win-notif__time">剛剛</div></div></div><div class="win-notif__progress" style="animation: winNotifShrink 4000ms linear forwards"></div>`;
-      container.style.cssText = 'position:fixed;right:16px;bottom:60px;width:360px;background:#2d2d2d;color:#f0f0f0;border:1px solid rgba(255,255,255,.12);border-radius:8px;box-shadow:0 8px 28px rgba(0,0,0,.45);z-index:1100;overflow:hidden;cursor:pointer;opacity:1;transform:none;';
+      container.style.cssText = 'opacity:1;transform:none;';
       container.addEventListener('click', (e)=>{ if(e.target.closest('.win-notif__close')) return; container.remove(); import('../../ui/dock.js').then(d=>{ if(d.setActiveView){d.setActiveView('whatsapp'); localStorage.setItem('cc_active_view','whatsapp');} }); openChat('sawyer'); });
       container.querySelector('.win-notif__close')?.addEventListener('click', e=>{ e.stopPropagation(); container.remove(); });
       document.body.appendChild(container);
@@ -790,12 +791,13 @@ function sendMessage(chat) {
       // Don't show notification if player is already viewing Sawyer's chat
       if (activeId === 'sawyer') return;
       const container = document.createElement('div');
+      container.classList.add('win-notif');
       container.id = 'wa-win-notif-sawyer-seq3-'+Date.now();
       container.setAttribute('role','alert');
       container.innerHTML = `<div class="win-notif__app"><img src="${import.meta.env.BASE_URL}icon/whatsup.svg" alt="WhatUp" width="20" height="20" style="width:20px;height:20px;object-fit:contain" /><span class="win-notif__app-name">WhatUp</span><span class="win-notif__app-sub">Sawyer</span><button class="win-notif__close" aria-label="關閉">✕</button></div><div class="win-notif__body"><div class="wa__msg-avatar" style="background:linear-gradient(135deg, #722F37, #8B1A1A)">S</div><div class="win-notif__text"><div class="win-notif__sender">Sawyer</div><div class="win-notif__msg">趕快revert！</div><div class="win-notif__time">剛剛</div></div></div><div class="win-notif__progress" style="animation: winNotifShrink 4000ms linear forwards"></div>`;
       // Actually reuse same style as other notifs - correct inner html
       container.innerHTML = `<div class="win-notif__app"><img src="${import.meta.env.BASE_URL}icon/whatsup.svg" alt="WhatUp" width="20" height="20" style="width:20px;height:20px;object-fit:contain" /><span class="win-notif__app-name">WhatUp</span><span class="win-notif__app-sub">Sawyer</span><button class="win-notif__close" aria-label="關閉">✕</button></div><div class="win-notif__body"><div class="win-notif__avatar" style="background:linear-gradient(135deg, #722F37, #8B1A1A)">S</div><div class="win-notif__text"><div class="win-notif__sender">Sawyer</div><div class="win-notif__msg">趕快revert！</div><div class="win-notif__time">剛剛</div></div></div><div class="win-notif__progress" style="animation: winNotifShrink 4000ms linear forwards"></div>`;
-      container.style.cssText = 'position:fixed;right:16px;bottom:60px;width:360px;background:#2d2d2d;color:#f0f0f0;border:1px solid rgba(255,255,255,.12);border-radius:8px;box-shadow:0 8px 28px rgba(0,0,0,.45);z-index:1100;overflow:hidden;cursor:pointer;opacity:1;transform:none;';
+      container.style.cssText = 'opacity:1;transform:none;';
       container.addEventListener('click', (e)=>{ if(e.target.closest('.win-notif__close')) return; container.remove(); import('../../ui/dock.js').then(d=>{ if(d.setActiveView){d.setActiveView('whatsapp'); localStorage.setItem('cc_active_view','whatsapp');} }); openChat('sawyer'); });
       container.querySelector('.win-notif__close')?.addEventListener('click', e=>{ e.stopPropagation(); container.remove(); });
       document.body.appendChild(container);
@@ -866,6 +868,7 @@ export function triggerCh1Event1() {
       return;
     }
     const container = document.createElement('div');
+    container.classList.add('win-notif');
     container.id = 'wa-win-notification-sawyer-tree';
     container.setAttribute('role', 'alert');
     container.innerHTML = `
@@ -885,7 +888,7 @@ export function triggerCh1Event1() {
       </div>
       <div class="win-notif__progress"></div>
     `;
-    container.style.cssText = 'position:fixed;right:16px;bottom:60px;width:360px;background:#2d2d2d;color:#f0f0f0;border:1px solid rgba(255,255,255,.12);border-radius:8px;box-shadow:0 8px 28px rgba(0,0,0,.45);z-index:1100;overflow:hidden;cursor:pointer;opacity:0;transform:translateY(12px);transition:opacity .28s,transform .28s;';
+    container.style.cssText = 'opacity:0;transform:translateY(12px);transition:opacity .28s,transform .28s;';
     container.addEventListener('click', (e) => {
       if (e.target.closest('.win-notif__close')) return;
       container.remove();
@@ -935,6 +938,7 @@ export function triggerCh1Event2() {
     // Don't show notification if player is already viewing Maggie's private chat
     if (activeId === 'maggie') return;
     const container = document.createElement('div');
+    container.classList.add('win-notif');
     container.id = 'wa-win-notification-maggie-0043';
     container.setAttribute('role', 'alert');
     container.innerHTML = `
@@ -954,7 +958,7 @@ export function triggerCh1Event2() {
       </div>
       <div class="win-notif__progress"></div>
     `;
-    container.style.cssText = 'position:fixed;right:16px;bottom:60px;width:360px;background:#2d2d2d;color:#f0f0f0;border:1px solid rgba(255,255,255,.12);border-radius:8px;box-shadow:0 8px 28px rgba(0,0,0,.45);z-index:1100;overflow:hidden;cursor:pointer;opacity:0;transform:translateY(12px);transition:opacity .28s,transform .28s;';
+    container.style.cssText = 'opacity:0;transform:translateY(12px);transition:opacity .28s,transform .28s;';
     container.addEventListener('click', (e) => {
       if (e.target.closest('.win-notif__close')) return;
       container.remove();
@@ -1002,7 +1006,7 @@ function showCh2LunchNotification(from, text) {
   const initial = getInitial(from);
   const container = document.createElement('div');
   container.className = 'win-notif';
-  container.id = 'wa-win-notif-lunch-' + Date.now() + '-' + Math.random().toString(36).slice(2, 6);
+      container.id = 'wa-win-notif-lunch-' + Date.now() + '-' + Math.random().toString(36).slice(2, 6);
   container.setAttribute('role', 'alert');
   container.innerHTML = `
       <div class="win-notif__app">
@@ -1021,7 +1025,7 @@ function showCh2LunchNotification(from, text) {
       </div>
       <div class="win-notif__progress" style="animation: winNotifShrink 4000ms linear forwards"></div>
   `;
-  container.style.cssText = 'position:fixed;right:16px;bottom:60px;width:360px;background:#2d2d2d;color:#f0f0f0;border:1px solid rgba(255,255,255,.12);border-radius:8px;box-shadow:0 8px 28px rgba(0,0,0,.45);z-index:1100;overflow:hidden;cursor:pointer;opacity:0;transform:translateY(12px);transition:opacity .28s,transform .28s;';
+  container.style.cssText = 'opacity:0;transform:translateY(12px);transition:opacity .28s,transform .28s;';
   container.addEventListener('click', (e) => {
     if (e.target.closest('.win-notif__close')) return;
     container.remove();

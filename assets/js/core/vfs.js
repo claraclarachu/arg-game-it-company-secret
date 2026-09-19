@@ -11,16 +11,16 @@ function registerLegacyRoute(key, entry) { legacyRoutes.set(key, entry); }
 function getLegacyRoute(key) { return legacyRoutes.get(key) || null; }
 function listLegacyRoutes() { return Array.from(legacyRoutes.entries()).map(([k,v])=>({key:k,...v})); }
 function findLegacyRoute(predicate) { for (const [k,v] of legacyRoutes.entries()) { if (predicate(v,k)) return {key:k,...v}; } return null; }
-// 初始化歷史 route（對應 REVAMP_PLAN.md §3-§6，不暴露 134/2023 明文於 VFS，僅透過 redis.get 取得）
+// 初始化歷史 route（對應 REVAMP_PLAN.md §3-§6，不暴露 134/2023 明文於 VFS，僅透過 database.get 取得）
 registerLegacyRoute('nori-portal-2023', {
   domain: internalPathDomain,
   historical: true,
   description: 'Nori 內網舊版 portal 路由（2023 前由 generateSecretPath 動態產生）',
-  generateSecretPath: `function generateSecretPath(domain){ const cid = redis.get('companyId'); const y = redis.get('year'); const k='70BTa3A1a13ad4212GHdybJmn'; return domain + 'hash=' + md5(\`companyId=\${cid}&year=\${y}&key=\${k}\`); }`,
+  generateSecretPath: `function generateSecretPath(domain){ const cid = database.get('companyId'); const y = database.get('year'); const k='70BTa3A1a13ad4212GHdybJmn'; return domain + 'hash=' + md5(\`companyId=\${cid}&year=\${y}&key=\${k}\`); }`,
   key: '70BTa3A1a13ad4212GHdybJmn',
   // 供重建時參考的上下文（不直接暴露明文，僅註記來源）
-  companyIdSource: "redis.get('companyId')",
-  yearSource: "redis.get('year')",
+  companyIdSource: "database.get('companyId')",
+  yearSource: "database.get('year')",
   // 完整 hash 僅供內部驗證，不寫入一般 VFS 搜尋
   _hash: 'f665a7117959b667b7f283eaebf69cae',
   _fullUrl: 'https://nori-intranet/internal/portal?hash=f665a7117959b667b7f283eaebf69cae'

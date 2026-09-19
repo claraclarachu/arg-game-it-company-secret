@@ -313,8 +313,7 @@ function renderNotebook() {
     ${endingsCarouselHtml}
 
     <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
-      <button class="btn" onclick="navigator.clipboard.writeText(JSON.stringify(JSON.parse(localStorage.getItem('code_conspiracy_state')||'{}'), null, 2))">複製存檔 JSON</button>
-      <button class="btn" id="notebookResetBtn">重置 notebook</button>
+      <button class="btn" id="notebookResetBtn" style="color:var(--error)">重置遊戲進度</button>
     </div>
   `;
   // Bind reset button with proper state reset and rerender
