@@ -86,17 +86,17 @@ function bindIntranet() {
   function isDarkUrl(val) {
     if (!val) return false;
     const v = val.trim();
-    // Only the full URL with ?hash= (query parameter) triggers dark web
-    // /hash= (path segment) must NOT trigger
-    if (v === darkFullUrl) return true;
-    // Strict: must start with the correct domain and use ?hash=
-    if (v.startsWith('https://nori-intranet/internal/portal?hash=' + darkHash)) return true;
-    return false;
+    // 僅允許完全相符的完整 hash URL 才觸發暗網（全螢幕版）
+    return v === darkFullUrl;
   }
   function handleSearchTrigger() {
     const input = document.getElementById('intraSearch');
     const val = input ? input.value.trim() : '';
-    const isSimple = val === darkPortalSimple || val === darkPortalSimple + '/' || (val.includes('nori-intranet/internal/portal') && !val.includes('hash='));
+    // 僅精確匹配才視為入口：
+    // - https://nori-intranet/internal/portal
+    // - https://nori-intranet/internal/portal?hash=f665a7117959b667b7f283eaebf69cae
+    // 其他如 /portal123 /portal/ /portal?hash=wrong 皆不觸發，改走一般搜尋並顯示「輸入錯誤結果」
+    const isSimple = val === darkPortalSimple;
     const isFull = isDarkUrl(val);
     const isEntryClosed = state.hasFlag('ch1_0043_committed') && !state.hasFlag('ch1_revert_done');
     if (isEntryClosed && (isSimple || isFull)) {
@@ -220,7 +220,15 @@ function renderMain() {
     files.forEach(f => { if (!map.has(f.path)) map.set(f.path, { path: f.path, snippet: '' }); });
     const results = [...map.values()];
     if (!results.length) {
-      el.innerHTML = `<div class="intra-empty">無搜尋結果 — 試試「Nori」「冰釀茶酒」「業務流程」「Sawyer」</div>`;
+      const portalBase = 'https://nori-intranet/internal/portal';
+      const correctFull = 'https://nori-intranet/internal/portal?hash=f665a7117959b667b7f283eaebf69cae';
+      const q = searchQuery.trim().toLowerCase();
+      const isPortalWithSuffixNotCorrect = q.startsWith(portalBase) && q.length > portalBase.length && q !== correctFull;
+      if (isPortalWithSuffixNotCorrect) {
+        el.innerHTML = `<div class="intra-empty">404 NOT FOUND - 輸入錯誤結果\</div>`;
+      } else {
+        el.innerHTML = `<div class="intra-empty">無搜尋結果 — 試試「Nori」「冰釀茶酒」「業務流程」「Sawyer」</div>`;
+      }
       return;
     }
     el.innerHTML = `
