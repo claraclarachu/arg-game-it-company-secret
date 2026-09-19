@@ -345,10 +345,11 @@
 :root[data-theme="light"] #view-whatsapp .wa__info{background:var(--wa-list-bg);border-left-color:var(--wa-border)}
 :root[data-theme="light"] #view-whatsapp .wa__msg-avatar{border-color:rgba(0,0,0,.08)}
 
-/* WhatsApp image lightbox — zoom in/out */
+/* WhatsApp image lightbox — zoom in/out — above taskbar and search sticky */
 .wa-lightbox{
   position:fixed;inset:0;background:rgba(11,20,26,.82);backdrop-filter:blur(4px);
-  z-index:1250;display:none;align-items:center;justify-content:center;padding:16px;
+  z-index:3000;display:none;align-items:center;justify-content:center;padding:16px;
+  isolation:isolate;
 }
 .wa-lightbox.open{display:flex}
 .wa-lightbox__backdrop{position:absolute;inset:0}

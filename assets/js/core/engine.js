@@ -34,14 +34,23 @@ const puzzles = [
   {
     id: 'ch2_accident_news',
     chapter: 2,
-    check: () => state.get('searchHistory')?.some(h => h.includes('Sawyer') || h.includes('Choi') || h.includes('車禍')),
+    check: () => {
+      const hist = state.get('searchHistory') || [];
+      return hist.some(h => {
+        const q = typeof h === 'string' ? h : (h?.q ?? h?.text ?? '');
+        return q.includes('Sawyer') || q.includes('Choi') || q.includes('車禍');
+      });
+    },
     reward: { evidence: { id: 'e003', title: '車禍新聞 — 父母雙亡', chapter: 2, type: 'news' } },
     title: '搜尋到車禍新聞'
   },
   {
     id: 'ch2_insurance_blog',
     chapter: 2,
-    check: () => state.get('discoveredFiles')?.includes('https://sawyer-blog.example/2012-07-07') || state.get('searchHistory')?.some(h => h.includes('保險')),
+    check: () => state.get('discoveredFiles')?.includes('https://sawyer-blog.example/2012-07-07') || (state.get('searchHistory') || []).some(h => {
+      const q = typeof h === 'string' ? h : (h?.q ?? h?.text ?? '');
+      return q.includes('保險');
+    }),
     reward: { evidence: { id: 'e004', title: '保險受益人 Blog', chapter: 2, type: 'blog' } },
     title: '發現保險受益人文章'
   },
@@ -124,33 +133,46 @@ const puzzles = [
 ];
 
 function evaluatePuzzles() {
+  // ── Puzzle checks — isolated per puzzle so one malformed entry never blocks the rest ──
   for (const p of puzzles) {
-    if (state.hasFlag(`puzzle:${p.id}`)) continue;
-    if (p.check()) {
-      state.setFlag(`puzzle:${p.id}`, true);
-      if (p.reward?.evidence) state.addEvidence(p.reward.evidence);
-      if (p.reward?.unlock) p.reward.unlock.forEach(i => state.unlockInterface(i));
-      events.emit('puzzle:solved', p);
+    try {
+      if (state.hasFlag(`puzzle:${p.id}`)) continue;
+      if (p.check()) {
+        state.setFlag(`puzzle:${p.id}`, true);
+        if (p.reward?.evidence) state.addEvidence(p.reward.evidence);
+        if (p.reward?.unlock) p.reward.unlock.forEach(i => state.unlockInterface(i));
+        events.emit('puzzle:solved', p);
+      }
+    } catch (e) {
+      console.warn('[engine] puzzle check failed:', p.id, e);
     }
   }
 
-  // ── Chapter progression (REVAMP_PLAN §4) ──
-  // Ch0: onboarding_done (INV-2024-0042 fix)
-  // Ch1: ch1_system_down (INV-2024-0043 alert) + ch1_revert_done
+  // ── Chapter progression (REVAMP_PLAN §4) — must run even if puzzle checks threw ──
+  // Ch0: ch0_vip_fixed (INV-2024-0042 fix) — commit 正確 VIP 折扣即算完成，與搜尋行為無關
+  // Ch1: ch1_revert_done (revert 0043)
   // Ch2: free exploration (after ch1 revert)
   // Ch3: dark_entered / hidden_portal_accessed (entered darknet)
   // Ch4: ch4_all_opened (opened all darknet files)
   // Ch5: endings chosen
   let ch = 0;
-  if (state.hasFlag('ch0_vip_fixed')) ch = 1;
-  if (state.hasFlag('ch1_revert_done')) ch = 2;
-  if (state.hasFlag('dark_entered') || state.hasFlag('hidden_portal_accessed')) ch = 3;
-  if (state.hasFlag('ch4_all_opened')) ch = 4;
-  if ((state.get('endings') || []).length > 0) ch = 5;
+  try {
+    if (state.hasFlag('ch0_vip_fixed')) ch = 1;
+    if (state.hasFlag('ch1_revert_done')) ch = 2;
+    if (state.hasFlag('dark_entered') || state.hasFlag('hidden_portal_accessed')) ch = 3;
+    if (state.hasFlag('ch4_all_opened')) ch = 4;
+    if ((state.get('endings') || []).length > 0) ch = 5;
+  } catch (e) {
+    console.warn('[engine] chapter calc failed', e);
+  }
 
-  if (ch !== state.get('currentChapter')) {
-    state.set('currentChapter', ch);
-    events.emit('chapter:changed', ch);
+  try {
+    if (ch !== state.get('currentChapter')) {
+      state.set('currentChapter', ch);
+      events.emit('chapter:changed', ch);
+    }
+  } catch (e) {
+    console.warn('[engine] chapter set failed', e);
   }
 }
 

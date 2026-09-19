@@ -412,9 +412,11 @@ function getSuggestions(q) {
   webIndex.forEach(r => {
     if (r.title.toLowerCase().includes(low) && !set.has(r.title)) { set.add(r.title); out.push({ text: r.title, kind: r.type }); }
   });
-  // from history (keep)
+  // from history (keep) — handle both string and {q,at} shapes for old saves
   (state.get('searchHistory') || []).slice(-5).reverse().forEach(h => {
-    if (h.q.toLowerCase().includes(low) && !set.has(h.q)) { set.add(h.q); out.push({ text: h.q, kind: 'history' }); }
+    const qStr = typeof h === 'string' ? h : (h?.q ?? h?.text ?? '');
+    if (!qStr) return;
+    if (qStr.toLowerCase().includes(low) && !set.has(qStr)) { set.add(qStr); out.push({ text: qStr, kind: 'history' }); }
   });
   return out.slice(0, 8);
 }
@@ -608,7 +610,12 @@ function renderHistory() {
   if (!el) return;
   const hist = (state.get('searchHistory') || []).slice(-8).reverse();
   if (!hist.length) { el.innerHTML = '<div class="small muted">尚無歷史</div>'; return; }
-  el.innerHTML = hist.map(h => `<div class="history-item" data-q="${escapeHtml(h.q)}"><span>${escapeHtml(h.q)}</span><span class="small">${new Date(h.at).toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'})}</span></div>`).join('');
+  el.innerHTML = hist.map(h => {
+    const qStr = typeof h === 'string' ? h : (h?.q ?? h?.text ?? '');
+    const at = typeof h === 'string' ? '' : (h?.at ?? '');
+    const timeStr = at ? new Date(at).toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'}) : '';
+    return `<div class="history-item" data-q="${escapeHtml(qStr)}"><span>${escapeHtml(qStr)}</span><span class="small">${timeStr}</span></div>`;
+  }).join('');
   el.querySelectorAll('.history-item').forEach(n => n.addEventListener('click', () => doSearch(n.dataset.q)));
 }
 

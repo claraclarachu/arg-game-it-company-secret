@@ -80,7 +80,9 @@ button{font:inherit}
   display:flex;
   overflow:hidden;
   position:relative;
-  z-index:1;
+  /* z-index removed — viewport must not create stacking context that traps fixed lightboxes (school/wa) under taskbar.
+     Lightboxes use position:fixed with high z-index and need to overlay taskbar. */
+  z-index:auto;
   padding:8px;
   gap:8px;
 }
