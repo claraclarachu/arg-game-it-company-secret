@@ -1,11 +1,13 @@
 <!doctype html>
 <html lang="zh-TW" data-theme="dark">
+
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#0078d4" />
   <title>聽日辭職 - 程式開發員日常</title>
-  <meta name="description" content="沉浸式體驗初級程式開發員日常的離線 ARG，開發新手友善。看不懂的程式術語，直接用遊戲內的 Search 瀏覽器查查看。在解謎過程中，你會慢慢發現這間公司藏著不尋常的秘密，隨著線索拼湊，平凡的加班日常正被推向意想不到的方向，總共有5個結局可以自由選擇。完全離線可玩，建議電腦遊玩。" />
+  <meta name="description"
+    content="沉浸式體驗初級程式開發員日常的離線 ARG，開發新手友善。看不懂的程式術語，直接用遊戲內的 Search 瀏覽器查查看。在解謎過程中，你會慢慢發現這間公司藏著不尋常的秘密，隨著線索拼湊，平凡的加班日常正被推向意想不到的方向，總共有5個結局可以自由選擇。完全離線可玩，建議電腦遊玩。" />
   <link rel="icon" type="image/png" href="/arg-game-it-company-secret/assets/resignTmr-nKPkpzce.png" />
   <link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png" />
   <link rel="icon" type="image/png" sizes="512x512" href="./icon-512.png" />
@@ -15,18 +17,32 @@
   <meta property="og:type" content="website" />
   <meta property="og:locale" content="zh_TW" />
   <meta property="og:title" content="聽日辭職 - 程式開發員日常" />
-  <meta property="og:description" content="沉浸式體驗初級程式開發員日常的離線 ARG，開發新手友善。看不懂的程式術語，直接用遊戲內的 Search 瀏覽器查查看。在解謎過程中，你會慢慢發現這間公司藏著不尋常的秘密——隨著文件、對話與日常工作的細節拼湊，平凡的加班日常正被推向另一個方向。留下、揭露，或是轉身離開，每個選擇都將導向不同的結局。完全離線可玩，支援手機。" />
+  <meta property="og:description"
+    content="沉浸式體驗初級程式開發員日常的離線 ARG，開發新手友善。看不懂的程式術語，直接用遊戲內的 Search 瀏覽器查查看。在解謎過程中，你會慢慢發現這間公司藏著不尋常的秘密——隨著文件、對話與日常工作的細節拼湊，平凡的加班日常正被推向另一個方向。留下、揭露，或是轉身離開，每個選擇都將導向不同的結局。完全離線可玩，支援手機。" />
   <meta property="og:image" content="./og-image.png" />
   <meta property="og:url" content="https://claraclarachu.github.io/arg-game-it-company-secret/" />
   <meta property="og:site_name" content="聽日辭職" />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="聽日辭職 - 程式開發員日常" />
-  <meta name="twitter:description" content="沉浸式初級工程師日常離線 ARG，新手友善。看不懂術語就用遊戲內 Search 查一下吧。日常工單之間，你會慢慢發現這間公司不太對勁，隨著線索浮現，每個選擇都將改寫結局。" />
+  <meta name="twitter:description"
+    content="沉浸式初級工程師日常離線 ARG，新手友善。看不懂術語就用遊戲內 Search 查一下吧。日常工單之間，你會慢慢發現這間公司不太對勁，隨著線索浮現，每個選擇都將改寫結局。" />
   <meta name="twitter:image" content="./og-image.png" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+
+
+
+
+
+
+
+
+
+
+
   <script type="module" crossorigin src="/arg-game-it-company-secret/assets/main-BhUeaTQp.js"></script>
   <link rel="stylesheet" crossorigin href="/arg-game-it-company-secret/assets/main-v2MpvfpZ.css">
 </head>
+
 <body>
   <div class="app">
     <!-- Windows 11 desktop wallpaper area -->
@@ -45,12 +61,16 @@
 
   <div id="toasts" class="toasts" aria-live="polite"></div>
 
-  <dialog id="settingsDialog" style="background:var(--bg-secondary);color:var(--fg-primary);border:1px solid var(--border);border-radius:12px;padding:0;max-width:520px;width:90%">
+  <dialog id="settingsDialog"
+    style="background:var(--bg-secondary);color:var(--fg-primary);border:1px solid var(--border);border-radius:12px;padding:0;max-width:520px;width:90%">
     <div style="padding:16px">
       <h3 style="margin:0 0 12px">設定</h3>
       <div style="display:grid;gap:10px">
         <label>主題
-          <select id="settingTheme" class="select"><option value="dark">Dark</option><option value="light">Light</option></select>
+          <select id="settingTheme" class="select">
+            <option value="dark">Dark</option>
+            <option value="light">Light</option>
+          </select>
         </label>
         <div style="display:flex;align-items:center;gap:8px">
           <button id="settingFullscreenBtn" class="btn" style="min-width:80px">開啟全螢幕</button>
@@ -61,12 +81,16 @@
           <span class="small" id="bgmVolumePct">25%</span>
         </div>
         <div class="small muted">遊玩時長: <span id="settingPlaytime">0s</span></div>
-        <div hidden style="margin-top:10px;border:1px solid var(--border);border-radius:8px;padding:10px;background:var(--bg-primary)">
+        <div hidden
+          style="margin-top:10px;border:1px solid var(--border);border-radius:8px;padding:10px;background:var(--bg-primary)">
           <div style="font-weight:600;font-size:13px">數據追蹤</div>
-          <div class="small muted" style="margin-top:4px;line-height:1.6">同意後才會上報 WhatUp/Email/結局/章節。注意‼️請勿填寫任何個人識別，銀行帳戶等資訊。</div>
-          <label style="display:flex;align-items:center;gap:8px;margin-top:8px;font-size:13px"><input id="analyticsConsentToggle" type="checkbox" /> 同意匿名收集</label>
+          <div class="small muted" style="margin-top:4px;line-height:1.6">同意後才會上報
+            WhatUp/Email/結局/章節。注意‼️請勿填寫任何個人識別，銀行帳戶等資訊。</div>
+          <label style="display:flex;align-items:center;gap:8px;margin-top:8px;font-size:13px"><input
+              id="analyticsConsentToggle" type="checkbox" /> 同意匿名收集</label>
           <label style="display:block;margin-top:8px;font-size:12px">GAS Web App URL
-            <input id="analyticsGasUrl" class="input" placeholder="https://script.google.com/macros/s/.../exec" style="margin-top:4px;width:100%" />
+            <input id="analyticsGasUrl" class="input" placeholder="https://script.google.com/macros/s/.../exec"
+              style="margin-top:4px;width:100%" />
           </label>
           <div style="display:flex;gap:8px;margin-top:8px">
             <button id="analyticsSaveBtn" class="btn small">儲存</button>
@@ -74,9 +98,11 @@
             <button id="analyticsFlushBtn" class="btn small">補送佇列</button>
             <span id="analyticsStatus" class="small muted" style="align-self:center"></span>
           </div>
-          <div class="small muted" style="margin-top:6px">佇列: <span id="analyticsQueueCount">0</span> 筆 · Session: <span id="analyticsSessionId">-</span></div>
+          <div class="small muted" style="margin-top:6px">佇列: <span id="analyticsQueueCount">0</span> 筆 · Session: <span
+              id="analyticsSessionId">-</span></div>
         </div>
-        <details style="margin-top:8px;border:1px solid var(--border);border-radius:8px;padding:8px;background:var(--bg-primary)">
+        <details
+          style="margin-top:8px;border:1px solid var(--border);border-radius:8px;padding:8px;background:var(--bg-primary)">
           <summary style="cursor:pointer;font-weight:600;font-size:13px">鍵盤快捷鍵映射</summary>
           <div style="margin-top:8px;display:grid;gap:4px;font-size:12px;color:var(--fg-secondary)">
             <div><span class="badge">Ctrl+P</span> 快速開啟檔案（Quick Open）</div>
@@ -89,20 +115,24 @@
           </div>
         </details>
       </div>
-      <div style="text-align:right;margin-top:12px"><button class="btn primary" onclick="this.closest('dialog').close()">關閉</button></div>
+      <div style="text-align:right;margin-top:12px"><button class="btn primary"
+          onclick="this.closest('dialog').close()">關閉</button></div>
     </div>
   </dialog>
 
-  <dialog id="notebookDialog" style="background:var(--bg-secondary);color:var(--fg-primary);border:1px solid var(--border);border-radius:12px;padding:0;max-width:640px;width:90%;max-height:80vh;overflow:auto">
+  <dialog id="notebookDialog"
+    style="background:var(--bg-secondary);color:var(--fg-primary);border:1px solid var(--border);border-radius:12px;padding:0;max-width:640px;width:90%;max-height:80vh;overflow:auto">
     <div style="padding:16px">
       <h3 style="margin:0 0 12px">筆記本 · 證據板</h3>
       <div id="notebookContent"></div>
-      <div style="text-align:right;margin-top:12px"><button class="btn primary" onclick="this.closest('dialog').close()">關閉</button></div>
+      <div style="text-align:right;margin-top:12px"><button class="btn primary"
+          onclick="this.closest('dialog').close()">關閉</button></div>
     </div>
   </dialog>
 
   <!-- Onboarding Narrative Dialog -->
-  <dialog id="onboardingDialog" style="background:var(--bg-secondary);color:var(--fg-primary);border:1px solid var(--border);border-radius:12px;padding:0;max-width:580px;width:90%;max-height:85vh;overflow:auto">
+  <dialog id="onboardingDialog"
+    style="background:var(--bg-secondary);color:var(--fg-primary);border:1px solid var(--border);border-radius:12px;padding:0;max-width:580px;width:90%;max-height:85vh;overflow:auto">
     <div style="padding:20px">
       <div id="onboardingContent"></div>
       <div style="text-align:right;margin-top:16px;padding-top:12px;border-top:1px solid var(--border)">
@@ -113,7 +143,8 @@
   </dialog>
 
   <!-- Send Mail Dialog (Ch5) -->
-  <dialog id="mailDialog" style="background:var(--bg-secondary);color:var(--fg-primary);border:1px solid var(--border);border-radius:12px;padding:0;max-width:560px;width:90%">
+  <dialog id="mailDialog"
+    style="background:var(--bg-secondary);color:var(--fg-primary);border:1px solid var(--border);border-radius:12px;padding:0;max-width:560px;width:90%">
     <div style="padding:16px">
       <h3 style="margin:0 0 12px">寄送郵件</h3>
       <div style="display:grid;gap:10px">
@@ -128,7 +159,8 @@
           <input id="mailTo" class="input" readonly />
         </label>
         <label>內容
-          <textarea id="mailBody" class="input" style="min-height:120px;resize:vertical" placeholder="在此輸入郵件內容..."></textarea>
+          <textarea id="mailBody" class="input" style="min-height:120px;resize:vertical"
+            placeholder="在此輸入郵件內容..."></textarea>
         </label>
       </div>
       <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px">
@@ -140,24 +172,39 @@
   </dialog>
 
   <!-- Start Menu -->
-  <div id="startMenu" style="display:none;position:fixed;left:12px;bottom:56px;width:320px;background:var(--bg-secondary);border:1px solid var(--border);border-radius:12px;box-shadow:0 12px 32px rgba(0,0,0,.4);z-index:1200;overflow:hidden">
+  <div id="startMenu"
+    style="display:none;position:fixed;left:12px;bottom:56px;width:320px;background:var(--bg-secondary);border:1px solid var(--border);border-radius:12px;box-shadow:0 12px 32px rgba(0,0,0,.4);z-index:1200;overflow:hidden">
     <div style="padding:12px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px">
-      <div style="width:36px;height:36px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700">C</div>
-      <div><div style="font-weight:700">Casey</div><div class="small muted">初級開發人員</div></div>
+      <div
+        style="width:36px;height:36px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700">
+        C</div>
+      <div>
+        <div style="font-weight:700">Casey</div>
+        <div class="small muted">初級開發人員</div>
+      </div>
     </div>
     <div style="padding:8px;display:grid;gap:4px">
-      <button class="btn" id="startShutdown" style="justify-content:flex-start;display:flex;gap:8px;align-items:center"><span>⏻</span> 關機</button>
-      <button class="btn" id="startLogout" style="justify-content:flex-start;display:flex;gap:8px;align-items:center"><span>⎋</span> 登出</button>
+      <button class="btn" id="startShutdown"
+        style="justify-content:flex-start;display:flex;gap:8px;align-items:center"><span>⏻</span> 關機</button>
+      <button class="btn" id="startLogout"
+        style="justify-content:flex-start;display:flex;gap:8px;align-items:center"><span>⎋</span> 登出</button>
     </div>
   </div>
 
   <!-- Welcome Dialog (first open) -->
-  <dialog id="welcomeDialog" style="background:var(--bg-secondary);color:var(--fg-primary);border:1px solid var(--border);border-radius:12px;padding:0;max-width:460px;width:90%">
+  <dialog id="welcomeDialog"
+    style="background:var(--bg-secondary);color:var(--fg-primary);border:1px solid var(--border);border-radius:12px;padding:0;max-width:460px;width:90%">
     <div style="padding:24px">
       <h3 style="margin:0 0 16px;text-align:center">歡迎遊玩「聽日辭職」</h3>
       <p class="small muted" style="text-align:center;margin:0 0 20px">為獲得最佳體驗，建議您進行以下設定：</p>
       <div style="display:grid;gap:16px">
-        <div style="display:flex;align-items:center;justify-content:space-between;padding:12px;border:1px solid var(--border);border-radius:8px">
+        <div
+          style="display:flex;align-items:center;justify-content:space-between;padding:12px;border:1px solid var(--border);border-radius:8px">
+          <div
+            style="display:flex;align-items:center;justify-content:space-between;padding:12px;border:1px solid var(--border);border-radius:8px">
+            <div style="font-weight:600;font-size:14px">瀏覧器</div>
+            <div class="small muted">建議使用 Google Chrome 瀏覽器，以獲得最佳瀏覽體驗</div>
+          </div>
           <div>
             <div style="font-weight:600;font-size:14px">全螢幕模式</div>
             <div class="small muted">沉浸式遊戲體驗</div>
@@ -180,10 +227,12 @@
   </dialog>
 
   <!-- Analytics consent banner -->
-  <div id="analyticsBanner" style="display:none;position:fixed;left:12px;right:12px;bottom:72px;max-width:560px;margin:0 auto;background:var(--bg-secondary);color:var(--fg-primary);border:1px solid var(--border);border-radius:12px;box-shadow:0 12px 32px rgba(0,0,0,.4);z-index:1250;padding:14px 16px;gap:12px;align-items:center">
+  <div id="analyticsBanner"
+    style="display:none;position:fixed;left:12px;right:12px;bottom:72px;max-width:560px;margin:0 auto;background:var(--bg-secondary);color:var(--fg-primary);border:1px solid var(--border);border-radius:12px;box-shadow:0 12px 32px rgba(0,0,0,.4);z-index:1250;padding:14px 16px;gap:12px;align-items:center">
     <div style="flex:1;min-width:0">
       <div style="font-weight:700;font-size:13px">是否同意匿名收集遊戲數據？</div>
-      <div class="small muted" style="margin-top:4px;line-height:1.6">用於改善遊戲體驗，此遊戲將收集遊戲相關資料，僅收集 WhatUp 發送內容、Email 標題與內文預覽、解鎖結局與章節。可在設定中隨時開關。注意‼️請勿於輸入欄位填寫任何個人識別，銀行帳戶等資訊</div>
+      <div class="small muted" style="margin-top:4px;line-height:1.6">用於改善遊戲體驗，此遊戲將收集遊戲相關資料，僅收集 WhatUp 發送內容、Email
+        標題與內文預覽、解鎖結局與章節。可在設定中隨時開關。注意‼️請勿於輸入欄位填寫任何個人識別，銀行帳戶等資訊</div>
     </div>
     <div style="display:flex;gap:8px;flex-shrink:0">
       <button id="analyticsDecline" class="btn">不同意</button>
@@ -192,8 +241,10 @@
   </div>
 
   <!-- Ending Screen - black screen + typing dialog -->
-  <div id="endingScreen" style="display:none;position:fixed;inset:0;background:#000;z-index:1300;align-items:center;justify-content:center;padding:20px">
-    <div style="background:var(--bg-secondary);border:1px solid var(--border);border-radius:12px;padding:24px;max-width:580px;width:100%;box-shadow:0 16px 48px rgba(0,0,0,.5);position:relative;min-height:220px;display:flex;flex-direction:column">
+  <div id="endingScreen"
+    style="display:none;position:fixed;inset:0;background:#000;z-index:1300;align-items:center;justify-content:center;padding:20px">
+    <div
+      style="background:var(--bg-secondary);border:1px solid var(--border);border-radius:12px;padding:24px;max-width:580px;width:100%;box-shadow:0 16px 48px rgba(0,0,0,.5);position:relative;min-height:220px;display:flex;flex-direction:column">
       <h2 id="endingTitle" style="margin:0 0 12px;text-align:left"></h2>
       <p id="endingDesc" class="small" style="line-height:1.8;text-align:left;white-space:pre-wrap;min-height:80px"></p>
       <div style="margin-top:16px;display:flex;justify-content:flex-end">
@@ -201,7 +252,8 @@
       </div>
     </div>
   </div>
-
+
+
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
@@ -220,7 +272,7 @@
               });
             }
           });
-        }).catch(()=>{});
+        }).catch(() => { });
         // Also handle controller change (new SW activated)
         let refreshing = false;
         navigator.serviceWorker.addEventListener('controllerchange', () => {
@@ -232,4 +284,5 @@
     }
   </script>
 </body>
+
 </html>
