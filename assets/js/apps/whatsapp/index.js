@@ -194,7 +194,7 @@ function trackWhatsappSent(chatId, text) {
   try { state.incrementWhatsappSent(); } catch {}
   try {
     const t = (text || '').toLowerCase();
-    const keywords = ['rubbish', '垃圾', 'dumb', '笨', '蠢', 'stupid', '傻', '笨蛋', '白癡', 'idiot', 'fool', '傻瓜', 'die', 'dead', '死', 'shit', 'fuck', '屎'];
+    const keywords = ['rubbish', '垃圾', 'dumb', '笨', '蠢', 'stupid', '傻', '笨蛋', '白癡', 'idiot', 'fool', '傻瓜', 'die', 'dead', '死', 'shit', 'fuck', '屎', '屌'];
     const isSawyer = chatId === 'sawyer';
     const hasKeyword = keywords.some(k => t.includes(k.toLowerCase()));
     if (isSawyer && hasKeyword) {
